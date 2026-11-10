@@ -6,7 +6,7 @@
     </picture>
   </a>
   <br><br>
-  <img src="https://raw.githubusercontent.com/danielmigueltejedor/celdas/main/assets/app-icon/hicolor/512x512/apps/ai.storyteller.gridcraft.png" width="176" height="176" alt="Celdas">
+  <img src="https://raw.githubusercontent.com/danielmigueltejedor/celdas/main/assets/app-icon/hicolor/512x512/apps/ai.storyteller.gridcraft.png" width="160" alt="Celdas">
   <h1>Celdas</h1>
   <p><strong>A spreadsheet application for the Nodalia suite, built on the GridCraft engine.</strong></p>
 
