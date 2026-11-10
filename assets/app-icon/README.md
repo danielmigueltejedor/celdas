@@ -1,40 +1,22 @@
-# GridCraft app icon (PLACEHOLDER)
+# Celdas app icon
 
-**This icon is temporary.** Every Crafting App's icon is an engraved creature portrait that the
-product owner makes; GridCraft's hasn't been made yet.
-Until it is, this placeholder stands in: a simple ledger page with a header row, a row-number
-column, a selected cell with its fill handle and a double rule under a total, on a full-bleed
-GridCraft-green tile. It is original geometry written by hand for this repository, deliberately
-not modelled on any vendor's spreadsheet logo (no letters, no "X", no overlapping panels).
+**Figure:** Blaise Pascal. He built the first mechanical calculator, a fitting figure for a spreadsheet.
 
-When the owner's art arrives, replace `gridcraft.svg`, run `packaging/icons.sh`, update this
-README (provenance, creature) and the rows in `ATTRIBUTION.md`, and drop the word placeholder.
+**Style:** a black-and-white portrait cut out over a full-bleed colour field, head and shoulders, in
+the Nodalia icon family (one historical figure per app, one colour per app).
 
-## Palette
+**Tile:** 512 × 512 viewBox, rounded square `rx=112`, clipped; no border or roundel.
 
-Exactly three colours:
-
-| Colour | Hex | Used for |
-|---|---|---|
-| Ink | `#0b0b0c` | Line work and contour |
-| Paper | `#efe9dc` | The page |
-| GridCraft green (app colour, **proposed**) | `#1f9d55` | The full-bleed field and the header cells |
-
-The app colour is a proposal pending the owner's approval: GridCraft green `#1f9d55`, with ink
-(darker) variant `#147a40` for text and accents on light backgrounds. It differs from
-DesignCraft's `#7bb51c`.
-
-## Geometry
-
-A 512 × 512 viewBox, clipped to a rounded square with `rx=112`. Windows and Linux use the full
-tile. The macOS icons (`.icns`, `gridcraft-macos-512.png`) sit on Apple's grid: an 824/1024
-body with a transparent margin.
+**Provenance:** the portrait is "Portrait of Blaise Pascal MET DP828975.jpg" from
+[Wikimedia Commons](https://commons.wikimedia.org/wiki/File:Portrait_of_Blaise_Pascal_MET_DP828975.jpg) (CC0). The figure was separated from its
+background, converted to black and white and placed over the app colour.
+Licence: see [LICENSE.txt](LICENSE.txt).
 
 ## Files
 
 | File | Use |
 |---|---|
-| `gridcraft.svg` | Canonical artwork; also `hicolor/scalable` |
+| `gridcraft.svg` | master: the portrait as a 1024 px image embedded in an SVG with the tile clip (canonical) |
 | `gridcraft-1024.png` | 1024 px render of the full tile |
 | `gridcraft-macos-512.png` | Runtime Dock icon on macOS (for `apps/gridcraft` to embed) |
 | `gridcraft.icns` | macOS bundle icon (`CFBundleIconFile`) |
@@ -48,5 +30,7 @@ ID and `packaging/linux/ai.storyteller.gridcraft.desktop`.
 
 ## Regenerate
 
-Edit `gridcraft.svg`, then run `packaging/icons.sh`. It needs `resvg`, and `iconutil` for the
-`.icns` (macOS only). It packs the `.ico` with `cargo xtask ico`.
+The icon is a raster portrait, so the SVG files embed an image instead of traced paths. The
+derived files in this directory were rendered directly from the portrait. `packaging/icons.sh`
+still works on `gridcraft.svg` (resvg renders embedded images), but its output will differ slightly
+from the committed files in resampling.
