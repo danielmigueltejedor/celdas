@@ -62,7 +62,7 @@ sed -e "s/@VERSION@/$VERSION/g" -e "s/@DATE@/$GRIDCRAFT_BUILD_DATE/g" \
 cp -R "$ROOT/assets/app-icon/hicolor" "$TREE/share/icons/"
 
 # The .desktop names the icon dev.danielmiguelt.Celdas (the Nodalia name); install it under that name too.
-for f in "$TREE"/share/icons/hicolor/*/apps/"$APP_ID".*; do cp "$f" "${f%/*}/dev.danielmiguelt.Celdas.${f##*.}"; done
+for f in "$TREE"/share/icons/hicolor/*/apps/"$APP_ID".{png,svg}; do cp "$f" "${f%/*}/dev.danielmiguelt.Celdas.${f##*.}"; done
 copy_docs "$TREE/share/doc/gridcraft"
 
 tar -C "$WORK" -czf "$DIST/$BASENAME.tar.gz" "$BASENAME"
