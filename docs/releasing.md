@@ -1,17 +1,17 @@
-# Releasing GridCraft
+# Releasing Celdas
 
 Every push to the `release` branch runs `.github/workflows/release.yml`. The workflow builds
 signed installers for macOS, Windows, Linux, FreeBSD and the web, then creates or updates a
-**draft** GitHub Release named `GridCraft v<version>`. Nobody sees a draft until a maintainer
+**draft** GitHub Release named `Celdas v<version>`. Nobody sees a draft until a maintainer
 publishes it.
 
-This process was copied from DesignCraft and renamed. User-facing names say
-**GridCraft**. Files, binaries and ids stay lowercase
+This process was copied from Pliego and renamed. User-facing names say
+**Celdas**. Files, binaries and ids stay lowercase
 (`gridcraft-<version>-<platform>-<arch>.<ext>`, `ai.storyteller.gridcraft`).
 
 | App-specific value | Where |
 |---|---|
-| Display name `GridCraft`, binaries `gridcraft` + `gridcraft-cli` | every script and workflow |
+| Display name `Celdas`, binaries `gridcraft` + `gridcraft-cli` | every script and workflow |
 | Bundle / app id `ai.storyteller.gridcraft` | `packaging/macos/Info.plist.in`, `packaging/linux/*`, flatpak manifest |
 | WiX UpgradeCode `5511327B-F305-41BE-92D0-EB84944E7C4D` (fixed forever) | `packaging/windows/gridcraft.wxs` |
 | File types `.xlsx` `.xlsm` `.xlsb` `.ods` `.csv` `.tsv` | Info.plist (`CFBundleDocumentTypes`), WiX (ProgIds/OpenWithProgids), `.desktop` `MimeType=`, `ai.storyteller.gridcraft.mime.xml`, metainfo |
@@ -50,7 +50,7 @@ The `apps/gridcraft` and `apps/gridcraft-web` crates are workspace members, and
    Commit the change (`Cargo.toml` + `Cargo.lock`) through the normal review flow.
 2. **Merge `main` into `release`** (or fast-forward it) and push. The workflow starts by itself.
 3. **Wait for the draft.** Notarization and the FreeBSD VM are the slow parts. The Releases
-   page then has a draft `GridCraft v0.2.0`, tagged `v0.2.0` on the pushed commit, with every
+   page then has a draft `Celdas v0.2.0`, tagged `v0.2.0` on the pushed commit, with every
    artifact and `SHA256SUMS.txt`. The notes are generated from the merged PRs.
 4. **Check it.** Download an installer or two and read the job summaries. Any `::warning::`
    there means a signing secret was missing and that artifact is unsigned.
@@ -88,12 +88,12 @@ and upload their artifacts, the environment refuses macOS and Windows, and no re
 ### macOS
 
 `packaging/macos/package.sh` builds `aarch64-apple-darwin` and `x86_64-apple-darwin` with
-`MACOSX_DEPLOYMENT_TARGET=11.0`, joins them with `lipo`, and assembles `GridCraft.app`:
+`MACOSX_DEPLOYMENT_TARGET=11.0`, joins them with `lipo`, and assembles `Celdas.app`:
 
 - `Info.plist` comes from `Info.plist.in`: bundle id `ai.storyteller.gridcraft`,
   `LSMinimumSystemVersion` 11.0, `NSHighResolutionCapable`, category productivity, and
   `CFBundleDocumentTypes` for `.xlsx`, `.xlsm`, `.xlsb`, `.ods`, `.csv` and `.tsv` with rank
-  **Alternate**, so GridCraft is offered in *Open With* without taking over Numbers' (or another
+  **Alternate**, so Celdas is offered in *Open With* without taking over Numbers' (or another
   app's) defaults. `.xlsm` and `.xlsb` get imported UTIs in case macOS doesn't know them.
 - **Signing** goes inside-out with the hardened runtime and a secure timestamp; no `--deep` on
   the final signature; `entitlements.plist` is deliberately empty.
@@ -101,7 +101,7 @@ and upload their artifacts, the environment refuses macOS and Windows, and no re
   stapled. The DMG (with an `Applications` link) is signed, notarized and stapled too, and
   checked with `codesign --verify --strict`, `stapler validate` and `spctl -a -vvv`.
   Its Finder window (background, icon size and positions) comes from
-  [`packaging/macos/dmg/`](../packaging/macos/dmg/README.md), and its volume is named `GridCraft`
+  [`packaging/macos/dmg/`](../packaging/macos/dmg/README.md), and its volume is named `Celdas`
   without the version, which the window's background needs; the DMG file name keeps the version.
 - **CLI:** the universal `gridcraft-cli` is signed, zipped and notarized.
 
@@ -121,11 +121,11 @@ is GUI, `gridcraft-cli.exe` console), signs both executables, builds the MSI wit
 the MSI, and zips a portable build.
 
 - `gridcraft.wxs`: a dual-scope package (per-user by default into
-  `%LOCALAPPDATA%\Programs\ArtCraft\GridCraft`, per-machine into `Program Files\ArtCraft\GridCraft` (`Program Files (x86)` for the 32-bit build),
+  `%LOCALAPPDATA%\Programs\ArtCraft\Celdas`, per-machine into `Program Files\ArtCraft\Celdas` (`Program Files (x86)` for the 32-bit build),
   see `packaging/windows/INSTALLATION.md`), advertised Start Menu shortcut, App
-  Paths (Win+R `gridcraft`). File types: ProgIds `GridCraft.Workbook` (`.xlsx`, `.xlsm`) and
-  `GridCraft.TextData` (`.csv`, `.tsv`), listed under each extension's `OpenWithProgids` and
-  in `Capabilities` + `RegisteredApplications`, so GridCraft appears in *Open with* and
+  Paths (Win+R `gridcraft`). File types: ProgIds `Celdas.Workbook` (`.xlsx`, `.xlsm`) and
+  `Celdas.TextData` (`.csv`, `.tsv`), listed under each extension's `OpenWithProgids` and
+  in `Capabilities` + `RegisteredApplications`, so Celdas appears in *Open with* and
   *Settings › Default apps* but never silently becomes the default. The MSI version is the
   numeric `X.Y.Z`; same-version upgrades let release candidates replace each other.
 - **Desktop shortcut:** full installer UI offers an unchecked checkbox on a new installation.
@@ -272,7 +272,7 @@ the publisher.
 ## Icons
 
 `assets/app-icon/gridcraft.svg` is a **placeholder** (an original ledger-page drawing on
-GridCraft green) until the owner makes GridCraft's engraved creature portrait. `packaging/icons.sh` regenerates the 1024 px PNG, the macOS 512 px
+Celdas green) until the owner makes Celdas's engraved creature portrait. `packaging/icons.sh` regenerates the 1024 px PNG, the macOS 512 px
 PNG, the `.icns` (iconutil), the `.ico` (`cargo xtask ico`) and the hicolor PNGs from it; it
 needs `resvg`. The outputs are committed, so packaging never needs those tools. Every file has a
 row in `ATTRIBUTION.md` (`cargo xtask assets`).
