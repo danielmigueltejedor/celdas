@@ -26,4 +26,4 @@ The standard-library-only `display_names` integration tests scan production Rust
 |---|---|---|
 | 2026-11-10 | minor | Ukrainian Chart is `Діаграма`, matching [craft-i18n#211](https://github.com/storytold/craft-i18n/pull/211) and distinct from Diagram (`Схема`) |
 | 2026-11-10 | minor | Diagram no longer repeats the chart word: German `Schema`, Ukrainian `Схема` (as craft-i18n#211), Romanian `Schemă`; a test covers every shipped catalog |
-| 2026-11-08 | minor | Created: SmartArt → Diagram and WordArt → Decorative Text as GridCraft's own catalog labels |
+| 2026-11-08 | minor | Created: SmartArt → Diagram and WordArt → Decorative Text as Celdas's own catalog labels |
