@@ -76,7 +76,7 @@ mod tests {
 
     #[test]
     fn the_releases_are_this_apps_own() {
-        assert_eq!(crate::UPDATE_APP.repo, "danielmigueltejedor/celdas");
+        assert_eq!(crate::UPDATE_APP.repo, "getnodalia/celdas");
         assert_eq!(crate::UPDATE_APP.version, env!("CARGO_PKG_VERSION"));
     }
 

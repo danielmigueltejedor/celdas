@@ -10,7 +10,7 @@
 #[cfg(not(target_arch = "wasm32"))]
 pub const UPDATE_APP: nodalia_update::App = nodalia_update::App {
     name: "Celdas",
-    repo: "danielmigueltejedor/celdas",
+    repo: "getnodalia/celdas",
     bundle: "GridCraft.app",
     version: env!("CARGO_PKG_VERSION"),
     edition: None,
