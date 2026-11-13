@@ -8,6 +8,12 @@ name: Release Linux
 # tag=vX.Y.Z to rebuild a release's files; without a tag it only uploads workflow artifacts.
 
 on:
+  # Also when the packaging changes: artifacts only, so a broken package shows before a release.
+  pull_request:
+    paths:
+      - "packaging/linux/**"
+      - "packaging/*.sh"
+      - ".github/workflows/release-linux.yml"
   workflow_dispatch:
     inputs:
       tag:

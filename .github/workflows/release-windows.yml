@@ -13,6 +13,12 @@ name: Release Windows
 # tag=vX.Y.Z to rebuild a release's files; without a tag it only uploads workflow artifacts.
 
 on:
+  # Also when the packaging changes: artifacts only, so a broken package shows before a release.
+  pull_request:
+    paths:
+      - "packaging/windows/**"
+      - "packaging/*.sh"
+      - ".github/workflows/release-windows.yml"
   workflow_dispatch:
     inputs:
       tag:
