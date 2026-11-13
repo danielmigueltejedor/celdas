@@ -44,6 +44,12 @@ getrandom = "0.4"
 [target.'cfg(any(target_os = "linux", target_os = "freebsd"))'.dependencies]
 arboard = { workspace = true, features = ["image-data", "wayland-data-control"] }
 
+# The global menu in the desktop's top bar (src/linux_menu.rs): dbusmenu over the session bus.
+# MIT, already in the build through accesskit. Pinned exactly: review the diff before bumping.
+[target.'cfg(any(target_os = "linux", target_os = "freebsd", target_os = "dragonfly", target_os = "netbsd", target_os = "openbsd"))'.dependencies]
+zbus = "=5.19.0"
+serde = { workspace = true, features = ["derive"] }
+
 [target.'cfg(target_os = "windows")'.dependencies]
 # Blocks on the start-up DirectX 12 adapter probe (`graphics.rs`); already in the tree via eframe.
 pollster = "1"

@@ -686,9 +686,11 @@ dependencies = [
  "objc2-app-kit 0.3.2",
  "pollster 1.0.1",
  "rfd",
+ "serde",
  "serde_json",
  "winit",
  "winresource",
+ "zbus",
 ]
 
 [[package]]
