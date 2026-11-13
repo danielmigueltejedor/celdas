@@ -1,7 +1,7 @@
 use super::controls::{act, checkbox_on, control_keytip, invoke, keytip, menu_items, popup_command, sep};
 use super::{Icon, Rect, SheetApp, Tokens, Ui, big_button, json, keytip_table, pos2, theme, vec2};
 
-/// Draws the View tab: view modes, ruler/gridlines/formula-bar/headings toggles, zoom, freeze panes, theme, animations, interface size and language.
+/// Draws the View tab: view modes, ruler/gridlines/formula-bar/headings toggles, zoom, freeze panes, animations, interface size and language.
 pub(super) fn view(app: &mut SheetApp, ui: &mut Ui) {
     let t = Tokens::get(ui.ctx());
     let _ = t;
@@ -100,25 +100,7 @@ pub(super) fn view(app: &mut SheetApp, ui: &mut Ui) {
     });
     switch_windows(app, ui);
     ui.vertical(|ui| {
-        let label_response = ui.label(lang.tr("Display theme"));
-        let mode = app.ui.theme_mode();
-        let label = match mode {
-            "system" => "System",
-            "dark" => "Dark",
-            _ => "Light",
-        };
-        craft_ui::ComboBox::from_id_salt("display_theme")
-            .selected_text(lang.tr(label))
-            .width(88.0)
-            .show_ui(ui, |ui| {
-                for (value, label) in [("system", "System"), ("light", "Light"), ("dark", "Dark")] {
-                    if ui.selectable_label(mode == value, lang.tr(label)).clicked() {
-                        act(app, "view.theme", json!({"mode": value}));
-                    }
-                }
-            })
-            .response
-            .labelled_by(label_response.id);
+        // The light and dark choice lives only in Preferences (File › Options › General).
         let mut animations = app.ui.animations;
         let hint = lang.tr("Glide the selection outline to the cell you move to instead of jumping there");
         if ui.checkbox(&mut animations, lang.tr("Animations")).on_hover_text(hint).changed() {

@@ -61,7 +61,8 @@ pub(super) fn format_cells(app: &mut SheetApp, ui: &mut egui::Ui, d: &mut Dialog
                     "[h]:mm:ss",
                     "@",
                 ] {
-                    if cols[1].small_button(c).clicked() {
+                    // A list of codes to pick from, the current one marked.
+                    if cols[1].selectable_label(code == c, c).clicked() {
                         code = c.to_string();
                     }
                 }

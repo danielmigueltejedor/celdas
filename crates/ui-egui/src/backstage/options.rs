@@ -76,6 +76,24 @@ fn general_options(app: &mut SheetApp, ui: &mut Ui, lang: Language) {
             .response
             .labelled_by(label.id);
         ui.end_row();
+        // Linux and the BSDs: Nodalia's window controls or the desktop's (from the next start).
+        if app.linux_desktop {
+            let label = ui.label(lang.tr("Window controls"));
+            let current = app.ui.window_controls;
+            craft_ui::ComboBox::from_id_salt("backstage_window_controls")
+                .width(160.0)
+                .selected_text(lang.tr(current.label()))
+                .show_ui(ui, |ui| {
+                    for c in crate::window_controls::WindowControls::ALL {
+                        if ui.selectable_label(current == c, lang.tr(c.label())).clicked() {
+                            app.run_or_alert("ui.windowControls", json!({"value": c.code()}));
+                        }
+                    }
+                })
+                .response
+                .labelled_by(label.id);
+            ui.end_row();
+        }
         let label = ui.label(lang.tr("Interface language"));
         craft_ui::ComboBox::from_id_salt("backstage_language")
             .width(160.0)

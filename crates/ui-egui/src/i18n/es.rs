@@ -6,6 +6,17 @@
 pub(super) fn translate(text: &str) -> Option<&'static str> {
     Some(match text {
         "Diagram" => "Diagrama",
+        "Main menu" => "Menú principal",
+        "Preferences" => "Preferencias",
+        "Keyboard shortcuts" => "Atajos de teclado",
+        "Keyboard Shortcuts" => "Atajos de teclado",
+        "Check for updates…" => "Buscar actualizaciones…",
+        "Quit" => "Salir",
+        "Window controls" => "Controles de ventana",
+        "Use the desktop's" => "Los del escritorio",
+        "Minimize" => "Minimizar",
+        "Maximize" => "Maximizar",
+        "Restore" => "Restaurar",
         "Decorative Text" => "Texto decorativo",
         "Paste" => "Pegar",
         "Paste Values" => "Pegar valores",

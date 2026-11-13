@@ -37,7 +37,7 @@ fn a_host_can_leave_out_the_title_bar_and_the_file_tab() {
     // The ribbon tabs are painted text, so measure the move with the first ribbon control.
     let (with_bar, without) = (full.get_by_label("Paste").rect(), h.get_by_label("Paste").rect());
     let moved = with_bar.min.y - without.min.y;
-    assert!((25.0..=40.0).contains(&moved), "the ribbon moves up by the title bar's height (28 on macOS, 38 elsewhere), moved {moved}");
+    assert!((25.0..=50.0).contains(&moved), "the ribbon moves up by the title bar's height (28 on macOS, 44 elsewhere), moved {moved}");
     assert_eq!(with_bar.min.x, without.min.x, "the ribbon's groups keep their place across");
 }
 

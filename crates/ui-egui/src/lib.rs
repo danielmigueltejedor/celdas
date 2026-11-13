@@ -54,6 +54,7 @@ pub mod theme;
 #[cfg(not(target_arch = "wasm32"))]
 mod updates_ui;
 pub mod widgets;
+pub mod window_controls;
 mod window_ui;
 
 pub use window_ui::WindowUi;
@@ -122,6 +123,9 @@ pub struct UiState {
     /// [`INTERFACE_SCALE_MIN`]..=[`INTERFACE_SCALE_MAX`]; a malformed saved value reads as 100.
     #[serde(deserialize_with = "lenient_interface_scale")]
     pub interface_scale: u16,
+    /// Linux and the BSDs: Nodalia's window controls in Celdas's own title bar, or the desktop's
+    /// (File › Options › General). Takes effect at the next start.
+    pub window_controls: window_controls::WindowControls,
 }
 
 pub const INTERFACE_SCALE_MIN: u16 = 75;
@@ -157,6 +161,7 @@ impl Default for UiState {
             keytip_invoke_next: None,
             language: i18n::Language::En,
             interface_scale: 100,
+            window_controls: window_controls::WindowControls::default(),
         }
     }
 }
@@ -217,6 +222,10 @@ pub struct Perf {
 pub struct SheetApp {
     pub session: Session,
     pub ui: UiState,
+    /// The desktop app on Linux and the BSDs, where Celdas can draw its own window controls.
+    pub linux_desktop: bool,
+    /// The window has no OS decorations and Celdas draws Nodalia's window controls.
+    pub ndl_window_controls: bool,
     /// The window chrome to draw (see [`Chrome`]).
     pub chrome: Chrome,
     /// Scroll position per (window id, sheet uid): each sheet keeps its own when sheets are

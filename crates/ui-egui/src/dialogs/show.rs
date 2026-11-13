@@ -168,7 +168,9 @@ pub fn show(app: &mut SheetApp, ctx: &egui::Context) {
         // A default position, not an anchor: egui anchors can't be dragged, and dialogs move by their title bar.
         .pivot(egui::Align2::CENTER_CENTER)
         .default_pos(ctx.content_rect().center() + vec2(0.0, -40.0))
-        .open(&mut win_open);
+        // Nodalia's dialog header (the title and a round close button) replaces egui's title bar;
+        // the dialog moves by dragging its background.
+        .title_bar(false);
     let window = match d.name.as_str() {
         "insertPicture" => window.default_height(240.0),
         "advancedFilter" => window.default_height(0.0),
@@ -176,6 +178,7 @@ pub fn show(app: &mut SheetApp, ctx: &egui::Context) {
     };
     let (window, collapsed) = place_window(app, ctx, &mut d, window, window_id);
     let shown = window.show(ctx, |ui| {
+            dialog_header(ui, app.ui.language.tr(&d.title), app.ui.language.tr("Close"), &mut win_open);
             if let Some(key) = &collapsed {
                 let title = d.title.clone();
                 ref_edit(app, ui, &mut d, key, RefLabel::Named(&title), (width - 40.0).min(380.0));
@@ -215,6 +218,7 @@ pub fn show(app: &mut SheetApp, ctx: &egui::Context) {
                     ui.label(format!("{} engine commands are available. See docs/mcp.md and docs/control-protocol.md.", celdas_engine::command_specs().len()));
                 }
                 "about" => about(ui, &mut d),
+                "keyboardShortcuts" => keyboard_shortcuts(app, ui),
                 "journal" => {
                     egui::ScrollArea::vertical().max_height(360.0).show(ui, |ui| {
                         for (id, p) in app.session.journal.iter().rev().take(500) {
@@ -730,4 +734,40 @@ fn page_order_preview(ui: &mut egui::Ui, order: PageOrder) {
     let d = (to - from).normalized();
     let n = vec2(-d.y, d.x);
     p.add(egui::Shape::convex_polygon(vec![to, to - d * 6.0 + n * 3.5, to - d * 6.0 - n * 3.5], t.accent, egui::Stroke::NONE));
+}
+
+/// Every command with a keyboard shortcut on this platform, with its keys (the main menu's
+/// Keyboard shortcuts).
+fn keyboard_shortcuts(app: &SheetApp, ui: &mut egui::Ui) {
+    let mac = ui.ctx().os() == egui::os::OperatingSystem::Mac;
+    let lang = app.ui.language;
+    let mut rows: Vec<(&str, String)> = celdas_engine::command_specs()
+        .iter()
+        .filter_map(|c| c.info(&app.session).shortcut_for_platform(mac).map(|keys| (lang.tr(c.label), keys)))
+        .collect();
+    rows.sort_by_key(|row| row.0.to_lowercase());
+    rows.dedup();
+    egui::ScrollArea::vertical().max_height(420.0).show(ui, |ui| {
+        egui::Grid::new("keyboard_shortcuts").num_columns(2).striped(true).spacing(egui::vec2(24.0, 6.0)).show(ui, |ui| {
+            for (label, keys) in rows {
+                ui.label(label);
+                ui.label(egui::RichText::new(keys).monospace());
+                ui.end_row();
+            }
+        });
+    });
+}
+
+/// A dialog's header in the Nodalia look: its title, and a round close button at the end.
+fn dialog_header(ui: &mut egui::Ui, title: &str, close: &str, open: &mut bool) {
+    let t = crate::theme::Tokens::get(ui.ctx());
+    ui.horizontal(|ui| {
+        ui.label(egui::RichText::new(title).font(crate::theme::ui_bold(15.0)).color(t.text));
+        ui.with_layout(egui::Layout::right_to_left(egui::Align::Center), |ui| {
+            if crate::window_controls::close_button(ui, 24.0, close) {
+                *open = false;
+            }
+        });
+    });
+    ui.add_space(6.0);
 }

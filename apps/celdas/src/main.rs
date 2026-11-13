@@ -332,6 +332,13 @@ fn main() -> eframe::Result<()> {
     if cfg!(target_os = "macos") {
         viewport = viewport.with_fullsize_content_view(true).with_titlebar_shown(false).with_title_shown(false);
     }
+    // Linux and the BSDs: Celdas's own title bar with Nodalia's window controls, unless the
+    // preferences ask for the desktop's. macOS and Windows keep their native controls.
+    app.linux_desktop = cfg!(all(unix, not(target_os = "macos")));
+    app.ndl_window_controls = app.linux_desktop && app.ui.window_controls == celdas_ui_egui::window_controls::WindowControls::Nodalia;
+    if app.ndl_window_controls {
+        viewport = viewport.with_decorations(false);
+    }
     if let Some(i) = icon() {
         viewport = viewport.with_icon(i);
     }

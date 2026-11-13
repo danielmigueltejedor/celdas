@@ -1,4 +1,5 @@
-//! Celdas's icon set, drawn in code on a 16×16 design grid (original artwork; see
+//! Celdas's icons: the Nodalia Design set (nodalia-design, bold style) through [`ndl_name`], with
+//! Celdas's own drawings on a 16×16 design grid as the fallback (original artwork; see
 //! ATTRIBUTION.md). Large ribbon icons use the same drawings at 32×32 with accent colours.
 //! Accent and paper colours come from the theme tokens, so icons follow light and dark mode;
 //! icons placed on the sheet ([`paint_on_sheet`]) keep the light colours, as the sheet does.
@@ -303,10 +304,18 @@ pub fn paint_on_sheet(p: &Painter, rect: Rect, icon: Icon, c: Color32) {
     paint_with(p, rect, icon, c, &Palette::of(&Tokens::light()));
 }
 
-/// Draws `icon` into `rect` (square-ish), in colour `c`, with palette `pal`.
+/// Draws `icon` into `rect` (square-ish), in colour `c`, with palette `pal`: Nodalia's icon,
+/// or Celdas's own drawing when the set has none.
 fn paint_with(p: &Painter, rect: Rect, icon: Icon, c: Color32, pal: &Palette) {
     let side = rect.width().min(rect.height());
     let r = Rect::from_center_size(rect.center(), vec2(side, side));
+    if !paint_ndl(p, r, icon, pal.accent.unwrap_or(c)) {
+        paint_drawn(p, r, side, icon, c, pal);
+    }
+}
+
+/// Celdas's own drawing of `icon` in the square `r` of `side` points.
+fn paint_drawn(p: &Painter, r: Rect, side: f32, icon: Icon, c: Color32, pal: &Palette) {
     let g = G { p, r, s: side / 16.0 };
     let c = match pal.accent {
         Some(a) if !has_accent_part(icon) => a,
@@ -947,6 +956,164 @@ pub const LIBRARY: &[(&str, Icon)] = &[
     ("trace", Icon::Trace),
     ("validation", Icon::Validation),
 ];
+
+/// The Nodalia Design icon that draws `icon`: every interface icon comes from nodalia-design's
+/// set, in its bold style.
+pub fn ndl_name(icon: Icon) -> &'static str {
+    match icon {
+        Icon::Paste => "paste",
+        Icon::Cut => "cut",
+        Icon::Copy => "copy",
+        Icon::Brush => "format-painter",
+        Icon::Bold => "bold",
+        Icon::Italic => "italic",
+        Icon::Underline => "underline",
+        Icon::Strike => "strikethrough",
+        Icon::Borders => "borders",
+        Icon::BorderAll => "border-all",
+        Icon::BorderNone => "border-none",
+        Icon::BorderOutside => "border-outside",
+        Icon::BorderThick => "border-thick",
+        Icon::Fill => "fill",
+        Icon::FontColor => "text-color",
+        Icon::AlignTop => "align-top",
+        Icon::AlignMiddle => "align-middle",
+        Icon::AlignBottom => "align-bottom",
+        Icon::AlignLeft => "align-left",
+        Icon::AlignCenter => "align-center",
+        Icon::AlignRight => "align-right",
+        Icon::Orientation => "text-angle",
+        Icon::IndentDec => "outdent",
+        Icon::IndentInc => "indent",
+        Icon::Wrap => "wrap-text",
+        Icon::Merge => "merge-cells",
+        Icon::Currency => "currency",
+        Icon::Percent => "percent",
+        Icon::Comma => "comma-style",
+        Icon::DecInc => "decimal-increase",
+        Icon::DecDec => "decimal-decrease",
+        Icon::CondFormat => "conditional-format",
+        Icon::FormatTable => "format-as-table",
+        Icon::CellStyles => "styles",
+        Icon::Insert => "row-insert",
+        Icon::Delete => "delete",
+        Icon::Format => "cell-format",
+        Icon::Sum => "sum",
+        Icon::FillDown => "fill-down",
+        Icon::Eraser => "eraser",
+        Icon::SortFilter => "sort-filter",
+        Icon::Find => "search",
+        Icon::Undo => "undo",
+        Icon::Redo => "redo",
+        Icon::Save => "save",
+        Icon::Home => "home",
+        Icon::More => "more-horizontal",
+        Icon::Chevron => "chevron-down",
+        Icon::ChevronUp => "chevron-up",
+        Icon::Close => "close",
+        Icon::Check => "check",
+        Icon::Fx => "function",
+        Icon::Plus => "plus",
+        Icon::Left => "chevron-left",
+        Icon::Right => "chevron-right",
+        Icon::Normal => "spreadsheet",
+        Icon::PageLayout => "layout",
+        Icon::PageBreak => "page-break",
+        Icon::Minus => "minus",
+        Icon::Table => "table",
+        Icon::PivotTable => "pivot-table",
+        Icon::Chart => "histogram",
+        Icon::ChartBar => "chart-bar",
+        Icon::ChartLine => "chart",
+        Icon::ChartPie => "chart-pie",
+        Icon::ChartScatter => "chart-scatter",
+        Icon::Picture => "image",
+        Icon::Shapes => "shapes",
+        Icon::Link => "link",
+        Icon::Comment => "comment",
+        Icon::Note => "note",
+        Icon::TextBox => "text-box",
+        Icon::Symbol => "symbol",
+        Icon::Equation => "equation",
+        Icon::Sparkline => "sparkline",
+        Icon::Checkbox => "check-square",
+        Icon::Button => "form-button",
+        Icon::Slider => "slider",
+        Icon::Spin => "spin-button",
+        Icon::Function => "function",
+        Icon::Name => "tag",
+        Icon::Trace => "trace-precedents",
+        Icon::Calc => "calculator",
+        Icon::Filter => "filter",
+        Icon::SortAsc => "sort-ascending",
+        Icon::SortDesc => "sort-descending",
+        Icon::Duplicates => "remove-duplicates",
+        Icon::TextColumns => "text-to-columns",
+        Icon::Validation => "data-validation",
+        Icon::Group => "group",
+        Icon::Ungroup => "ungroup",
+        Icon::Subtotal => "subtotal",
+        Icon::Lock => "lock",
+        Icon::Spell => "spellcheck",
+        Icon::Freeze => "freeze-panes",
+        Icon::Zoom => "zoom",
+        Icon::Gridlines => "gridlines",
+        Icon::Theme => "palette",
+        Icon::Margins => "margins",
+        Icon::Orient => "orientation",
+        Icon::SheetRtl => "text-rtl",
+        Icon::Paper => "page-size",
+        Icon::PrintArea => "print-area",
+        Icon::Script => "code",
+        Icon::Pen => "pen",
+        Icon::Share => "share",
+        Icon::Search => "search",
+        Icon::Settings => "settings",
+        Icon::Appearance => "appearance",
+        Icon::Sheet => "spreadsheet",
+        Icon::SheetList => "list-view",
+        Icon::Book => "book",
+        Icon::Folder => "folder",
+        Icon::Header => "header",
+        Icon::Footer => "footer",
+        Icon::PageNumber => "page-number",
+        Icon::PageCount => "hash",
+        Icon::Calendar => "calendar",
+        Icon::Clock => "clock",
+        Icon::FileName => "file",
+        Icon::Back => "arrow-left",
+        Icon::NewFile => "new",
+        Icon::OpenFolder => "open",
+        Icon::Info => "info",
+        Icon::Print => "print",
+        Icon::Macro => "macro",
+        Icon::Record => "record",
+        Icon::Relative => "relative-reference",
+        Icon::Collapse => "minus",
+        Icon::Expand => "plus",
+        Icon::Play => "play",
+        Icon::Step => "step-into",
+        Icon::Continue => "fast-forward",
+        Icon::RunTo => "run-to-cursor",
+        Icon::StopSquare => "stop",
+        Icon::FnBook(glyph) => match glyph {
+            FnGlyph::Star => "star",
+            FnGlyph::Coins => "coins",
+            FnGlyph::Question => "help",
+            FnGlyph::Letter => "text",
+            FnGlyph::Magnifier => "search",
+            FnGlyph::Theta => "math-trig",
+            FnGlyph::Dots => "more-horizontal",
+            FnGlyph::Clock => "clock",
+        },
+    }
+}
+
+/// Paints `icon` from the Nodalia set in `ink`. False when the set cannot draw it.
+fn paint_ndl(p: &Painter, rect: Rect, icon: Icon, ink: Color32) -> bool {
+    let Some(ndl) = nodalia_theme::icons::get(ndl_name(icon)) else { return false };
+    nodalia_theme::icons::paint(p, rect, ndl, nodalia_theme::icons::Style::bold(ink))
+}
 
 pub fn from_name(name: &str) -> Option<Icon> {
     LIBRARY.iter().find(|(n, _)| n.eq_ignore_ascii_case(name)).map(|(_, i)| *i)

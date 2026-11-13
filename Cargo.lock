@@ -835,6 +835,7 @@ dependencies = [
  "epaint_default_fonts",
  "image",
  "log",
+ "nodalia-theme",
  "nodalia-update",
  "serde",
  "serde_json",
@@ -3095,6 +3096,14 @@ source = "registry+https://github.com/rust-lang/crates.io-index"
 checksum = "ee6cda3051665f1fb8d9e08fc35c96d5a244fb1be711a03b71118828afc9a873"
 dependencies = [
  "jni-sys 0.3.1",
+]
+
+[[package]]
+name = "nodalia-theme"
+version = "0.1.0-alpha.1"
+source = "git+https://github.com/danielmigueltejedor/nodalia-design?rev=102610341b023e1b2b5eba9d8566214cc3c701b7#102610341b023e1b2b5eba9d8566214cc3c701b7"
+dependencies = [
+ "egui",
 ]
 
 [[package]]

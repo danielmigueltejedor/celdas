@@ -1,5 +1,5 @@
-use super::controls::{act, control_keytip};
-use super::{Color32, Icon, Sense, SheetApp, Stroke, StrokeKind, Tokens, Ui, icon_button, json, pos2, small_button, theme, theme_choices, vec2};
+use super::controls::control_keytip;
+use super::{Color32, Icon, Rect, Sense, SheetApp, Stroke, StrokeKind, Tokens, Ui, icon_button, json, pos2, small_button, theme, vec2};
 
 /// macOS draws the window into the title bar (`with_fullsize_content_view`) and AppKit paints the
 /// traffic lights itself, centred in its standard 28 pt title-bar band. Moving them would take
@@ -25,28 +25,33 @@ pub const MAC_CONTENT_LEFT: f32 = MAC_LIGHTS_LEFT + 2.0 * MAC_LIGHT_PITCH + MAC_
 /// Leave room for the macOS traffic lights when the content extends into the title bar.
 pub const TITLE_LEFT_PAD: f32 = if MAC { MAC_CONTENT_LEFT } else { 8.0 };
 
-pub(super) const TITLE_BAR_H: f32 = if MAC { MAC_TITLE_BAR } else { 38.0 };
+pub(super) const TITLE_BAR_H: f32 = if MAC { MAC_TITLE_BAR } else { 44.0 };
 
 /// The tallest title-bar controls, smaller on macOS to keep a margin in the shorter bar.
-pub(super) const TITLE_CONTROL_H: f32 = if MAC { 22.0 } else { 26.0 };
+pub(super) const TITLE_CONTROL_H: f32 = if MAC { 22.0 } else { 28.0 };
 
-/// Draws the title bar: drag/maximize, AutoSave toggle, Home/Save/Undo/Redo/More, search, share, comments and theme controls, with a centered truncated title.
+/// Draws the title bar: the main menu, AutoSave toggle, Home/Save/Undo/Redo/More, search, share and comments, a centred truncated
+/// title, and Nodalia's window controls on Linux; its free stretch drags the window and a double-click maximizes it.
 pub fn title_bar(app: &mut SheetApp, ui: &mut Ui) {
     let t = Tokens::get(ui.ctx());
     let ch = TITLE_CONTROL_H;
-    egui::Panel::top("title_bar").exact_size(TITLE_BAR_H).frame(egui::Frame::NONE.fill(t.window)).show(ui, |ui| {
-        let rect = ui.max_rect();
+    let captions = crate::window_controls::reserved(app);
+    egui::Panel::top("title_bar").exact_size(TITLE_BAR_H).show_separator_line(false).frame(egui::Frame::NONE.fill(t.window)).show(ui, |ui| {
+        let full = ui.max_rect();
         // Dragging the empty title area moves the window.
-        let bg = ui.interact(rect, ui.scope_id().with("drag_title"), Sense::click_and_drag());
+        let bg = ui.interact(full, ui.scope_id().with("drag_title"), Sense::click_and_drag());
         if bg.drag_started() {
-            ui.ctx().send_viewport_cmd(egui::ViewportCommand::StartDrag);
+            crate::window_controls::start_os_move(ui.ctx());
         }
         if bg.double_clicked() {
-            let max = ui.ctx().input(|i| i.viewport().maximized.unwrap_or(false));
-            ui.ctx().send_viewport_cmd(egui::ViewportCommand::Maximized(!max));
+            crate::window_controls::toggle_maximize(ui.ctx());
         }
+        crate::window_controls::caption_buttons(app, ui, full);
+        let rect = Rect::from_min_max(full.min, pos2(full.max.x - captions, full.max.y));
         ui.horizontal_centered(|ui| {
             ui.add_space(TITLE_LEFT_PAD);
+            app_menu(app, ui, ch);
+            ui.add_space(4.0);
             // AutoSave toggle (saves after each change when the workbook has a file).
             ui.label(egui::RichText::new(app.ui.language.tr("AutoSave")).font(theme::ui_font(12.5)).color(t.text_dim));
             let on = app.ui.autosave;
@@ -120,7 +125,7 @@ pub fn title_bar(app: &mut SheetApp, ui: &mut Ui) {
             });
             let left_end = ui.min_rect().right();
             let right = ui.with_layout(egui::Layout::right_to_left(egui::Align::Center), |ui| {
-                ui.add_space(8.0);
+                ui.add_space(8.0 + captions);
                 let __k = icon_button(ui, Icon::Search, t.text_dim, "Search commands", vec2(28.0, ch));
                 control_keytip(app, ui, &__k, "commandSearch");
                 if __k.clicked() {
@@ -144,16 +149,6 @@ pub fn title_bar(app: &mut SheetApp, ui: &mut Ui) {
                 if __k.clicked() {
                     app.open_dialog("comments", json!({}));
                 }
-                // Quick light/dark switch (#194); right-click offers System as well. The same
-                // choice lives in File › Display theme and the View tab.
-                let lang = app.ui.language;
-                let theme = icon_button(ui, Icon::Appearance, t.text_dim, "Dark Mode", vec2(28.0, 26.0));
-                let dark = ui.ctx().theme() == egui::Theme::Dark;
-                theme.widget_info(|| egui::WidgetInfo::selected(egui::Role::CheckBox, true, dark, lang.tr("Dark Mode")));
-                if theme.clicked() {
-                    act(app, "view.darkMode", json!({}));
-                }
-                theme.context_menu(|ui| theme_choices(app, ui));
                 ui.min_rect().left()
             });
             // Centred title, cut with "…" so it never runs under the controls on either side.
@@ -162,6 +157,71 @@ pub fn title_bar(app: &mut SheetApp, ui: &mut Ui) {
             let max_w = title_max_width(rect.center().x, left_end, right.inner);
             paint_title(ui, rect.center(), &title, dirty, max_w, t.text);
         });
+    });
+}
+
+/// The main menu button's id (stable, so tests and agents can find it).
+pub(crate) fn app_menu_button_id() -> egui::Id {
+    egui::Id::unique("celdas.app_menu")
+}
+
+/// The main menu at the title bar's start (Nodalia Design): Preferences, Keyboard shortcuts,
+/// Check for updates, About and Quit. The light and dark choice lives in Preferences.
+fn app_menu(app: &mut SheetApp, ui: &mut Ui, h: f32) {
+    let t = Tokens::get(ui.ctx());
+    let lang = app.ui.language;
+    let (r, _) = ui.allocate_exact_size(vec2(h, h), Sense::hover());
+    let resp = ui.interact(r, app_menu_button_id(), Sense::click());
+    let open = egui::Popup::is_id_open(ui.ctx(), egui::Popup::default_response_id(&resp));
+    if resp.hovered() || open {
+        ui.painter().circle_filled(r.center(), h / 2.0, if open { t.pressed } else { t.hover });
+    }
+    if let Some(icon) = nodalia_theme::icons::get("menu") {
+        nodalia_theme::icons::paint(
+            ui.painter(),
+            Rect::from_center_size(r.center(), vec2(20.0, 20.0)),
+            icon,
+            nodalia_theme::icons::Style::bold(t.text),
+        );
+    }
+    resp.widget_info(|| egui::WidgetInfo::labeled(egui::Role::Button, true, lang.tr("Main menu")));
+    egui::Popup::menu(&resp).show(|ui| {
+        ui.set_min_width(220.0);
+        let t = Tokens::get(ui.ctx());
+        // One row: Nodalia's icon, then the label.
+        let item = |ui: &mut Ui, icon: &str, label: &str| {
+            let resp = ui.add(egui::Button::new(format!("       {label}")).frame_when_inactive(false).min_size(vec2(208.0, 28.0)));
+            if let Some(i) = nodalia_theme::icons::get(icon) {
+                let at = Rect::from_center_size(pos2(resp.rect.min.x + 16.0, resp.rect.center().y), vec2(16.0, 16.0));
+                nodalia_theme::icons::paint(ui.painter(), at, i, nodalia_theme::icons::Style::bold(t.text));
+            }
+            resp.widget_info(|| egui::WidgetInfo::labeled(egui::Role::Button, true, label));
+            resp.clicked()
+        };
+        let mut run: Option<(&str, serde_json::Value)> = None;
+        if item(ui, "settings", lang.tr("Preferences")) {
+            run = Some(("ui.backstage", json!({"page": "options"})));
+        }
+        if item(ui, "keyboard", lang.tr("Keyboard shortcuts")) {
+            run = Some(("ui.dialog", json!({"name": "keyboardShortcuts"})));
+        }
+        #[cfg(not(target_arch = "wasm32"))]
+        if item(ui, "refresh", lang.tr("Check for updates…")) {
+            run = Some(("app.checkForUpdates", json!({})));
+        }
+        if item(ui, "info", lang.tr("About Celdas")) {
+            run = Some(("ui.dialog", json!({"name": "about"})));
+        }
+        ui.separator();
+        let quit = item(ui, "log-out", lang.tr("Quit"));
+        if let Some((id, params)) = run {
+            app.run_or_alert(id, params);
+            ui.close();
+        }
+        if quit {
+            ui.ctx().send_viewport_cmd(egui::ViewportCommand::Close);
+            ui.close();
+        }
     });
 }
 

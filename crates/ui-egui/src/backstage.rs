@@ -167,12 +167,14 @@ pub fn show(app: &mut SheetApp, ui: &mut Ui) {
     let t = Tokens::get(&ctx);
     let lang = app.ui.language;
     let mut out = Outcome::default();
-    let (nav_bg, nav_text, nav_sel) =
-        if t.dark { (t.accent_soft, t.text, Color32::from_white_alpha(30)) } else { (t.accent, Color32::WHITE, Color32::from_black_alpha(46)) };
+    // Nodalia Design: the navigation and the page are two islands on the window colour.
+    let (nav_text, nav_sel) = (t.text, t.accent_soft);
+    let g = theme::ISLAND_GAP as i8;
     egui::Panel::left("backstage_nav")
-        .exact_size(NAV_W)
+        .exact_size(NAV_W + 16.0 + f32::from(g))
         .resizable(false)
-        .frame(egui::Frame::NONE.fill(nav_bg).inner_margin(egui::Margin { left: 0, right: 0, top: 10, bottom: 10 }))
+        .show_separator_line(false)
+        .frame(theme::island(&t, egui::Margin { left: 8, right: 8, top: 10, bottom: 10 }, egui::Margin { left: g, right: 0, top: 0, bottom: g }))
         .show(ui, |ui| {
             ui.spacing_mut().item_spacing.y = 0.0;
             if nav_item(ui, Icon::Back, lang.tr("Back"), false, nav_text, nav_sel).clicked() {
@@ -212,26 +214,29 @@ pub fn show(app: &mut SheetApp, ui: &mut Ui) {
                 }
             });
         });
-    egui::CentralPanel::default().frame(egui::Frame::NONE.fill(t.ribbon)).show(ui, |ui| {
-        egui::ScrollArea::vertical().auto_shrink([false, false]).show(ui, |ui| {
-            egui::Frame::NONE.inner_margin(egui::Margin { left: 44, right: 32, top: 26, bottom: 32 }).show(ui, |ui| {
-                ui.set_max_width(CONTENT_W);
-                ui.label(RichText::new(lang.tr(bs.page.label())).font(theme::ui_font(28.0)).color(t.text));
-                ui.add_space(18.0);
-                match bs.page {
-                    Page::Home => home(app, ui, &mut bs, &mut out),
-                    Page::New => new_page(app, ui, &mut out),
-                    Page::Open => open_page(app, ui, &mut bs, &mut out),
-                    Page::Info => info(app, ui, &mut bs),
-                    Page::SaveAs => save_as(app, ui, &mut bs, &mut out),
-                    Page::Print => print(app, ui, &mut bs, &mut out),
-                    Page::Export => export(app, ui, &mut out),
-                    Page::Options => options(app, ui),
-                    Page::Account => account(app, ui),
-                }
+    egui::CentralPanel::default().frame(theme::island(&t, egui::Margin::ZERO, egui::Margin { left: g, right: g, top: 0, bottom: g })).show(
+        ui,
+        |ui| {
+            egui::ScrollArea::vertical().auto_shrink([false, false]).show(ui, |ui| {
+                egui::Frame::NONE.inner_margin(egui::Margin { left: 44, right: 32, top: 26, bottom: 32 }).show(ui, |ui| {
+                    ui.set_max_width(CONTENT_W);
+                    ui.label(RichText::new(lang.tr(bs.page.label())).font(theme::ui_font(28.0)).color(t.text));
+                    ui.add_space(18.0);
+                    match bs.page {
+                        Page::Home => home(app, ui, &mut bs, &mut out),
+                        Page::New => new_page(app, ui, &mut out),
+                        Page::Open => open_page(app, ui, &mut bs, &mut out),
+                        Page::Info => info(app, ui, &mut bs),
+                        Page::SaveAs => save_as(app, ui, &mut bs, &mut out),
+                        Page::Print => print(app, ui, &mut bs, &mut out),
+                        Page::Export => export(app, ui, &mut out),
+                        Page::Options => options(app, ui),
+                        Page::Account => account(app, ui),
+                    }
+                });
             });
-        });
-    });
+        },
+    );
     bs.text_edit_focused = ctx.text_edit_focused();
     if !typing
         && app.dialog.is_none()
@@ -272,22 +277,33 @@ fn save(app: &mut SheetApp, out: &mut Outcome) {
 fn nav_item(ui: &mut Ui, icon: Icon, label: &str, selected: bool, text: Color32, sel: Color32) -> egui::Response {
     let (rect, resp) = ui.allocate_exact_size(vec2(NAV_W, 38.0), Sense::click());
     resp.widget_info(|| egui::WidgetInfo::selected(egui::Role::Button, true, selected, label));
+    let t = Tokens::get(ui.ctx());
     let p = ui.painter();
-    if selected {
-        p.rect_filled(rect, 0.0, sel);
-        p.rect_filled(Rect::from_min_size(rect.min, vec2(4.0, rect.height())), 0.0, text);
-    } else if resp.hovered() {
-        p.rect_filled(rect, 0.0, sel.gamma_multiply(0.55));
-    }
-    icons::paint(p, Rect::from_center_size(pos2(rect.left() + 30.0, rect.center().y), vec2(17.0, 17.0)), icon, text);
-    p.text(pos2(rect.left() + 50.0, rect.center().y), Align2::LEFT_CENTER, label, theme::ui_font(14.0), text);
+    // Rounded rows, the selected one in the accent's soft tint with accent-coloured ink.
+    let text = if selected {
+        p.rect_filled(rect, theme::CONTROL_RADIUS, sel);
+        theme::ndl(theme::palette_of(&t).accent_text)
+    } else {
+        if resp.hovered() {
+            p.rect_filled(rect, theme::CONTROL_RADIUS, t.hover);
+        }
+        text
+    };
+    icons::paint(p, Rect::from_center_size(pos2(rect.left() + 22.0, rect.center().y), vec2(18.0, 18.0)), icon, text);
+    p.text(
+        pos2(rect.left() + 42.0, rect.center().y),
+        Align2::LEFT_CENTER,
+        label,
+        if selected { theme::ui_bold(14.0) } else { theme::ui_font(14.0) },
+        text,
+    );
     resp
 }
 
 fn nav_separator(ui: &mut Ui, text: Color32) {
     let (rect, _) = ui.allocate_exact_size(vec2(NAV_W, 17.0), Sense::hover());
     let y = rect.center().y;
-    ui.painter().line_segment([pos2(rect.left() + 20.0, y), pos2(rect.right() - 20.0, y)], Stroke::new(1.0, text.gamma_multiply(0.35)));
+    ui.painter().line_segment([pos2(rect.left() + 12.0, y), pos2(rect.right() - 12.0, y)], Stroke::new(1.0, text.gamma_multiply(0.2)));
 }
 
 // ---------------------------------------------------------------- shared pieces

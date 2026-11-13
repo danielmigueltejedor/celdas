@@ -1008,6 +1008,7 @@ impl Dialog {
             "manageRules" => Dialog::custom("manageRules", "Conditional Formatting Rules Manager", json!({})),
             "commandSearch" => Dialog::custom("commandSearch", "Search Commands", json!({})),
             "agents" => Dialog::custom("agents", "Agent Control", json!({})),
+            "keyboardShortcuts" => Dialog::custom("keyboardShortcuts", "Keyboard Shortcuts", json!({})),
             "about" => {
                 let mut d = Dialog::custom("about", "About Celdas", json!({}));
                 d.tab = match p("tab").as_str() {
