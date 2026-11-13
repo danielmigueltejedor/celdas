@@ -6,7 +6,7 @@
 //! AM/PM, the system short and long dates). It never changes what is stored: values are numbers,
 //! and the number format codes saved in a file stay in their canonical en-US spelling.
 //!
-//! [`EN_US`] is the default and reproduces GridCraft's original behaviour exactly.
+//! [`EN_US`] is the default and reproduces Celdas's original behaviour exactly.
 //!
 //! # Where the values come from
 //! The separators, month and weekday names, AM/PM words, currency symbols and the order of day,

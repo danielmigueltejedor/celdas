@@ -1,10 +1,10 @@
 //! Custom worksheet popups must keep inside interactions and dismiss outside clicks.
 
+use celdas_engine::Session;
+use celdas_engine::core::{CellRef, Value};
+use celdas_ui_egui::{SheetApp, grid};
 use egui::{Event, Key, Modifiers, PointerButton, Pos2, pos2};
 use egui_kittest::kittest::Queryable;
-use gridcraft_engine::Session;
-use gridcraft_engine::core::{CellRef, Value};
-use gridcraft_ui_egui::{SheetApp, grid};
 use serde_json::json;
 
 type Harness = egui_kittest::Harness<'static, SheetApp>;

@@ -1,6 +1,6 @@
 //! Ctrl/Cmd+Shift+arrow searches the active cell's column (or row) from the moving edge (#3484).
 
-use gridcraft_engine::Session;
+use celdas_engine::Session;
 use serde_json::json;
 
 fn table() -> Session {

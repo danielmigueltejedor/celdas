@@ -1,10 +1,10 @@
 //! Excel 2003 menu access keys that open a ribbon control rather than run a command (#941).
 
+use celdas_engine::Session;
+use celdas_ui_egui::SheetApp;
 use egui::os::OperatingSystem;
 use egui::{Event, Key, Modifiers};
 use egui_kittest::kittest::Queryable as _;
-use gridcraft_engine::Session;
-use gridcraft_ui_egui::SheetApp;
 use serde_json::json;
 
 fn press(h: &mut egui_kittest::Harness<'static, SheetApp>, key: Key) {

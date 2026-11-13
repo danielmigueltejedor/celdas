@@ -53,7 +53,7 @@ impl Acc {
 
 // ---------------------------------------------------------------- operators
 
-pub(super) fn map_unary(v: &Value, f: &dyn Fn(f64) -> Value, plus: bool, sys: gridcraft_core::DateSystem) -> Value {
+pub(super) fn map_unary(v: &Value, f: &dyn Fn(f64) -> Value, plus: bool, sys: celdas_core::DateSystem) -> Value {
     match v {
         Value::Array(a) => Value::from(Array { rows: a.rows, cols: a.cols, data: a.data.iter().map(|x| map_unary(x, f, plus, sys)).collect() }),
         Value::Error(e) => Value::Error(*e),
@@ -165,7 +165,7 @@ pub(super) fn single(v: Value) -> Option<Value> {
 /// error for a result too large to hold, before the rest is built.
 pub(super) const MAX_CONCAT_ARRAY_BYTES: usize = 512 * 1024 * 1024;
 
-pub fn binary_values(op: BinOp, x: &Value, y: &Value, sys: gridcraft_core::DateSystem) -> Value {
+pub fn binary_values(op: BinOp, x: &Value, y: &Value, sys: celdas_core::DateSystem) -> Value {
     if op == BinOp::Concat && (matches!(x, Value::Array(_)) || matches!(y, Value::Array(_))) {
         return concat_arrays(x, y, sys, MAX_CONCAT_ARRAY_BYTES);
     }
@@ -174,7 +174,7 @@ pub fn binary_values(op: BinOp, x: &Value, y: &Value, sys: gridcraft_core::DateS
 
 /// `x & y` with at least one array operand, giving `#NUM!` once the texts built so far pass `budget`
 /// bytes.
-fn concat_arrays(x: &Value, y: &Value, sys: gridcraft_core::DateSystem, budget: usize) -> Value {
+fn concat_arrays(x: &Value, y: &Value, sys: celdas_core::DateSystem, budget: usize) -> Value {
     let mut used = 0usize;
     try_zip2(x, y, |a, b| {
         let v = binary_scalar(BinOp::Concat, a, b, sys);
@@ -189,7 +189,7 @@ fn concat_arrays(x: &Value, y: &Value, sys: gridcraft_core::DateSystem, budget: 
     .unwrap_or(Value::Error(CellError::Num))
 }
 
-fn binary_scalar(op: BinOp, a: &Value, b: &Value, sys: gridcraft_core::DateSystem) -> Value {
+fn binary_scalar(op: BinOp, a: &Value, b: &Value, sys: celdas_core::DateSystem) -> Value {
     if let Value::Error(e) = a {
         return Value::Error(*e);
     }
@@ -254,7 +254,7 @@ mod tests {
 
     #[test]
     fn concatenating_arrays_stops_at_the_byte_budget() {
-        let sys = gridcraft_core::DateSystem::default();
+        let sys = celdas_core::DateSystem::default();
         let col = Value::from(Array::column((0..100).map(|i| Value::number(i as f64)).collect()));
         let long = Value::text("x".repeat(100));
         // 100 cells of 101 or 102 bytes each: about 10 KB in all.

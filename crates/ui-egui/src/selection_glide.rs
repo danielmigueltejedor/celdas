@@ -25,8 +25,8 @@
 //! under a gliding outline therefore carries it along, and an arrow key held at the edge of the
 //! window (the sheet scrolls, the cell stays where it is on screen) doesn't make it wobble.
 
+use celdas_engine::core::RangeRef;
 use egui::{Rect, pos2};
-use gridcraft_engine::core::RangeRef;
 
 /// How long a glide takes, in seconds.
 pub const GLIDE_SECS: f64 = 0.12;
@@ -145,8 +145,8 @@ pub fn ants_phase(now: f64) -> f32 {
 #[cfg(test)]
 mod tests {
     use super::*;
+    use celdas_engine::core::CellRef;
     use egui::vec2;
-    use gridcraft_engine::core::CellRef;
 
     const PLACE: (u64, usize) = (1, 0);
     const VIEW: Rect = Rect::from_min_max(pos2(0.0, 0.0), pos2(1000.0, 600.0));

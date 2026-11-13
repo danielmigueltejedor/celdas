@@ -2,12 +2,12 @@
 //! cascade, the AutoSum big split button, the Recently Used keytip and list, and the Insert Function
 //! dialog's categories.
 
+use celdas_engine::Session;
+use celdas_engine::core::CellRef;
+use celdas_ui_egui::SheetApp;
 use egui::os::OperatingSystem;
 use egui::{Event, Key, Modifiers, vec2};
 use egui_kittest::kittest::Queryable as _;
-use gridcraft_engine::Session;
-use gridcraft_engine::core::CellRef;
-use gridcraft_ui_egui::SheetApp;
 use serde_json::json;
 
 type Harness = egui_kittest::Harness<'static, SheetApp>;

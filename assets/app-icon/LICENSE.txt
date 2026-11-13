@@ -1,4 +1,4 @@
-Celdas app icon (gridcraft.svg, gridcraft-small.svg and every file derived from them in this
+Celdas app icon (celdas.svg, celdas-small.svg and every file derived from them in this
 directory, and the web favicon where the project has one).
 
 The icon is a portrait of Blaise Pascal cut out, converted to black and white and placed over the

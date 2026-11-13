@@ -1,7 +1,7 @@
 //! Cell reading direction follows OOXML context rules, independently of sheet geometry.
 
+use celdas_engine::model::ReadingOrder;
 use egui::epaint::text::TextDirection;
-use gridcraft_engine::model::ReadingOrder;
 
 pub(crate) fn cell_direction(order: Option<ReadingOrder>, text: &str) -> TextDirection {
     match order.unwrap_or_default() {

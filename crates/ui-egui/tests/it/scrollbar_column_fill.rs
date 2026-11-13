@@ -1,9 +1,9 @@
 //! The strip beside the column headings, above the vertical scrollbar, takes the bar colour in
 //! dark mode instead of showing a light square (#2086).
 
+use celdas_engine::Session;
+use celdas_ui_egui::{SheetApp, theme::Tokens};
 use egui::{Shape, pos2};
-use gridcraft_engine::Session;
-use gridcraft_ui_egui::{SheetApp, theme::Tokens};
 use serde_json::json;
 
 #[test]

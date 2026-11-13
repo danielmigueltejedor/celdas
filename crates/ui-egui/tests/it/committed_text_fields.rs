@@ -1,9 +1,9 @@
 //! Text fields over workbook values (chart titles, table name) keep what the user types until they commit it.
 
+use celdas_engine::Session;
+use celdas_ui_egui::SheetApp;
 use egui::{Event, Key, Modifiers, accesskit::Role};
 use egui_kittest::kittest::Queryable as _;
-use gridcraft_engine::Session;
-use gridcraft_ui_egui::SheetApp;
 use serde_json::json;
 
 type Harness = egui_kittest::Harness<'static, SheetApp>;

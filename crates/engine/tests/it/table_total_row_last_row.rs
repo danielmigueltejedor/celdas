@@ -1,5 +1,5 @@
-use gridcraft_core::{CellRef, MAX_ROWS};
-use gridcraft_engine::Session;
+use celdas_core::{CellRef, MAX_ROWS};
+use celdas_engine::Session;
 use serde_json::json;
 
 fn refused(range: &str) {

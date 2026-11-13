@@ -666,6 +666,224 @@ dependencies = [
 ]
 
 [[package]]
+name = "celdas"
+version = "0.1.0-dev"
+dependencies = [
+ "arboard",
+ "celdas-engine",
+ "celdas-mcp",
+ "celdas-ui-egui",
+ "chrono",
+ "craft-print",
+ "eframe",
+ "egui",
+ "fmv-macos-events",
+ "getrandom 0.4.3",
+ "image",
+ "log",
+ "muda",
+ "objc2 0.6.5",
+ "objc2-app-kit 0.3.2",
+ "pollster 1.0.1",
+ "rfd",
+ "serde_json",
+ "winit",
+ "winresource",
+]
+
+[[package]]
+name = "celdas-calc"
+version = "0.1.0-dev"
+dependencies = [
+ "celdas-core",
+ "celdas-formula",
+ "celdas-functions",
+ "celdas-model",
+ "celdas-numfmt",
+ "log",
+]
+
+[[package]]
+name = "celdas-chart"
+version = "0.1.0-dev"
+dependencies = [
+ "celdas-calc",
+ "celdas-core",
+ "celdas-model",
+ "celdas-numfmt",
+ "serde",
+]
+
+[[package]]
+name = "celdas-cli"
+version = "0.1.0-dev"
+dependencies = [
+ "celdas-engine",
+ "celdas-mcp",
+ "log",
+ "quick-xml",
+ "serde_json",
+ "zip",
+]
+
+[[package]]
+name = "celdas-core"
+version = "0.1.0-dev"
+dependencies = [
+ "chrono",
+ "js-sys",
+ "serde",
+ "serde_json",
+ "thiserror 2.0.21",
+]
+
+[[package]]
+name = "celdas-engine"
+version = "0.1.0-dev"
+dependencies = [
+ "celdas-calc",
+ "celdas-chart",
+ "celdas-core",
+ "celdas-formula",
+ "celdas-functions",
+ "celdas-math",
+ "celdas-model",
+ "celdas-numfmt",
+ "celdas-pdf",
+ "celdas-xlsx",
+ "image",
+ "log",
+ "serde",
+ "serde_json",
+ "thiserror 2.0.21",
+ "web-time",
+ "zip",
+]
+
+[[package]]
+name = "celdas-formula"
+version = "0.1.0-dev"
+dependencies = [
+ "celdas-core",
+ "serde",
+ "thiserror 2.0.21",
+]
+
+[[package]]
+name = "celdas-functions"
+version = "0.1.0-dev"
+dependencies = [
+ "celdas-core",
+ "regex",
+]
+
+[[package]]
+name = "celdas-math"
+version = "0.1.0-dev"
+dependencies = [
+ "ratex-font",
+ "ratex-layout",
+ "ratex-parser",
+ "ratex-types",
+]
+
+[[package]]
+name = "celdas-mcp"
+version = "0.1.0-dev"
+dependencies = [
+ "celdas-engine",
+ "log",
+ "serde_json",
+]
+
+[[package]]
+name = "celdas-model"
+version = "0.1.0-dev"
+dependencies = [
+ "celdas-core",
+ "celdas-formula",
+ "celdas-math",
+ "serde",
+ "serde_json",
+ "sha2 0.11.1",
+ "thiserror 2.0.21",
+]
+
+[[package]]
+name = "celdas-numfmt"
+version = "0.1.0-dev"
+dependencies = [
+ "celdas-core",
+]
+
+[[package]]
+name = "celdas-pdf"
+version = "0.1.0-dev"
+
+[[package]]
+name = "celdas-ui-egui"
+version = "0.1.0-dev"
+dependencies = [
+ "celdas-chart",
+ "celdas-engine",
+ "celdas-xlsx",
+ "craft-ui",
+ "craft-window",
+ "egui",
+ "egui_extras",
+ "egui_kittest",
+ "epaint_default_fonts",
+ "image",
+ "log",
+ "nodalia-update",
+ "serde",
+ "serde_json",
+ "skrifa",
+ "sys-locale",
+ "toml",
+ "unicode-bidi",
+ "web-sys",
+ "web-time",
+ "zbus",
+]
+
+[[package]]
+name = "celdas-web"
+version = "0.1.0-dev"
+dependencies = [
+ "celdas-engine",
+ "celdas-ui-egui",
+ "craft-web-api",
+ "craft-web-host",
+ "eframe",
+ "egui",
+ "js-sys",
+ "log",
+ "rfd",
+ "serde_json",
+ "wasm-bindgen",
+ "wasm-bindgen-futures",
+ "web-sys",
+]
+
+[[package]]
+name = "celdas-xlsx"
+version = "0.1.0-dev"
+dependencies = [
+ "aes",
+ "celdas-core",
+ "celdas-formula",
+ "celdas-functions",
+ "celdas-math",
+ "celdas-model",
+ "quick-xml",
+ "sha1 0.11.0",
+ "sha2 0.11.1",
+ "thiserror 2.0.21",
+ "zip",
+]
+
+[[package]]
 name = "cfg-if"
 version = "1.0.5"
 source = "registry+https://github.com/rust-lang/crates.io-index"
@@ -1986,224 +2204,6 @@ dependencies = [
  "presser",
  "thiserror 2.0.21",
  "windows",
-]
-
-[[package]]
-name = "gridcraft"
-version = "0.16.0"
-dependencies = [
- "arboard",
- "chrono",
- "craft-print",
- "eframe",
- "egui",
- "fmv-macos-events",
- "getrandom 0.4.3",
- "gridcraft-engine",
- "gridcraft-mcp",
- "gridcraft-ui-egui",
- "image",
- "log",
- "muda",
- "objc2 0.6.5",
- "objc2-app-kit 0.3.2",
- "pollster 1.0.1",
- "rfd",
- "serde_json",
- "winit",
- "winresource",
-]
-
-[[package]]
-name = "gridcraft-calc"
-version = "0.16.0"
-dependencies = [
- "gridcraft-core",
- "gridcraft-formula",
- "gridcraft-functions",
- "gridcraft-model",
- "gridcraft-numfmt",
- "log",
-]
-
-[[package]]
-name = "gridcraft-chart"
-version = "0.16.0"
-dependencies = [
- "gridcraft-calc",
- "gridcraft-core",
- "gridcraft-model",
- "gridcraft-numfmt",
- "serde",
-]
-
-[[package]]
-name = "gridcraft-cli"
-version = "0.16.0"
-dependencies = [
- "gridcraft-engine",
- "gridcraft-mcp",
- "log",
- "quick-xml",
- "serde_json",
- "zip",
-]
-
-[[package]]
-name = "gridcraft-core"
-version = "0.16.0"
-dependencies = [
- "chrono",
- "js-sys",
- "serde",
- "serde_json",
- "thiserror 2.0.21",
-]
-
-[[package]]
-name = "gridcraft-engine"
-version = "0.16.0"
-dependencies = [
- "gridcraft-calc",
- "gridcraft-chart",
- "gridcraft-core",
- "gridcraft-formula",
- "gridcraft-functions",
- "gridcraft-math",
- "gridcraft-model",
- "gridcraft-numfmt",
- "gridcraft-pdf",
- "gridcraft-xlsx",
- "image",
- "log",
- "serde",
- "serde_json",
- "thiserror 2.0.21",
- "web-time",
- "zip",
-]
-
-[[package]]
-name = "gridcraft-formula"
-version = "0.16.0"
-dependencies = [
- "gridcraft-core",
- "serde",
- "thiserror 2.0.21",
-]
-
-[[package]]
-name = "gridcraft-functions"
-version = "0.16.0"
-dependencies = [
- "gridcraft-core",
- "regex",
-]
-
-[[package]]
-name = "gridcraft-math"
-version = "0.16.0"
-dependencies = [
- "ratex-font",
- "ratex-layout",
- "ratex-parser",
- "ratex-types",
-]
-
-[[package]]
-name = "gridcraft-mcp"
-version = "0.16.0"
-dependencies = [
- "gridcraft-engine",
- "log",
- "serde_json",
-]
-
-[[package]]
-name = "gridcraft-model"
-version = "0.16.0"
-dependencies = [
- "gridcraft-core",
- "gridcraft-formula",
- "gridcraft-math",
- "serde",
- "serde_json",
- "sha2 0.11.1",
- "thiserror 2.0.21",
-]
-
-[[package]]
-name = "gridcraft-numfmt"
-version = "0.16.0"
-dependencies = [
- "gridcraft-core",
-]
-
-[[package]]
-name = "gridcraft-pdf"
-version = "0.16.0"
-
-[[package]]
-name = "gridcraft-ui-egui"
-version = "0.16.0"
-dependencies = [
- "craft-ui",
- "craft-window",
- "egui",
- "egui_extras",
- "egui_kittest",
- "epaint_default_fonts",
- "gridcraft-chart",
- "gridcraft-engine",
- "gridcraft-xlsx",
- "image",
- "log",
- "nodalia-update",
- "serde",
- "serde_json",
- "skrifa",
- "sys-locale",
- "toml",
- "unicode-bidi",
- "web-sys",
- "web-time",
- "zbus",
-]
-
-[[package]]
-name = "gridcraft-web"
-version = "0.16.0"
-dependencies = [
- "craft-web-api",
- "craft-web-host",
- "eframe",
- "egui",
- "gridcraft-engine",
- "gridcraft-ui-egui",
- "js-sys",
- "log",
- "rfd",
- "serde_json",
- "wasm-bindgen",
- "wasm-bindgen-futures",
- "web-sys",
-]
-
-[[package]]
-name = "gridcraft-xlsx"
-version = "0.16.0"
-dependencies = [
- "aes",
- "gridcraft-core",
- "gridcraft-formula",
- "gridcraft-functions",
- "gridcraft-math",
- "gridcraft-model",
- "quick-xml",
- "sha1 0.11.0",
- "sha2 0.11.1",
- "thiserror 2.0.21",
- "zip",
 ]
 
 [[package]]
@@ -6557,9 +6557,9 @@ checksum = "e450f9b2ed1dff33c94c12589a87338689467b9c4f5d8a5710bd09a847d2c8a7"
 
 [[package]]
 name = "xtask"
-version = "0.16.0"
+version = "0.1.0-dev"
 dependencies = [
- "gridcraft-engine",
+ "celdas-engine",
  "serde_json",
 ]
 

@@ -1,10 +1,10 @@
 //! Ctrl+Shift+= (or Ctrl with the numpad's +) and Ctrl+- on whole rows or columns insert or delete them at once, as in Excel;
 //! any other selection opens the Insert or Delete dialog.
 
+use celdas_engine::Session;
+use celdas_engine::core::{CellRef, Value};
+use celdas_ui_egui::SheetApp;
 use egui::{Key, Modifiers};
-use gridcraft_engine::Session;
-use gridcraft_engine::core::{CellRef, Value};
-use gridcraft_ui_egui::SheetApp;
 use serde_json::json;
 
 type Harness = egui_kittest::Harness<'static, SheetApp>;

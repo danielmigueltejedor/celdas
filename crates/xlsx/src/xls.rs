@@ -22,8 +22,8 @@ mod styles;
 use std::collections::{HashMap, HashSet};
 use std::sync::Arc;
 
-use gridcraft_core::{CellRef, DateSystem, MAX_COLS, MAX_ROWS, RangeRef, Value};
-use gridcraft_model::{CalcMode, CalcSettings, Cell, DefinedName, Formula, LineInfo, Sheet, StyleId, Visibility, Workbook};
+use celdas_core::{CellRef, DateSystem, MAX_COLS, MAX_ROWS, RangeRef, Value};
+use celdas_model::{CalcMode, CalcSettings, Cell, DefinedName, Formula, LineInfo, Sheet, StyleId, Visibility, Workbook};
 
 use crate::cfb::Compound;
 use crate::tables::{col_width_to_px, pt_to_px};
@@ -56,7 +56,7 @@ pub(crate) fn invalid(msg: impl Into<String>) -> IoError {
 
 /// The message for an encrypted workbook (a FilePass record).
 const ENCRYPTED: &str =
-    "this .xls workbook is password-protected (encrypted). GridCraft can't open encrypted .xls files; remove the password in Excel and try again.";
+    "this .xls workbook is password-protected (encrypted). Celdas can't open encrypted .xls files; remove the password in Excel and try again.";
 
 /// Whether the bytes are a compound file holding an Excel workbook stream (BIFF8 `Workbook`
 /// or BIFF5 `Book`).
@@ -207,7 +207,7 @@ pub(crate) fn read_xls_budgeted(bytes: &[u8], mut budget: Budget, functions: Fun
         wb.sheets.push(Arc::new(sheet));
     }
     if wb.sheets.is_empty() {
-        return Err(invalid("the workbook has no worksheets GridCraft can read"));
+        return Err(invalid("the workbook has no worksheets Celdas can read"));
     }
     wb.calc.precision_as_displayed = g.precision_as_displayed;
     defined_names(&g, &model_index, &mut wb, &mut report);
@@ -476,10 +476,10 @@ impl SheetState<'_> {
     fn attach(&mut self, pos: CellRef, p: &Parsed, mode: Mode, array: Option<RangeRef>) {
         match decode(&p.rgce, &p.rgcb, pos, mode, &self.g.links) {
             Ok(e) => {
-                let text = gridcraft_formula::print(&e);
+                let text = celdas_formula::print(&e);
                 let mut f = Formula::new(&text);
                 if f.expr.is_none() {
-                    self.unsupported("syntax GridCraft can't parse yet");
+                    self.unsupported("syntax Celdas can't parse yet");
                     return;
                 }
                 // A one-cell Ctrl+Shift+Enter array keeps its range, as when an .xlsx is read:
@@ -874,7 +874,7 @@ fn defined_names(g: &Globals, model_index: &[Option<usize>], wb: &mut Workbook, 
     for lbl in &g.names {
         let Some(scope) = scope_of(lbl.itab) else { continue };
         let text = match decode(&lbl.rgce, &lbl.rgcb, CellRef::new(0, 0), Mode::Name, &g.links) {
-            Ok(e) => gridcraft_formula::print(&e),
+            Ok(e) => celdas_formula::print(&e),
             Err(_) if lbl.rgce.is_empty() => continue,
             Err(Unsupported(why)) => {
                 report.warn(format!("Some defined names use {why} and were skipped."));

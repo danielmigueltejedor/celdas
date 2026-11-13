@@ -7,16 +7,16 @@
 //! ([MS-XLSX] 2.3.10.4). The part's root is `python` ([MS-XLSX] 2.4.102, CT_Python 2.6.249), with
 //! `pythonScripts` (2.6.253) holding the `pythonScript` elements (2.6.252).
 //!
-//! GridCraft writes one script per Python cell, in the order the cells are written, with the code
+//! Celdas writes one script per Python cell, in the order the cells are written, with the code
 //! as it is (its `xl()` references stay text in the code, so no further arguments). Reading
 //! resolves the index and puts each `%Px%` back as the text of argument `x`. A formula that names
 //! no script the part has keeps only its cached value. Hostile input is bounded: the part's size,
 //! the number of scripts, each script's length, and the code all cells take from the part
 //! together.
 
-use gridcraft_formula::Expr;
-use gridcraft_model::PyCode;
-use gridcraft_model::python::{FILE_PREFIX, MAX_FORMULA_CHARS};
+use celdas_formula::Expr;
+use celdas_model::PyCode;
+use celdas_model::python::{FILE_PREFIX, MAX_FORMULA_CHARS};
 
 use crate::IoError;
 use crate::read::Ctx;
@@ -128,7 +128,7 @@ fn script_code(el: &El) -> String {
         Some((at, _)) => text.get(..at).unwrap_or_default(),
         None => text,
     };
-    let code = gridcraft_model::python::normalize_code(&xml::decode_xstring(encoded));
+    let code = celdas_model::python::normalize_code(&xml::decode_xstring(encoded));
     match code.char_indices().nth(MAX_SCRIPT_CHARS) {
         Some((at, _)) => code.get(..at).unwrap_or_default().to_string(),
         None => code,
@@ -171,9 +171,9 @@ pub enum PyFormula {
 /// What a file formula makes: a Python cell from the Python part when it names a script, or from
 /// string literals ([`PyCode::from_formula`]). `formula` is the parsed formula, `raw` the
 /// formula's own text, which keeps line breaks in literal code.
-pub fn cell_code(scripts: &mut ScriptsIn, formula: &gridcraft_model::Formula, raw: &str) -> PyFormula {
+pub fn cell_code(scripts: &mut ScriptsIn, formula: &celdas_model::Formula, raw: &str) -> PyFormula {
     // The cheap test first: most formulas are not `PY(` calls.
-    if !gridcraft_model::python::is_py_formula(&formula.text) {
+    if !celdas_model::python::is_py_formula(&formula.text) {
         return PyFormula::Not;
     }
     let expr = formula.expr_arc();
@@ -199,7 +199,7 @@ fn with_params(code: &str, params: &[Expr]) -> String {
     if params.is_empty() || !code.contains("%P") {
         return code.to_string();
     }
-    let texts: Vec<String> = params.iter().map(gridcraft_formula::print).collect();
+    let texts: Vec<String> = params.iter().map(celdas_formula::print).collect();
     let mut out = String::with_capacity(code.len());
     let mut chars = 0usize;
     let mut push = |out: &mut String, piece: &str| {
@@ -262,8 +262,8 @@ pub fn write(scripts: &[String]) -> String {
 mod tests {
     use super::*;
 
-    fn formula(text: &str) -> gridcraft_model::Formula {
-        gridcraft_model::Formula::new(&crate::fmla::from_file(text))
+    fn formula(text: &str) -> celdas_model::Formula {
+        celdas_model::Formula::new(&crate::fmla::from_file(text))
     }
 
     fn scripts(list: &[&str]) -> ScriptsIn {

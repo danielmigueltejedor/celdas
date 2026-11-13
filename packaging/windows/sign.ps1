@@ -15,7 +15,7 @@
   timestamp server, ...). Optional overrides: WINDOWS_TIMESTAMP_URL, SIGNTOOL (path to signtool.exe).
 
 .EXAMPLE
-  pwsh packaging/windows/sign.ps1 dist/gridcraft.exe dist/gridcraft.msi
+  pwsh packaging/windows/sign.ps1 dist/celdas.exe dist/celdas.msi
 #>
 param(
   [Parameter(Mandatory = $true, ValueFromRemainingArguments = $true)]
@@ -55,8 +55,8 @@ if (-not $haveCert -and -not $haveAzure) {
 }
 
 $script:SignTool = Find-SignTool
-$common = @('sign', '/v', '/fd', 'SHA256', '/td', 'SHA256', '/d', 'GridCraft', '/du', 'https://github.com/storytold/gridcraft')
-$tmp = Join-Path ([IO.Path]::GetTempPath()) "gridcraft-sign-$([IO.Path]::GetRandomFileName())"
+$common = @('sign', '/v', '/fd', 'SHA256', '/td', 'SHA256', '/d', 'Celdas', '/du', 'https://github.com/getnodalia/celdas')
+$tmp = Join-Path ([IO.Path]::GetTempPath()) "celdas-sign-$([IO.Path]::GetRandomFileName())"
 New-Item -ItemType Directory -Path $tmp | Out-Null
 
 try {

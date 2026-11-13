@@ -1,8 +1,8 @@
 //! Protect Sheet / Unprotect Sheet mask the password as it's typed (issue #347).
 
+use celdas_ui_egui::SheetApp;
 use egui::accesskit::Role;
 use egui_kittest::kittest::Queryable as _;
-use gridcraft_ui_egui::SheetApp;
 use serde_json::json;
 
 const SECRET: &str = "s3cret";

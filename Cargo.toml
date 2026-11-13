@@ -1,30 +1,30 @@
 [workspace]
 resolver = "3"
 members = ["crates/*", "apps/*", "xtask"]
-default-members = ["crates/*", "apps/gridcraft", "apps/gridcraft-cli", "xtask"]
+default-members = ["crates/*", "apps/celdas", "apps/celdas-cli", "xtask"]
 
 [workspace.package]
-version = "0.16.0"
+version = "0.1.0-dev"
 edition = "2024"
 license = "MIT OR Apache-2.0"
 rust-version = "1.95"
-repository = "https://github.com/storytold/gridcraft"
+repository = "https://github.com/getnodalia/celdas"
 
 [workspace.dependencies]
 # internal
-gridcraft-core = { path = "crates/core" }
-gridcraft-numfmt = { path = "crates/numfmt" }
-gridcraft-formula = { path = "crates/formula" }
-gridcraft-functions = { path = "crates/functions" }
-gridcraft-model = { path = "crates/model" }
-gridcraft-calc = { path = "crates/calc" }
-gridcraft-xlsx = { path = "crates/xlsx" }
-gridcraft-chart = { path = "crates/chart" }
-gridcraft-engine = { path = "crates/engine" }
-gridcraft-ui-egui = { path = "crates/ui-egui" }
-gridcraft-mcp = { path = "crates/mcp" }
-gridcraft-pdf = { path = "crates/pdf" }
-gridcraft-math = { path = "crates/math" }
+celdas-core = { path = "crates/core" }
+celdas-numfmt = { path = "crates/numfmt" }
+celdas-formula = { path = "crates/formula" }
+celdas-functions = { path = "crates/functions" }
+celdas-model = { path = "crates/model" }
+celdas-calc = { path = "crates/calc" }
+celdas-xlsx = { path = "crates/xlsx" }
+celdas-chart = { path = "crates/chart" }
+celdas-engine = { path = "crates/engine" }
+celdas-ui-egui = { path = "crates/ui-egui" }
+celdas-mcp = { path = "crates/mcp" }
+celdas-pdf = { path = "crates/pdf" }
+celdas-math = { path = "crates/math" }
 # Every craft-libs crate (craft-window here, craft-ui in ui-egui, craft-print in the app) comes
 # from one craft-libs revision.
 

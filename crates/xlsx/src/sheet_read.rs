@@ -3,10 +3,10 @@
 use std::collections::HashMap;
 use std::sync::Arc;
 
-use gridcraft_core::date::{serial_from_ymd, time_fraction};
-use gridcraft_core::{CellError, CellRef, DateSystem, MAX_COLS, MAX_ROWS, RangeRef, Value};
-use gridcraft_formula::Expr;
-use gridcraft_model::{
+use celdas_core::date::{serial_from_ymd, time_fraction};
+use celdas_core::{CellError, CellRef, DateSystem, MAX_COLS, MAX_ROWS, RangeRef, Value};
+use celdas_formula::Expr;
+use celdas_model::{
     AutoFilter, Cell, CfOperator, CfRule, CfValueKind, Comment, CondFormat, EditRange, ErrorStyle, FilterCriterion, Formula, Hyperlink, LineInfo,
     NoteBox, NoteCorner, Orientation, PageOrder, PasswordHash, Sheet, SheetProtection, Sparkline, SparklineKind, Table, TableColumn, TotalsFn,
     Validation, ValidationKind, XmlColumnPr,
@@ -113,7 +113,7 @@ fn record_python_spill(st: &mut RowState, sheet: &mut Sheet, pos: CellRef) {
     }
     st.dynamic_checks = st.dynamic_checks.saturating_add(st.dynamic.len() as u64);
     let Some(r) = st.dynamic.iter().rev().find(|r| r.start == pos).copied() else { return };
-    if r.count() > 1 && r.count() <= gridcraft_model::python::MAX_RESULT_CELLS as u64 {
+    if r.count() > 1 && r.count() <= celdas_model::python::MAX_RESULT_CELLS as u64 {
         sheet.spill_ranges.insert(pos, r);
     }
 }
@@ -423,7 +423,7 @@ fn read_views(e: &El, sheet: &mut Sheet) {
     sheet.show_zeros = v.flag("showZeros", true);
     sheet.show_outline_symbols = v.flag("showOutlineSymbols", true);
     sheet.right_to_left = v.flag("rightToLeft", false);
-    sheet.view = v.attr("view").and_then(gridcraft_model::SheetViewMode::parse).unwrap_or_default();
+    sheet.view = v.attr("view").and_then(celdas_model::SheetViewMode::parse).unwrap_or_default();
     if let Some(z) = v.attr_u32("zoomScale") {
         sheet.zoom = z.clamp(10, 400) as u16;
     }
@@ -471,7 +471,7 @@ fn read_cols(cx: &Ctx<'_>, e: &El, sheet: &mut Sheet, remaining: &mut u64) -> Re
         info.collapsed = c.flag("collapsed", false);
         if let Some(s) = c.attr_u32("style") {
             let id = cx.style(Some(s));
-            if id != gridcraft_model::StyleId::DEFAULT {
+            if id != celdas_model::StyleId::DEFAULT {
                 info.style = Some(id);
             }
         }
@@ -636,7 +636,7 @@ fn read_cell(cx: &mut Ctx<'_>, sheet: &mut Sheet, st: &mut RowState, c: &El, pos
     let python_anchor = spilled_from.is_some_and(|r| sheet.cells.get(r.start).is_some_and(|a| a.py.is_some()));
     let value = match spilled_from {
         // A Python cell's spilled values are kept: they are its result until it runs again.
-        Some(r) if python_anchor && r.count() <= gridcraft_model::python::MAX_RESULT_CELLS as u64 => {
+        Some(r) if python_anchor && r.count() <= celdas_model::python::MAX_RESULT_CELLS as u64 => {
             if !value.is_empty() {
                 sheet.spill.insert(pos, value);
             }
@@ -676,7 +676,7 @@ fn read_formula_text(cx: &mut Ctx<'_>, st: &mut RowState, f: &El, pos: CellRef, 
         "shared" => {
             let si = f.attr_u32("si")?;
             if !text.is_empty() {
-                let expr = gridcraft_formula::parse(text).ok();
+                let expr = celdas_formula::parse(text).ok();
                 let cost = shared_cost(text, expr.as_ref());
                 st.shared.insert(si, Shared { anchor: pos, expr, text: text.to_string(), unwrapped: *unwrapped, cost });
                 Some(Formula::new(text))
@@ -687,13 +687,10 @@ fn read_formula_text(cx: &mut Ctx<'_>, st: &mut RowState, f: &El, pos: CellRef, 
                 };
                 // The parser's own test: bytes first (cheap), then characters, so a multibyte
                 // master that failed to parse for another reason gets no false length warning.
-                if sh.expr.is_none()
-                    && sh.text.len() > gridcraft_formula::MAX_FORMULA_LEN
-                    && sh.text.chars().count() > gridcraft_formula::MAX_FORMULA_LEN
-                {
+                if sh.expr.is_none() && sh.text.len() > celdas_formula::MAX_FORMULA_LEN && sh.text.chars().count() > celdas_formula::MAX_FORMULA_LEN {
                     cx.warn(format!(
                         "a shared formula is longer than {} characters; kept the cached values of the cells that share it",
-                        gridcraft_formula::MAX_FORMULA_LEN
+                        celdas_formula::MAX_FORMULA_LEN
                     ));
                     return None;
                 }
@@ -706,7 +703,7 @@ fn read_formula_text(cx: &mut Ctx<'_>, st: &mut RowState, f: &El, pos: CellRef, 
                     Some(e) => {
                         let dr = pos.row as i64 - sh.anchor.row as i64;
                         let dc = pos.col as i64 - sh.anchor.col as i64;
-                        Formula::from_expr(gridcraft_formula::adjust::shift_relative(e.clone(), dr, dc))
+                        Formula::from_expr(celdas_formula::adjust::shift_relative(e.clone(), dr, dc))
                     }
                     None => Formula::new(&sh.text),
                 })
@@ -871,7 +868,7 @@ mod tests {
 
     #[test]
     fn shared_formula_budget_stops_expansion() {
-        let expr = gridcraft_formula::parse("SUM(1,2,3)").ok();
+        let expr = celdas_formula::parse("SUM(1,2,3)").ok();
         let cost = shared_cost("SUM(1,2,3)", expr.as_ref());
         assert!(cost > 64 + 4 * std::mem::size_of::<Expr>() as u64);
         let cap = cost * 3;
@@ -885,11 +882,11 @@ mod tests {
     #[test]
     fn ordinary_shared_formulas_are_free_and_long_ones_pay_their_excess() {
         let text = r#"IF(AND(A1>0,B1<>""),VLOOKUP(C1,Sheet2!$A$1:$D$500,4,FALSE)*SUM(D1:D10)/COUNT(D1:D10),IFERROR(E1/F1,0))"#;
-        let expr = gridcraft_formula::parse(text).ok();
+        let expr = celdas_formula::parse(text).ok();
         assert!(expr.is_some());
         assert_eq!(extra_shared_cost(shared_cost(text, expr.as_ref())), 0, "an ordinary formula costs nothing extra");
         let long = vec![format!("SUM({}1)", "1,".repeat(199)); 10].join("+");
-        let expr = gridcraft_formula::parse(&long).ok();
+        let expr = celdas_formula::parse(&long).ok();
         assert!(expr.is_some());
         let cost = shared_cost(&long, expr.as_ref());
         assert_eq!(extra_shared_cost(cost), cost - SHARED_FORMULA_FREE_COST);

@@ -47,7 +47,7 @@ jobs:
         uses: actions/checkout@3d3c42e5aac5ba805825da76410c181273ba90b1 # v7.0.1
         with:
           repository: getnodalia/foundation # kept at vendor/craft-fonts/main
-          # Same commit as release.yml.
+          # Same commit as the release workflows.
           ref: b076417b5880bd4154bd22f00695b1d28c6bea83
           path: craft-fonts
           persist-credentials: false
@@ -85,7 +85,7 @@ jobs:
       - name: Check the DMG
         run: |
           set -euo pipefail
-          dmgs=("$DIST"/gridcraft-*-macos-"$ARCH".dmg)
+          dmgs=("$DIST"/celdas-*-macos-"$ARCH".dmg)
           if [[ ${#dmgs[@]} -ne 1 || ! -f "${dmgs[0]}" ]]; then
             echo "expected exactly one macOS DMG" >&2
             exit 1
@@ -104,12 +104,12 @@ jobs:
           echo "linked against SDK $sdk"
           test "${sdk%%.*}" -ge 26
           hdiutil detach /Volumes/check
-          (cd "$DIST" && shasum -a 256 gridcraft-*-macos-* > SHA256SUMS-macos && cat SHA256SUMS-macos)
+          (cd "$DIST" && shasum -a 256 celdas-*-macos-* > SHA256SUMS-macos && cat SHA256SUMS-macos)
 
       - uses: actions/upload-artifact@ea165f8d65b6e75b540449e92b4886f43607fa02 # v4.6.2
         with:
-          name: gridcraft-macos-${{ env.ARCH }}
-          path: dist/gridcraft-*-macos-*
+          name: celdas-macos-${{ env.ARCH }}
+          path: dist/celdas-*-macos-*
           if-no-files-found: error
           retention-days: 14
 
@@ -118,4 +118,4 @@ jobs:
         env:
           GH_TOKEN: ${{ github.token }}
           TAG: ${{ github.event.release.tag_name }}
-        run: gh release upload "$TAG" "$DIST"/gridcraft-*-macos-* --clobber --repo "$GITHUB_REPOSITORY"
+        run: gh release upload "$TAG" "$DIST"/celdas-*-macos-* --clobber --repo "$GITHUB_REPOSITORY"

@@ -1,9 +1,9 @@
 //! Reference boxes (Excel's RefEdit): text fields that take a range by selection on the grid, with
 //! a button that collapses the dialog to the box while the person selects.
 
-use gridcraft_engine::DocState;
-use gridcraft_engine::core::split_areas;
-use gridcraft_engine::model::{Sheet, SheetUid, Workbook};
+use celdas_engine::DocState;
+use celdas_engine::core::split_areas;
+use celdas_engine::model::{Sheet, SheetUid, Workbook};
 
 use super::data::abs;
 use super::{Dialog, Field, Icon, Json, SheetApp, json, theme, vec2};
@@ -102,7 +102,7 @@ pub(super) fn current_area_ref(app: &SheetApp, d: &Dialog) -> String {
     let Some(doc) = app.session.active() else { return String::new() };
     let area = doc.selection.current().a1();
     match (doc.wb.active(), d.refs.home.as_ref()) {
-        (Some(sh), Some(home)) if home.uid.get() != sh.uid.get() => format!("{}!{area}", gridcraft_engine::formula::quote_sheet(&sh.name)),
+        (Some(sh), Some(home)) if home.uid.get() != sh.uid.get() => format!("{}!{area}", celdas_engine::formula::quote_sheet(&sh.name)),
         _ => area,
     }
 }
@@ -141,7 +141,7 @@ pub(super) enum RefLabel<'a> {
 
 /// The egui id of the reference box `key`, the same wherever the box is drawn.
 fn ref_edit_id(key: &str) -> egui::Id {
-    egui::Id::unique("gridcraft.ref_edit").with(key)
+    egui::Id::unique("celdas.ref_edit").with(key)
 }
 
 /// Whether the reference box `key` of dialog `dialog` takes several areas joined by commas.
@@ -161,7 +161,7 @@ fn selection_ref(app: &SheetApp, home: Option<&Home>, several: bool) -> String {
     match doc.wb.active() {
         // Once the dialog's own sheet is deleted, every reference carries its sheet's name.
         Some(sh) if home.is_some_and(|h| h.uid.get() != sh.uid.get()) => {
-            let sheet = gridcraft_engine::formula::quote_sheet(&sh.name);
+            let sheet = celdas_engine::formula::quote_sheet(&sh.name);
             areas.map(|a| format!("{sheet}!{a}")).collect::<Vec<_>>().join(",")
         }
         _ => areas.collect::<Vec<_>>().join(","),

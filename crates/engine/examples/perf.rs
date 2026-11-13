@@ -1,11 +1,11 @@
 //! Performance scenarios on large workbooks (release build):
-//! `cargo run --release -p gridcraft-engine --example perf -- [rows]`
+//! `cargo run --release -p celdas-engine --example perf -- [rows]`
 
 #![allow(clippy::disallowed_methods)] // a native-only benchmark: wasm never runs it
 
 use std::time::Instant;
 
-use gridcraft_engine::Session;
+use celdas_engine::Session;
 use serde_json::json;
 
 fn main() {

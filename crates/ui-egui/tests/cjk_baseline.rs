@@ -1,8 +1,8 @@
 //! Mixed-script baselines and clipping, without starting the installed-font scanner.
 
+use celdas_engine::{Session, core::CellRef};
+use celdas_ui_egui::{SheetApp, i18n::Language, theme};
 use egui::{Color32, Context, FontFamily, FontId};
-use gridcraft_engine::{Session, core::CellRef};
-use gridcraft_ui_egui::{SheetApp, i18n::Language, theme};
 use serde_json::json;
 
 fn activate(ctx: &Context, definitions: egui::FontDefinitions) {
@@ -94,7 +94,7 @@ fn mixed_script_wrapping_keeps_fixed_row_clips_alignment_and_editor_height() {
             return;
         }
         let sheet = app.session.active().unwrap().wb.active().unwrap();
-        let geo = gridcraft_ui_egui::grid::Geo::new(sheet, app.grid.rect.unwrap(), app.view().scroll);
+        let geo = celdas_ui_egui::grid::Geo::new(sheet, app.grid.rect.unwrap(), app.view().scroll);
         assert_eq!(sheet.row_height(0), 32.0, "rendering must preserve the manual row height");
         for col in 0..3 {
             let rect = geo.cell_rect(sheet, CellRef::new(0, col));
@@ -119,7 +119,7 @@ fn mixed_script_wrapping_keeps_fixed_row_clips_alignment_and_editor_height() {
         }
         app.begin_edit(None, false);
         let out = frames(&ctx, &mut app);
-        let field = ctx.read_response(egui::Id::unique("gridcraft.cell_editor")).expect("editor is visible").rect;
+        let field = ctx.read_response(egui::Id::unique("celdas.cell_editor")).expect("editor is visible").rect;
         let editor = out
             .shapes
             .iter()
@@ -160,7 +160,7 @@ fn same_row_cells_keep_their_baseline_with_baseline_aligned_fallbacks() {
             let mut app = SheetApp::new(session, Default::default());
             let out = frames(&ctx, &mut app);
             let sheet = app.session.active().unwrap().wb.active().unwrap();
-            let geo = gridcraft_ui_egui::grid::Geo::new(sheet, app.grid.rect.unwrap(), app.view().scroll);
+            let geo = celdas_ui_egui::grid::Geo::new(sheet, app.grid.rect.unwrap(), app.view().scroll);
             let mut baselines = Vec::new();
             for (col, text) in ["1", mixed].iter().enumerate() {
                 let rect = geo.cell_rect(sheet, CellRef::new(0, col as u32));

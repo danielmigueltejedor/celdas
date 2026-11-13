@@ -1,7 +1,7 @@
 //! craft-fonts build policy shared by `build.rs` and the UI crate.
 //!
-//! GridCraft stays a clean-room application: the shared repository may keep Adobe, Source Han and
-//! Noto CJK faces for other consumers, but GridCraft never embeds them. The permitted faces are
+//! Celdas stays a clean-room application: the shared repository may keep Adobe, Source Han and
+//! Noto CJK faces for other consumers, but Celdas never embeds them. The permitted faces are
 //! matched by exact family and style, and their manifest script tags are asserted instead of
 //! trusting the free-form parser in `docs/integration.md`.
 //!
@@ -11,12 +11,12 @@
 //! code to remove.
 #![allow(dead_code)]
 
-/// Families GridCraft must never embed: the repository asset policy excludes Adobe/Source faces
+/// Families Celdas must never embed: the repository asset policy excludes Adobe/Source faces
 /// and the Noto CJK collection. There is deliberately no broad `Noto Sans` prefix: the permitted
 /// `Noto Sans Symbols` and `Noto Sans Symbols 2` faces start with it.
 pub const BARRED_PREFIXES: &[&str] = &["Adobe", "Source Han", "Source Sans", "Source Serif", "Noto Sans CJK", "Noto Serif CJK"];
 
-/// The faces GridCraft's production font set relies on, with their exact manifest script tags.
+/// The faces Celdas's production font set relies on, with their exact manifest script tags.
 /// Every release/acceptance build that sets `CRAFT_FONTS_REQUIRED=1` must contain all of them.
 pub const REQUIRED_FACES: &[(&str, &str, &[&str])] = &[
     ("BIZ UDPGothic", "Regular", &["Jpan", "Latn"]),
@@ -28,7 +28,7 @@ pub const REQUIRED_FACES: &[(&str, &str, &[&str])] = &[
 ];
 
 /// The native-only Simplified Chinese face from craft-fonts' separate
-/// `fonts/simplified-chinese-manifest.txt` (the same opt-in DeckCraft uses). It is OFL and not
+/// `fonts/simplified-chinese-manifest.txt` (the same opt-in Lámina uses). It is OFL and not
 /// barred by the asset policy, but it never enters a web bundle; older native checkouts may omit
 /// the manifest, so only `CRAFT_FONTS_REQUIRED=1` builds demand it.
 pub const CHINESE_FACES: &[(&str, &str, &[&str])] = &[("LXGW WenKai Lite", "Regular", &["Hani", "Hans"])];
@@ -45,7 +45,7 @@ pub const WEB_ALLOWED: &[(&str, &str)] = &[
     ("Noto Sans Arabic", "Regular"),
 ];
 
-/// One validated `fonts/manifest.txt` row. Only the fields GridCraft consumes are kept.
+/// One validated `fonts/manifest.txt` row. Only the fields Celdas consumes are kept.
 #[derive(Clone, Debug, PartialEq, Eq)]
 pub struct ManifestRow {
     pub family: String,
@@ -61,7 +61,7 @@ pub fn required_mode(value: Option<&str>) -> bool {
     value == Some("1")
 }
 
-/// Whether `family` is barred by GridCraft's asset policy.
+/// Whether `family` is barred by Celdas's asset policy.
 pub fn barred(family: &str) -> bool {
     BARRED_PREFIXES.iter().any(|prefix| family.starts_with(prefix))
 }
@@ -111,8 +111,8 @@ pub fn parse_manifest(text: &str) -> Result<Vec<ManifestRow>, String> {
     Ok(rows)
 }
 
-/// Check the script tags of every face GridCraft knows. The craft-fonts parser accepts arbitrary
-/// strings, so a face relabelled without the scripts GridCraft relies on is rejected here.
+/// Check the script tags of every face Celdas knows. The craft-fonts parser accepts arbitrary
+/// strings, so a face relabelled without the scripts Celdas relies on is rejected here.
 pub fn check_declared_scripts(rows: &[ManifestRow]) -> Result<(), String> {
     for row in rows {
         if let Some(expected) = required_scripts(&row.family, &row.style) {
@@ -126,7 +126,7 @@ pub fn check_declared_scripts(rows: &[ManifestRow]) -> Result<(), String> {
                 ));
             }
         } else if REQUIRED_FACES.iter().chain(CHINESE_FACES.iter()).any(|(family, _, _)| *family == row.family) {
-            return Err(format!("{} has an unexpected style {:?}; GridCraft only permits the exact required faces", row.family, row.style));
+            return Err(format!("{} has an unexpected style {:?}; Celdas only permits the exact required faces", row.family, row.style));
         }
     }
     Ok(())

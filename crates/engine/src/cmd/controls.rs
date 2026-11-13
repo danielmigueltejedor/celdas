@@ -7,10 +7,8 @@
 //! its action through the macro policy with the document's trust, so a button from a file someone
 //! else made asks before it runs anything.
 
-use gridcraft_core::CellRef;
-use gridcraft_model::{
-    Anchor, AnchorMode, CONTROL_MAX, ControlAction, ControlKind, FormControl, MAX_MACRO_NAME, MacroInput, ObjKind, Sheet, Workbook,
-};
+use celdas_core::CellRef;
+use celdas_model::{Anchor, AnchorMode, CONTROL_MAX, ControlAction, ControlKind, FormControl, MAX_MACRO_NAME, MacroInput, ObjKind, Sheet, Workbook};
 use serde_json::{Value as Json, json};
 
 use super::{
@@ -179,12 +177,12 @@ fn link_param(cmd: &str, wb: &Workbook, host: usize, p: &Json) -> Result<Option<
     }
     let (si, c) = link_target(wb, host, text)
         .ok_or_else(|| bad(cmd, format!("`{text}` isn't a cell of this workbook; the link must be one cell, such as $B$1")))?;
-    let abs = format!("${}${}", gridcraft_core::col_to_letters(c.col), c.row as u64 + 1);
+    let abs = format!("${}${}", celdas_core::col_to_letters(c.col), c.row as u64 + 1);
     Ok(Some(Some(if si == host {
         abs
     } else {
         let name = wb.sheet(si).map(|sh| sh.name.clone()).unwrap_or_default();
-        format!("{}!{abs}", gridcraft_formula::quote_sheet(&name))
+        format!("{}!{abs}", celdas_formula::quote_sheet(&name))
     })))
 }
 
@@ -426,7 +424,7 @@ fn action_param(s: &Session, cmd: &str, p: &Json) -> Result<Option<ControlAction
             Some(t) if t.eq_ignore_ascii_case("selection") => MacroInput::Selection,
             Some(t) => {
                 let (_, body) = split_sheet(t);
-                if gridcraft_core::RangeRef::parse(body).is_none() {
+                if celdas_core::RangeRef::parse(body).is_none() {
                     return Err(bad(cmd, format!("`input` must be \"selection\" or a range such as B2:D9, not `{t}`")));
                 }
                 if let Some(stored) = takes_no_inputs(&s.doc()?.wb, name) {
@@ -437,7 +435,7 @@ fn action_param(s: &Session, cmd: &str, p: &Json) -> Result<Option<ControlAction
         };
         let output = str_param(p, "output").map(str::trim).filter(|o| !o.is_empty()).map(str::to_string);
         if let Some(o) = &output
-            && gridcraft_core::RangeRef::parse(split_sheet(o).1).is_none()
+            && celdas_core::RangeRef::parse(split_sheet(o).1).is_none()
         {
             return Err(bad(cmd, format!("`output` must be a cell such as F2, not `{o}`")));
         }

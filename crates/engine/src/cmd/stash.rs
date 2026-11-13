@@ -1,4 +1,4 @@
-//! GridCraft data kept in hidden workbook-scope defined names, so that it travels inside the xlsx
+//! Celdas data kept in hidden workbook-scope defined names, so that it travels inside the xlsx
 //! file.
 //!
 //! An item `key` is stored as names `_gc_<key>_0`, `_gc_<key>_1`, …, each a formula of string
@@ -18,7 +18,7 @@
 use std::collections::{BTreeMap, HashSet};
 use std::fmt::Write as _;
 
-use gridcraft_model::{DefinedName, Workbook};
+use celdas_model::{DefinedName, Workbook};
 use serde_json::Value as Json;
 
 use crate::{EngineError, Result};
@@ -206,7 +206,7 @@ pub fn set_many(wb: &mut Workbook, items: &[(String, String)]) -> Result<()> {
             return Err(EngineError::Other(format!("`{key}` is given twice.")));
         }
         for (i, formula) in chunk_formulas(text).into_iter().enumerate() {
-            planned.push(DefinedName { name: format!("{PREFIX}{key}_{i}"), scope: None, formula, comment: "GridCraft data".into(), hidden: true });
+            planned.push(DefinedName { name: format!("{PREFIX}{key}_{i}"), scope: None, formula, comment: "Celdas data".into(), hidden: true });
         }
     }
     // A visible name of an item's shape is someone's own (see `item_of`); a hidden name beside
@@ -214,7 +214,7 @@ pub fn set_many(wb: &mut Workbook, items: &[(String, String)]) -> Result<()> {
     let names: HashSet<String> = planned.iter().map(|n| n.name.to_ascii_lowercase()).collect();
     if let Some(n) = wb.names.iter().find(|n| n.scope.is_none() && !n.hidden && names.contains(&n.name.to_ascii_lowercase())) {
         return Err(EngineError::Other(format!(
-            "The workbook has a defined name '{}', which GridCraft needs for its own data. Rename it first.",
+            "The workbook has a defined name '{}', which Celdas needs for its own data. Rename it first.",
             n.name
         )));
     }
@@ -624,7 +624,7 @@ mod tests {
         let text: String = (0..20_000).map(|i| ['x', '"', 'ü', '\u{1D11E}', ' '][i % 5]).collect();
         set(&mut wb, "blob", &text).unwrap();
         wb.names.push(name("_sc_watch", "\"[\"\"A1\"\"]\""));
-        let bytes = gridcraft_xlsx::write_xlsx(&wb).unwrap();
+        let bytes = celdas_xlsx::write_xlsx(&wb).unwrap();
         let (back, warnings) = crate::io::open_bytes("data.xlsx", &bytes).unwrap();
         assert!(warnings.is_empty(), "{warnings:?}");
         assert_eq!(get(&back, "blob").as_deref(), Some(text.as_str()));
@@ -643,7 +643,7 @@ mod tests {
         let controls = "\u{1}".repeat(9_000);
         set(&mut wb, "controls", &controls).unwrap();
         excel_limits_hold(&wb);
-        let bytes = gridcraft_xlsx::write_xlsx(&wb).unwrap();
+        let bytes = celdas_xlsx::write_xlsx(&wb).unwrap();
         let (back, warnings) = crate::io::open_bytes("data.xlsx", &bytes).unwrap();
         assert!(warnings.is_empty(), "{warnings:?}");
         assert_eq!(get(&back, "odd").as_deref(), Some(text.as_str()));

@@ -1,147 +1,147 @@
 {
-  "id": "gridcraft",
-  "name": "GridCraft",
-  "upgradeCode": "5511327B-F305-41BE-92D0-EB84944E7C4D",
+  "id": "celdas",
+  "name": "Celdas",
+  "upgradeCode": "8E3C1A47-52D9-4B6F-A0E8-3F7B2C9D1E64",
   "sources": [
-    "gridcraft.wxs"
+    "celdas.wxs"
   ],
-  "icon": "assets/app-icon/gridcraft.ico",
+  "icon": "assets/app-icon/celdas.ico",
   "localization": [],
   "extensions": [],
   "payloads": [
-    "gridcraft-cli.exe",
-    "gridcraft.exe"
+    "celdas-cli.exe",
+    "celdas.exe"
   ],
   "registry": [
     [
       "-1",
-      "Software\\Microsoft\\Windows\\CurrentVersion\\App Paths\\gridcraft.exe",
+      "Software\\Microsoft\\Windows\\CurrentVersion\\App Paths\\celdas.exe",
       "",
-      "[#GridcraftExe]"
+      "[#CeldasExe]"
     ],
     [
       "-1",
-      "Software\\Classes\\GridCraft.Workbook",
+      "Software\\Classes\\Celdas.Workbook",
       "",
-      "GridCraft Workbook"
+      "Celdas Workbook"
     ],
     [
       "-1",
-      "Software\\Classes\\GridCraft.Workbook\\DefaultIcon",
+      "Software\\Classes\\Celdas.Workbook\\DefaultIcon",
       "",
-      "\"[#GridcraftExe]\",0"
+      "\"[#CeldasExe]\",0"
     ],
     [
       "-1",
-      "Software\\Classes\\GridCraft.Workbook\\shell\\open\\command",
+      "Software\\Classes\\Celdas.Workbook\\shell\\open\\command",
       "",
-      "\"[#GridcraftExe]\" \"%1\""
+      "\"[#CeldasExe]\" \"%1\""
     ],
     [
       "-1",
-      "Software\\Classes\\GridCraft.TextData",
+      "Software\\Classes\\Celdas.TextData",
       "",
-      "GridCraft Text Data"
+      "Celdas Text Data"
     ],
     [
       "-1",
-      "Software\\Classes\\GridCraft.TextData\\DefaultIcon",
+      "Software\\Classes\\Celdas.TextData\\DefaultIcon",
       "",
-      "\"[#GridcraftExe]\",0"
+      "\"[#CeldasExe]\",0"
     ],
     [
       "-1",
-      "Software\\Classes\\GridCraft.TextData\\shell\\open\\command",
+      "Software\\Classes\\Celdas.TextData\\shell\\open\\command",
       "",
-      "\"[#GridcraftExe]\" \"%1\""
+      "\"[#CeldasExe]\" \"%1\""
     ],
     [
       "-1",
       "Software\\Classes\\.xlsx\\OpenWithProgids",
-      "GridCraft.Workbook",
-      "GridCraft.Workbook"
+      "Celdas.Workbook",
+      "Celdas.Workbook"
     ],
     [
       "-1",
       "Software\\Classes\\.xlsm\\OpenWithProgids",
-      "GridCraft.Workbook",
-      "GridCraft.Workbook"
+      "Celdas.Workbook",
+      "Celdas.Workbook"
     ],
     [
       "-1",
       "Software\\Classes\\.xlsb\\OpenWithProgids",
-      "GridCraft.Workbook",
-      "GridCraft.Workbook"
+      "Celdas.Workbook",
+      "Celdas.Workbook"
     ],
     [
       "-1",
       "Software\\Classes\\.ods\\OpenWithProgids",
-      "GridCraft.Workbook",
-      "GridCraft.Workbook"
+      "Celdas.Workbook",
+      "Celdas.Workbook"
     ],
     [
       "-1",
       "Software\\Classes\\.csv\\OpenWithProgids",
-      "GridCraft.TextData",
-      "GridCraft.TextData"
+      "Celdas.TextData",
+      "Celdas.TextData"
     ],
     [
       "-1",
       "Software\\Classes\\.tsv\\OpenWithProgids",
-      "GridCraft.TextData",
-      "GridCraft.TextData"
+      "Celdas.TextData",
+      "Celdas.TextData"
     ],
     [
       "-1",
-      "Software\\GridCraft\\Capabilities",
+      "Software\\Celdas\\Capabilities",
       "ApplicationName",
-      "GridCraft"
+      "Celdas"
     ],
     [
       "-1",
-      "Software\\GridCraft\\Capabilities",
+      "Software\\Celdas\\Capabilities",
       "ApplicationDescription",
       "Open-source spreadsheet for .xlsx, CSV and TSV files"
     ],
     [
       "-1",
-      "Software\\GridCraft\\Capabilities\\FileAssociations",
+      "Software\\Celdas\\Capabilities\\FileAssociations",
       ".xlsx",
-      "GridCraft.Workbook"
+      "Celdas.Workbook"
     ],
     [
       "-1",
-      "Software\\GridCraft\\Capabilities\\FileAssociations",
+      "Software\\Celdas\\Capabilities\\FileAssociations",
       ".xlsm",
-      "GridCraft.Workbook"
+      "Celdas.Workbook"
     ],
     [
       "-1",
-      "Software\\GridCraft\\Capabilities\\FileAssociations",
+      "Software\\Celdas\\Capabilities\\FileAssociations",
       ".csv",
-      "GridCraft.TextData"
+      "Celdas.TextData"
     ],
     [
       "-1",
-      "Software\\GridCraft\\Capabilities\\FileAssociations",
+      "Software\\Celdas\\Capabilities\\FileAssociations",
       ".tsv",
-      "GridCraft.TextData"
+      "Celdas.TextData"
     ],
     [
       "-1",
       "Software\\RegisteredApplications",
-      "GridCraft",
-      "Software\\GridCraft\\Capabilities"
+      "Celdas",
+      "Software\\Celdas\\Capabilities"
     ],
     [
       "-1",
-      "Software\\GridCraft\\Installer",
+      "Software\\Celdas\\Installer",
       "DesktopShortcut",
       "[DESKTOPSHORTCUT]"
     ],
     [
       "-1",
-      "Software\\GridCraft\\Installer",
+      "Software\\Celdas\\Installer",
       "DesktopShortcutComponent",
       "#1"
     ]

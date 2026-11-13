@@ -6,7 +6,7 @@
     </picture>
   </a>
   <br><br>
-  <img src="https://raw.githubusercontent.com/danielmigueltejedor/celdas/main/assets/app-icon/hicolor/512x512/apps/ai.storyteller.gridcraft.png" width="192" alt="Celdas">
+  <img src="https://raw.githubusercontent.com/danielmigueltejedor/celdas/main/assets/app-icon/hicolor/512x512/apps/dev.danielmiguelt.Celdas.png" width="192" alt="Celdas">
   <h1>Celdas</h1>
   <p><strong>The spreadsheet application of the Nodalia suite.</strong></p>
 
@@ -43,7 +43,7 @@ You need a recent stable Rust toolchain.
 ```bash
 git clone https://github.com/getnodalia/celdas.git
 cd celdas
-cargo run --release -p gridcraft
+cargo run --release -p celdas
 ```
 
 ## Project status

@@ -1,10 +1,10 @@
 //! #1906: the Sort dialog seeds "Sort by" from the active column instead of a
 //! free-text box stuck on "A", and the column list offers the region's columns.
 
+use celdas_engine::Session;
+use celdas_ui_egui::SheetApp;
 use egui::{Key, Modifiers};
 use egui_kittest::kittest::Queryable;
-use gridcraft_engine::Session;
-use gridcraft_ui_egui::SheetApp;
 use serde_json::json;
 
 type Harness = egui_kittest::Harness<'static, SheetApp>;
@@ -79,6 +79,6 @@ fn sorting_by_the_seeded_column_orders_the_rows() {
     h.run_steps(2);
     let d = h.state().session.active().unwrap();
     let sh = d.wb.active().unwrap();
-    let nums: Vec<i64> = (1..4).map(|r| sh.value(gridcraft_engine::core::CellRef::new(r, 1))).filter_map(|v| v.as_f64().map(|n| n as i64)).collect();
+    let nums: Vec<i64> = (1..4).map(|r| sh.value(celdas_engine::core::CellRef::new(r, 1))).filter_map(|v| v.as_f64().map(|n| n as i64)).collect();
     assert_eq!(nums, vec![10, 20, 30], "sort ran on the seeded column B");
 }

@@ -1,9 +1,9 @@
 //! The colour menus' More Colors… and Recent Colors, through the real egui input path.
 
+use celdas_engine::Session;
+use celdas_ui_egui::SheetApp;
 use egui::{Event, Key, Modifiers, os::OperatingSystem};
 use egui_kittest::kittest::Queryable as _;
-use gridcraft_engine::Session;
-use gridcraft_ui_egui::SheetApp;
 
 type Harness = egui_kittest::Harness<'static, SheetApp>;
 

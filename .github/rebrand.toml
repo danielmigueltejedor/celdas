@@ -151,6 +151,60 @@ to = "getnodalia.com/celdas"
 from = "getartcraft.com"
 to = "getnodalia.com"
 
+# The default workbook theme upstream calls "Craft", and the sibling apps upstream names in its
+# comments, by the names they have here.
+[[replace]]
+from = "\\\"Craft\\\""
+to = "\\\"Nodalia\\\""
+
+[[replace]]
+from = "\"Craft\""
+to = "\"Nodalia\""
+
+[[replace]]
+from = "Craft|Slate"
+to = "Nodalia|Slate"
+
+[[replace]]
+from = "Craft theme"
+to = "Nodalia theme"
+
+[[replace]]
+from = "PhotoCraft"
+to = "Lienzo"
+
+[[replace]]
+from = "WordCraft"
+to = "Letra"
+
+[[replace]]
+from = "DeckCraft"
+to = "Lámina"
+
+[[replace]]
+from = "PdfCraft"
+to = "Papel"
+
+[[replace]]
+from = "DesignCraft"
+to = "Pliego"
+
+[[replace]]
+from = "VectorCraft"
+to = "Pluma"
+
+[[replace]]
+from = "the other Craft"
+to = "the other Nodalia"
+
+[[replace]]
+from = "from the Craft app that shares its ID"
+to = "from another app"
+
+[[replace]]
+from = "keeps the Craft icon name"
+to = "keeps the app's icon name"
+
 # The family the app belongs to: install folders, the About box.
 [[replace]]
 from = "ArtCraft"

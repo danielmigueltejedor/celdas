@@ -1,9 +1,9 @@
 //! The selection's fill leaves the active cell clear, so it is plain where typing goes.
 
+use celdas_engine::Session;
+use celdas_engine::core::RangeRef;
+use celdas_ui_egui::grid::{Geo, selection_fill};
 use egui::Rect;
-use gridcraft_engine::Session;
-use gridcraft_engine::core::RangeRef;
-use gridcraft_ui_egui::grid::{Geo, selection_fill};
 use serde_json::json;
 
 fn session() -> Session {

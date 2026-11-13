@@ -27,8 +27,8 @@ impl SheetApp {
     /// Paste text that came from the system clipboard (Cmd/Ctrl+V, or the ribbon and menu Paste),
     /// with the clipboard's HTML flavour when the host can read it.
     ///
-    /// Excel pastes a cut once: after GridCraft's cut has been pasted, the system clipboard text
-    /// that came with it is not pasted again over the moved block; GridCraft's own (empty)
+    /// Excel pastes a cut once: after Celdas's cut has been pasted, the system clipboard text
+    /// that came with it is not pasted again over the moved block; Celdas's own (empty)
     /// clipboard is pasted instead, which reports "Nothing to paste.". Other text means the
     /// clipboard has moved on, so the cut's text is forgotten and pastes normally later.
     pub fn paste_external(&mut self, text: String) {
@@ -49,7 +49,7 @@ impl SheetApp {
 
     /// Ribbon and menu Paste: paste the text on the system clipboard, as Cmd/Ctrl+V does. With no
     /// text there but a picture, the picture is pasted. With neither, no host clipboard (web), or
-    /// the text that was there when GridCraft last copied without publishing, GridCraft's own
+    /// the text that was there when Celdas last copied without publishing, Celdas's own
     /// clipboard is pasted.
     pub fn paste_from_clipboard(&mut self) {
         match self.system_clipboard_text() {
@@ -66,7 +66,7 @@ impl SheetApp {
     /// a floating picture whose top-left corner is the active cell, as Excel does.
     pub fn paste_picture(&mut self, image: image::RgbaImage) {
         match encode_png(&image) {
-            Ok(png) => self.run_or_alert("insert.picture", json!({"base64": gridcraft_engine::io::base64_encode(&png), "mime": "image/png"})),
+            Ok(png) => self.run_or_alert("insert.picture", json!({"base64": celdas_engine::io::base64_encode(&png), "mime": "image/png"})),
             Err(e) => self.alert(e),
         }
     }

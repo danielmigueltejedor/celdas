@@ -1,7 +1,7 @@
 use std::sync::Arc;
 
-use gridcraft_core::{CellRef, Value};
-use gridcraft_model::{Anchor, Chart, ChartKind, Color, LegendPos, Series, SparklineKind, Style, Workbook};
+use celdas_core::{CellRef, Value};
+use celdas_model::{Anchor, Chart, ChartKind, Color, LegendPos, Series, SparklineKind, Style, Workbook};
 
 use crate::*;
 
@@ -523,7 +523,7 @@ fn axis_labels_use_number_format() {
 #[test]
 fn resolve_from_workbook() {
     let mut wb = Workbook::new();
-    let cur = wb.styles.intern(Style { num_fmt: gridcraft_model::NumFmt(Arc::from("$#,##0")), ..Style::default() });
+    let cur = wb.styles.intern(Style { num_fmt: celdas_model::NumFmt(Arc::from("$#,##0")), ..Style::default() });
     {
         let s = wb.sheet_mut(0).unwrap();
         s.name = "Sales".into();
@@ -667,7 +667,7 @@ fn resolve_from_workbook() {
 
 #[test]
 fn palette_beyond_six_series() {
-    let theme = gridcraft_model::Theme::default();
+    let theme = celdas_model::Theme::default();
     let p = default_palette(&theme, 14);
     assert_eq!(p.len(), 14);
     assert_ne!(p[0], p[6]);
@@ -1390,7 +1390,7 @@ fn pie_points_follow_workbook_theme() {
     let legend: Vec<Rgba> = legend_entries(&c, &d).iter().map(|e| e.1).collect();
     assert_eq!(legend.len(), 40);
     assert_eq!(legend.get(37), Some(&series_color(&wb.theme, 37)));
-    assert_ne!(series_color(&wb.theme, 37), series_color(&gridcraft_model::Theme::default(), 37));
+    assert_ne!(series_color(&wb.theme, 37), series_color(&celdas_model::Theme::default(), 37));
 }
 
 #[test]
@@ -1587,7 +1587,7 @@ fn a_huge_trendline_forecast_does_not_collapse_the_columns() {
 
 #[test]
 fn box_whisker_draws_each_series_quartile_method() {
-    use gridcraft_model::QuartileMethod;
+    use celdas_model::QuartileMethod;
     let mut c = chart(ChartKind::BoxWhisker);
     c.legend = LegendPos::None;
     c.series = vec![Series::default(), Series { quartiles: QuartileMethod::Inclusive, ..Default::default() }];
@@ -1621,7 +1621,7 @@ fn a_series_named_by_a_name_on_a_sheet_with_an_apostrophe_resolves() {
         s.set_value(CellRef::new(1, 0), Value::Number(4.0));
         s.set_value(CellRef::new(2, 0), Value::Number(9.0));
     }
-    wb.names.push(gridcraft_model::DefinedName {
+    wb.names.push(celdas_model::DefinedName {
         name: "Title".into(),
         scope: Some(0),
         formula: "'Bob''s'!$A$1".into(),
@@ -1657,7 +1657,7 @@ fn a_series_named_by_a_name_on_a_sheet_with_a_bang_resolves() {
         s.set_value(CellRef::new(1, 0), Value::Number(4.0));
         s.set_value(CellRef::new(2, 0), Value::Number(9.0));
     }
-    wb.names.push(gridcraft_model::DefinedName {
+    wb.names.push(celdas_model::DefinedName {
         name: "Title".into(),
         scope: Some(0),
         formula: "'a!b'!$A$1".into(),

@@ -1,9 +1,9 @@
 //! Form dialogs fit their content: OK and Cancel sit right under the last field, not halfway down
 //! a window stretched to the screen's height.
 
+use celdas_engine::Session;
+use celdas_ui_egui::SheetApp;
 use egui_kittest::kittest::Queryable as _;
-use gridcraft_engine::Session;
-use gridcraft_ui_egui::SheetApp;
 use serde_json::json;
 
 #[test]

@@ -1,11 +1,11 @@
 //! Menu items highlight under the pointer, as in Excel (#1174): no background at rest, the hover
 //! background while the pointer is on an item.
 
+use celdas_engine::Session;
+use celdas_engine::core::CellRef;
+use celdas_ui_egui::{SheetApp, grid};
 use egui::{Event, Modifiers, PointerButton, Pos2, Shape, accesskit::Role};
 use egui_kittest::kittest::Queryable as _;
-use gridcraft_engine::Session;
-use gridcraft_engine::core::CellRef;
-use gridcraft_ui_egui::{SheetApp, grid};
 
 type Harness = egui_kittest::Harness<'static, SheetApp>;
 

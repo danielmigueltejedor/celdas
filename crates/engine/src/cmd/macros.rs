@@ -136,9 +136,7 @@ fn save(s: &mut Session, p: &Json) -> Result<Json> {
 
 /// The refusal of a name that a macro kept in a newer format has.
 fn taken_by_kept(name: &str) -> String {
-    format!(
-        "A macro called '{name}' made by a newer version of GridCraft is kept in this workbook; this version can't change it. Choose another name."
-    )
+    format!("A macro called '{name}' made by a newer version of Celdas is kept in this workbook; this version can't change it. Choose another name.")
 }
 
 fn delete(s: &mut Session, p: &Json) -> Result<Json> {
@@ -172,13 +170,13 @@ fn rename(s: &mut Session, p: &Json) -> Result<Json> {
         crate::macros::check(&renamed).map_err(EngineError::Other)?;
         let from = std::mem::replace(m, renamed).name;
         // Buttons that run the macro follow the new name.
-        let runs = |c: &gridcraft_model::FormControl| matches!(&c.action, Some(gridcraft_model::ControlAction::Macro { name, .. }) if name.eq_ignore_ascii_case(&from));
+        let runs = |c: &celdas_model::FormControl| matches!(&c.action, Some(celdas_model::ControlAction::Macro { name, .. }) if name.eq_ignore_ascii_case(&from));
         for si in 0..cx.wb.sheets.len() {
             if !cx.wb.sheet(si).is_some_and(|sh| sh.controls.iter().any(runs)) {
                 continue;
             }
             for c in cx.sheet_mut(si)?.controls.iter_mut() {
-                if let Some(gridcraft_model::ControlAction::Macro { name, .. }) = &mut c.action
+                if let Some(celdas_model::ControlAction::Macro { name, .. }) = &mut c.action
                     && name.eq_ignore_ascii_case(&from)
                 {
                     *name = to.clone();
@@ -285,8 +283,8 @@ fn start_recording(s: &mut Session, p: &Json, relative: bool) -> Result<Json> {
         None => None,
     };
     let description = match str_param(p, "description") {
-        Some(t) if t.chars().count() > gridcraft_model::MAX_MACRO_TEXT => {
-            return Err(bad("macro.record", format!("`description` can be at most {} characters long", gridcraft_model::MAX_MACRO_TEXT)));
+        Some(t) if t.chars().count() > celdas_model::MAX_MACRO_TEXT => {
+            return Err(bad("macro.record", format!("`description` can be at most {} characters long", celdas_model::MAX_MACRO_TEXT)));
         }
         Some(t) => Some(t.to_string()),
         None => None,
@@ -346,10 +344,10 @@ fn save_recording(s: &mut Session, p: &Json, rec: &crate::record::Recorder, star
     let mut converted = crate::macros::recorder::convert(&name, &start, &rec.steps, &rec.ran);
     // Steps past the macro limit or its size, and ones recorded in another workbook, are left
     // out and counted with the ones the recorder dropped.
-    let mut cut = converted.cut.saturating_add(converted.mac.steps.len().saturating_sub(gridcraft_model::MAX_MACRO_STEPS));
-    converted.mac.steps.truncate(gridcraft_model::MAX_MACRO_STEPS);
+    let mut cut = converted.cut.saturating_add(converted.mac.steps.len().saturating_sub(celdas_model::MAX_MACRO_STEPS));
+    converted.mac.steps.truncate(celdas_model::MAX_MACRO_STEPS);
     if let Some(desc) = str_param(p, "description").or(start.description.as_deref()) {
-        converted.mac.description = desc.chars().take(gridcraft_model::MAX_MACRO_TEXT).collect();
+        converted.mac.description = desc.chars().take(celdas_model::MAX_MACRO_TEXT).collect();
     }
     cut = cut.saturating_add(crate::macros::fit_size(&mut converted.mac));
     // The shortcut, unless another macro took it while recording; then it is left off and the

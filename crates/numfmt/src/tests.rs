@@ -664,7 +664,7 @@ fn text_uncached(v: &Value, code: &str, sys: DateSystem) -> Result<String, CellE
         Value::Empty => 0.0,
         Value::Number(n) => n,
         Value::Bool(b) => return Ok(fmt.format_text(if b { "TRUE" } else { "FALSE" }).text),
-        Value::Text(t) => match gridcraft_core::parse::parse_number_text(&t) {
+        Value::Text(t) => match celdas_core::parse::parse_number_text(&t) {
             Some(n) => n,
             None => return Ok(fmt.format_text(&t).text),
         },
@@ -1132,7 +1132,7 @@ fn b2_out_of_range_does_not_panic() {
     assert_eq!(f("B2dd/mm/yyyy", -1.0), f("dd/mm/yyyy", -1.0));
     assert_eq!(f("B2dd/mm/yyyy", 2958466.0), f("dd/mm/yyyy", 2958466.0));
     // Before 1 Muharram 1 AH there is no Hijri date (no serial reaches it).
-    let before_epoch = gridcraft_core::date::DateTime { year: 600, month: 3, day: 9, ..Default::default() };
+    let before_epoch = celdas_core::date::DateTime { year: 600, month: 3, day: 9, ..Default::default() };
     assert!(calendar::Calendar::Hijri.date(&before_epoch).is_none());
 }
 

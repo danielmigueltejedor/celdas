@@ -12,7 +12,7 @@ use crate::dialogs::Dialog;
 use crate::theme::{self, Tokens};
 
 /// Shortcut rules live in the engine, so the dialogs and `macro.record` agree.
-pub use gridcraft_engine::macros::{RESERVED_SHORTCUTS, parse_shortcut, shortcut_conflict, shortcut_text};
+pub use celdas_engine::macros::{RESERVED_SHORTCUTS, parse_shortcut, shortcut_conflict, shortcut_text};
 
 /// How many macros the Run Macro menu keeps as recent.
 const RECENT: usize = 8;
@@ -203,7 +203,7 @@ pub fn question_box(app: &mut SheetApp, ctx: &egui::Context) {
     }
     let Some(q) = app.macros.question.clone() else { return };
     let mut answer: Option<Option<Json>> = None;
-    egui::Modal::new(egui::Id::unique("gridcraft.macro_question")).show(ctx, |ui| {
+    egui::Modal::new(egui::Id::unique("celdas.macro_question")).show(ctx, |ui| {
         ui.set_width(400.0);
         ui.label(egui::RichText::new(&q.title).strong());
         ui.add(egui::Label::new(&q.text).wrap());
@@ -276,7 +276,7 @@ pub fn status(app: &mut SheetApp, ui: &mut Ui) {
 
 // ---------------------------------------------------------------- shortcuts
 
-/// The macro whose shortcut is Ctrl+Shift+`key` in the active workbook. GridCraft's own
+/// The macro whose shortcut is Ctrl+Shift+`key` in the active workbook. Celdas's own
 /// shortcuts win over a macro's (a file can carry any letter).
 pub fn shortcut_macro(app: &SheetApp, key: egui::Key) -> Option<String> {
     let letter = parse_shortcut(key.name())?;
@@ -506,9 +506,7 @@ pub fn macros_dialog(app: &mut SheetApp, ui: &mut Ui, d: &mut Dialog, open: &mut
     ui.label(egui::RichText::new(if desc.is_empty() { " ".to_string() } else { desc }).color(t.text_dim));
     if vba {
         ui.add_space(6.0);
-        ui.label(
-            egui::RichText::new("This workbook also has a VBA project. GridCraft keeps it when you save but does not run it.").color(t.text_dim),
-        );
+        ui.label(egui::RichText::new("This workbook also has a VBA project. Celdas keeps it when you save but does not run it.").color(t.text_dim));
     }
     d.values.insert("name".into(), json!(name));
     d.values.insert("kind".into(), json!(kind.key()));
@@ -608,7 +606,7 @@ pub fn open_record(app: &mut SheetApp, params: &Json) -> Option<Dialog> {
         stop_recording(app);
         return None;
     }
-    let suggested = app.session.active().map(|d| gridcraft_engine::macros::next_name(&d.wb)).unwrap_or_else(|| "Macro1".into());
+    let suggested = app.session.active().map(|d| celdas_engine::macros::next_name(&d.wb)).unwrap_or_else(|| "Macro1".into());
     let name = params["name"].as_str().map(str::to_string).filter(|n| !n.trim().is_empty()).unwrap_or(suggested);
     Some(Dialog::custom("recordMacro", "Record Macro", json!({"name": name, "shortcut": "", "description": ""})))
 }
@@ -616,7 +614,7 @@ pub fn open_record(app: &mut SheetApp, params: &Json) -> Option<Dialog> {
 /// What is wrong with the Record Macro dialog's name or shortcut, if anything.
 pub fn record_problem(app: &SheetApp, name: &str, key: &str) -> Option<String> {
     let doc = app.session.active()?;
-    if let Err(e) = gridcraft_engine::macros::check_new_name(&doc.wb, name) {
+    if let Err(e) = celdas_engine::macros::check_new_name(&doc.wb, name) {
         return Some(e);
     }
     if key.trim().is_empty() {

@@ -1,10 +1,10 @@
 //! Editing a Python cell's content (F2, the formula bar) edits its code, in Python mode; typing
 //! over it replaces it, as typing over a formula does.
 
+use celdas_engine::Session;
+use celdas_engine::core::{CellRef, Value};
+use celdas_ui_egui::SheetApp;
 use egui::{Event, Key, Modifiers};
-use gridcraft_engine::Session;
-use gridcraft_engine::core::{CellRef, Value};
-use gridcraft_ui_egui::SheetApp;
 use serde_json::json;
 
 type Harness = egui_kittest::Harness<'static, SheetApp>;

@@ -2,7 +2,7 @@
 //!
 //! Token spans are byte offsets into the source, which the editor uses to colour references.
 
-use gridcraft_core::CellError;
+use celdas_core::CellError;
 
 use crate::ast::TrimMode;
 

@@ -185,7 +185,7 @@ pub(super) fn validation(s: &mut Session, p: &Json) -> Result<Json> {
 fn is_literal_list(f: &str) -> bool {
     f.starts_with('"')
         || (!f.contains('!')
-            && gridcraft_formula::parse(f).map(|e| !matches!(e, gridcraft_formula::Expr::Ref(_) | gridcraft_formula::Expr::Name(_))).unwrap_or(true))
+            && celdas_formula::parse(f).map(|e| !matches!(e, celdas_formula::Expr::Ref(_) | celdas_formula::Expr::Name(_))).unwrap_or(true))
 }
 
 /// A list rule's source as a file stores it. A literal list typed without quotes, as in Excel's
@@ -214,7 +214,7 @@ pub fn list_items(wb: &Workbook, sheet: usize, at: CellRef, dv: &Validation) -> 
         return items.split(',').map(|x| x.trim().to_string()).filter(|x| !x.is_empty()).collect();
     }
     let first = RangeRef::top_left(&dv.ranges).unwrap_or(at);
-    match gridcraft_calc::evaluate(wb, sheet, at, &formula_at(f, first, at)) {
+    match celdas_calc::evaluate(wb, sheet, at, &formula_at(f, first, at)) {
         Value::Array(a) => a.data.iter().filter(|v| !v.is_empty()).map(Value::display).collect(),
         v if !v.is_empty() && !v.is_error() => vec![v.display()],
         _ => vec![],
@@ -231,7 +231,7 @@ pub fn check_validation(wb: &Workbook, sheet: usize, at: CellRef, input: &str) -
     if input.is_empty() && dv.allow_blank {
         return None;
     }
-    let v = gridcraft_core::parse::parse_input(input, wb.date_system).value;
+    let v = celdas_core::parse::parse_input(input, wb.date_system).value;
     // The formulas are written for the top-left cell of all the areas and see the value being entered,
     // as in Excel (a custom `=A1>10` on A1:A9 checks A5's new value at A5).
     let first = RangeRef::top_left(&dv.ranges).unwrap_or(at);
@@ -248,7 +248,7 @@ pub fn check_validation(wb: &Workbook, sheet: usize, at: CellRef, input: &str) -
         entered = w;
         &entered
     };
-    let eval = |f: &str| gridcraft_calc::evaluate(wb, sheet, at, &formula_at(f, first, at));
+    let eval = |f: &str| celdas_calc::evaluate(wb, sheet, at, &formula_at(f, first, at));
     let num = |f: &str| eval(f).to_number().ok();
     let ok = match dv.kind {
         // The list is the one the dropdown showed before the entry, as in Excel: a source that takes
@@ -286,12 +286,10 @@ fn formula_at(f: &str, first: CellRef, at: CellRef) -> String {
     if first == at {
         return f.to_string();
     }
-    match gridcraft_formula::parse(f.trim_start_matches('=')) {
-        Ok(e) => gridcraft_formula::print(&gridcraft_formula::adjust::shift_relative(
-            e,
-            at.row as i64 - first.row as i64,
-            at.col as i64 - first.col as i64,
-        )),
+    match celdas_formula::parse(f.trim_start_matches('=')) {
+        Ok(e) => {
+            celdas_formula::print(&celdas_formula::adjust::shift_relative(e, at.row as i64 - first.row as i64, at.col as i64 - first.col as i64))
+        }
         Err(_) => f.to_string(),
     }
 }
@@ -303,7 +301,7 @@ pub(in super::super) fn move_rule_formula(f: &str, first: CellRef, to: CellRef) 
         return f.to_string();
     }
     let moved = formula_at(f, first, to);
-    let has_relative = gridcraft_formula::parse(f.trim_start_matches('=')).is_ok_and(|e| gridcraft_formula::print(&e) != moved);
+    let has_relative = celdas_formula::parse(f.trim_start_matches('=')).is_ok_and(|e| celdas_formula::print(&e) != moved);
     let eq = if f.starts_with('=') { "=" } else { "" };
     if has_relative { format!("{eq}{moved}") } else { f.to_string() }
 }

@@ -15,9 +15,9 @@
 //!   `CRAFT_FONTS_REQUIRED=1`). All seven exact codepoints and Korean UI text must render, or the
 //!   test fails; it never skips a loaded or required face set.
 
+use celdas_ui_egui::icons::{self, Icon};
+use celdas_ui_egui::theme;
 use egui::{FontFamily, FontId};
-use gridcraft_ui_egui::icons::{self, Icon};
-use gridcraft_ui_egui::theme;
 
 /// Symbols the bundled faces provide on a host with no symbol, CJK or Latin-Extended face:
 /// Hack supplies `↘ ◀ ↑`; Noto Emoji and emoji-icon-font supply `📋`.

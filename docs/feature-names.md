@@ -2,7 +2,7 @@
 
 > **Last reviewed:** 2026-11-10 · **Last updated:** 2026-11-10 · **Change:** minor (Ukrainian Chart is Діаграма); previously minor (Diagram words aligned with craft-i18n#211)
 
-ArtCraft apps use descriptive names for their own features. Product names used to describe compatibility, file formats, attribution or external software remain accurate.
+Nodalia apps use descriptive names for their own features. Product names used to describe compatibility, file formats, attribution or external software remain accurate.
 
 ## Naming map
 

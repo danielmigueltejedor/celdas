@@ -2,9 +2,9 @@
 //! group is open on the document (an action that spans several calls is still running), both
 //! buttons are off, and a click neither runs the command nor raises its refusal.
 
+use celdas_engine::Session;
+use celdas_ui_egui::SheetApp;
 use egui_kittest::kittest::{NodeT as _, Queryable as _};
-use gridcraft_engine::Session;
-use gridcraft_ui_egui::SheetApp;
 use serde_json::json;
 
 type Harness = egui_kittest::Harness<'static, SheetApp>;

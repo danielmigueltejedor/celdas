@@ -1,4 +1,4 @@
-//! Legacy formulas (no dynamic-array metadata) keep one value through GridCraft (issue #410), on
+//! Legacy formulas (no dynamic-array metadata) keep one value through Celdas (issue #410), on
 //! a calculated workbook:
 //! - every function that returns several values: a legacy cell formula calling it opens with
 //!   Excel's implicit `@` and does not spill, and a typed `=@F(…)` saves and reopens with the same
@@ -8,9 +8,9 @@
 
 use std::io::Write;
 
-use gridcraft_engine::Session;
-use gridcraft_engine::core::{CellRef, DateSystem, Value};
-use gridcraft_functions::{Arg, Ctx, FnSpec};
+use celdas_engine::Session;
+use celdas_engine::core::{CellRef, DateSystem, Value};
+use celdas_functions::{Arg, Ctx, FnSpec};
 use serde_json::json;
 
 struct Probe;
@@ -30,7 +30,7 @@ impl Ctx for Probe {
 /// The 2×2 block of numbers at `A1:B2` in the probe sheets.
 fn block() -> Value {
     Value::Array(std::sync::Arc::new(
-        gridcraft_engine::core::Array::new(2, 2, vec![Value::Number(1.0), Value::Number(2.0), Value::Number(3.0), Value::Number(4.0)]).unwrap(),
+        celdas_engine::core::Array::new(2, 2, vec![Value::Number(1.0), Value::Number(2.0), Value::Number(3.0), Value::Number(4.0)]).unwrap(),
     ))
 }
 
@@ -62,7 +62,7 @@ fn array_call(spec: &FnSpec) -> Option<String> {
         let mut tries = 0;
         loop {
             let args: Vec<Arg> = idx.iter().zip(&per).map(|(&i, c)| c[i].1.clone()).collect();
-            if let Value::Array(a) = gridcraft_functions::call(spec, &args, &mut Probe)
+            if let Value::Array(a) = celdas_functions::call(spec, &args, &mut Probe)
                 && a.data.len() > 1
             {
                 let text: Vec<&str> = idx.iter().zip(&per).map(|(&i, c)| c[i].0).collect();
@@ -97,7 +97,7 @@ fn array_call(spec: &FnSpec) -> Option<String> {
 /// Every library function with an array result, as a sample call, and the functions the
 /// evaluator implements itself that return several values or a range.
 fn array_calls() -> Vec<String> {
-    let mut calls: Vec<String> = gridcraft_functions::all().iter().filter_map(array_call).collect();
+    let mut calls: Vec<String> = celdas_functions::all().iter().filter_map(array_call).collect();
     for found in ["MUNIT", "MODE.MULT", "TEXTSPLIT", "REGEXEXTRACT", "MMULT", "SEQUENCE"] {
         assert!(calls.iter().any(|c| c.starts_with(&format!("{found}("))), "{found} not found: {calls:?}");
     }
@@ -166,7 +166,7 @@ fn typed_at_of_array_functions_saves_one_value() {
 }
 
 fn volatile(call: &str) -> bool {
-    call.split('(').next().and_then(gridcraft_functions::lookup).is_some_and(|spec| spec.volatile)
+    call.split('(').next().and_then(celdas_functions::lookup).is_some_and(|spec| spec.volatile)
 }
 
 /// Formulas the analysis covers at Excel's nesting limits, and one it cannot finish (names too
@@ -190,7 +190,7 @@ fn deep_and_unfinished_legacy_formulas_calculate_and_save_as_read() {
     assert_eq!(value(&s, CellRef::parse("E15").unwrap()).display(), "#VALUE!");
     assert_eq!(value(&s, CellRef::parse("E20").unwrap()), Value::Number(30.0 * (1.0 + 599.0 * 2.0)));
     let saved = s.execute("file.saveBytes", json!({"format": "xlsx"})).unwrap();
-    let bytes = gridcraft_engine::io::base64_decode(saved["base64"].as_str().unwrap()).unwrap();
+    let bytes = celdas_engine::io::base64_decode(saved["base64"].as_str().unwrap()).unwrap();
     let mut zip = zip::ZipArchive::new(std::io::Cursor::new(bytes)).unwrap();
     let mut xml = String::new();
     std::io::Read::read_to_string(&mut zip.by_name("xl/worksheets/sheet1.xml").unwrap(), &mut xml).unwrap();
@@ -218,7 +218,7 @@ fn legacy_unions_names_and_parentheses_calculate_and_save_as_read() {
     let shown: Vec<String> = formulas.iter().map(|(a, _)| value(&s, CellRef::parse(a).unwrap()).display()).collect();
     assert_eq!(shown, ["#VALUE!", "#VALUE!", "#VALUE!", "0", "2", "2"]);
     let saved = s.execute("file.saveBytes", json!({"format": "xlsx"})).unwrap();
-    let bytes = gridcraft_engine::io::base64_decode(saved["base64"].as_str().unwrap()).unwrap();
+    let bytes = celdas_engine::io::base64_decode(saved["base64"].as_str().unwrap()).unwrap();
     let mut zip = zip::ZipArchive::new(std::io::Cursor::new(bytes)).unwrap();
     let mut xml = String::new();
     std::io::Read::read_to_string(&mut zip.by_name("xl/worksheets/sheet1.xml").unwrap(), &mut xml).unwrap();
@@ -280,7 +280,7 @@ fn one_cell_ranges_and_formulas_at_the_nesting_limit_save_as_read() {
         one_value(&s, CellRef::parse(a).unwrap(), a).unwrap();
     }
     let saved = s.execute("file.saveBytes", json!({"format": "xlsx"})).unwrap();
-    let bytes = gridcraft_engine::io::base64_decode(saved["base64"].as_str().unwrap()).unwrap();
+    let bytes = celdas_engine::io::base64_decode(saved["base64"].as_str().unwrap()).unwrap();
     let mut zip = zip::ZipArchive::new(std::io::Cursor::new(bytes)).unwrap();
     let mut xml = String::new();
     std::io::Read::read_to_string(&mut zip.by_name("xl/worksheets/sheet1.xml").unwrap(), &mut xml).unwrap();
@@ -306,7 +306,7 @@ fn names_shrunk_by_deleting_rows_save_as_legacy() {
     let mut s = open(&legacy_xlsx(&formulas, names));
     s.execute("home.deleteRows", json!({"rows": "2:3"})).unwrap();
     let saved = s.execute("file.saveBytes", json!({"format": "xlsx"})).unwrap();
-    let bytes = gridcraft_engine::io::base64_decode(saved["base64"].as_str().unwrap()).unwrap();
+    let bytes = celdas_engine::io::base64_decode(saved["base64"].as_str().unwrap()).unwrap();
     let mut zip = zip::ZipArchive::new(std::io::Cursor::new(bytes)).unwrap();
     let mut xml = String::new();
     std::io::Read::read_to_string(&mut zip.by_name("xl/worksheets/sheet1.xml").unwrap(), &mut xml).unwrap();
@@ -361,6 +361,6 @@ fn session() -> Session {
 
 fn open(bytes: &[u8]) -> Session {
     let mut s = Session::new();
-    s.execute("file.open", json!({"name": "legacy.xlsx", "base64": gridcraft_engine::io::base64_encode(bytes)})).unwrap();
+    s.execute("file.open", json!({"name": "legacy.xlsx", "base64": celdas_engine::io::base64_encode(bytes)})).unwrap();
     s
 }

@@ -1,4 +1,4 @@
-use gridcraft_core::{CellError, CellRef, Value};
+use celdas_core::{CellError, CellRef, Value};
 use serde_json::{Value as Json, json};
 
 use crate::Session;
@@ -34,7 +34,7 @@ fn val(s: &Session, a: &str) -> Value {
 fn text(s: &Session, a: &str) -> String {
     val(s, a).display()
 }
-fn pt(s: &Session) -> gridcraft_model::PivotTable {
+fn pt(s: &Session) -> celdas_model::PivotTable {
     s.doc().unwrap().wb.active().unwrap().pivots.last().unwrap().clone()
 }
 /// Finds the row (0-based) whose first report column holds `label`.
@@ -466,12 +466,12 @@ fn refresh_after_source_edits() {
     s.execute("pivot.refresh", json!({"pivot": "PivotTable1"})).unwrap();
 }
 
-fn pivot_chart(s: &Session) -> gridcraft_model::Chart {
+fn pivot_chart(s: &Session) -> celdas_model::Chart {
     s.doc().unwrap().wb.active().unwrap().charts.last().unwrap().clone()
 }
 fn plotted(s: &Session) -> Vec<Vec<Option<f64>>> {
     let d = s.doc().unwrap();
-    let data = gridcraft_chart::resolve(&d.wb, d.wb.active_sheet(), &pivot_chart(s));
+    let data = celdas_chart::resolve(&d.wb, d.wb.active_sheet(), &pivot_chart(s));
     data.series.into_iter().map(|x| x.values).collect()
 }
 
@@ -503,7 +503,7 @@ fn pivot_chart_follows_the_report() {
     assert_eq!(pts[0].iter().flatten().sum::<f64>(), TOTAL);
     // Survives an XLSX round trip as a PivotChart.
     let wb = (*s.doc().unwrap().wb).clone();
-    let (back, _) = gridcraft_xlsx::read_xlsx(&gridcraft_xlsx::write_xlsx(&wb).unwrap()).unwrap();
+    let (back, _) = celdas_xlsx::read_xlsx(&celdas_xlsx::write_xlsx(&wb).unwrap()).unwrap();
     let si = back.sheet_index("Sheet2").unwrap();
     assert_eq!(back.sheet(si).unwrap().charts.first().and_then(|c| c.pivot.clone()).as_deref(), Some("Sheet2!PivotTable1"));
     // Renaming the sheet keeps the link; a refresh still rebinds.
@@ -529,7 +529,7 @@ fn pivot_chart_errors() {
     let r = s.execute("insert.pivotChart", json!({"pivot": "PivotTable1", "type": "line", "title": null})).unwrap();
     assert_eq!(r["series"], 1);
     let ch = pivot_chart(&s);
-    assert_eq!(ch.kind, gridcraft_model::ChartKind::Line);
+    assert_eq!(ch.kind, celdas_model::ChartKind::Line);
     assert_eq!(ch.title, None);
     // One undo step.
     s.execute("edit.undo", json!({})).unwrap();
@@ -1029,7 +1029,7 @@ fn detail_cells_are_the_cells_show_details_takes() {
 
 #[test]
 fn rank_ties_are_dense_and_count_numbers_is_captioned_count_of() {
-    // #1448 items 10 and 12: Excel ranks 5, 4, 3, 3, 4 as 1, 2, 3, 3, 2 (GridCraft gave 1, 2, 4,
+    // #1448 items 10 and 12: Excel ranks 5, 4, 3, 3, 4 as 1, 2, 3, 3, 2 (Celdas gave 1, 2, 4,
     // 4, 2), and captions a Count Numbers field "Count of Val".
     let mut s = Session::new();
     s.new_workbook();
