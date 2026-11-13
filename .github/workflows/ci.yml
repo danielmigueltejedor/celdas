@@ -1,7 +1,7 @@
 name: CI
 
 # Quality gates for every push to main and every pull request (`cargo xtask ci`), through the
-# suite's shared gate workflow in craft-common-actions.
+# reusable gate workflow in getnodalia/foundation.
 on:
   push:
     branches: [main]
@@ -18,7 +18,7 @@ concurrency:
 
 jobs:
   gate:
-    uses: getnodalia/foundation/.github/workflows/rust-gate.yml@9178a270c5e577a822c5523d21b56efdd89fc1e1 # foundation main
+    uses: getnodalia/foundation/.github/workflows/rust-gate.yml@16528aa5fba5abff2971c29ca9c4765cb15d1392 # foundation main
     with:
       # The same craft-fonts commit as release.yml and freebsd.yml, so the gate tests the fonts that ship.
       fonts-repository: getnodalia/foundation
@@ -30,5 +30,5 @@ jobs:
   # Every git dependency in Cargo.lock comes from getnodalia or nodalia-design.
   git-sources:
     name: git-sources
-    uses: getnodalia/foundation/.github/workflows/git-sources.yml@9178a270c5e577a822c5523d21b56efdd89fc1e1 # foundation main
+    uses: getnodalia/foundation/.github/workflows/git-sources.yml@16528aa5fba5abff2971c29ca9c4765cb15d1392 # foundation main
 
