@@ -49,7 +49,7 @@ fn list_picker_fits_up_to_eight_rows_then_scrolls() {
 
 #[test]
 fn number_format_colors_resolve_named_and_indexed_rgb() {
-    use gridcraft_engine::numfmt::FormatColor as F;
+    use celdas_engine::numfmt::FormatColor as F;
     assert_eq!(numfmt_color(F::Green), Color32::from_rgb(0, 255, 0));
     assert_eq!(numfmt_color(F::Indexed(1)), Color32::BLACK);
     assert_eq!(numfmt_color(F::Indexed(10)), Color32::from_rgb(0, 128, 0));
@@ -133,7 +133,7 @@ fn center_across_run_stops_at_first_non_continuing_column() {
 #[test]
 fn conditional_number_format_reaches_the_cell_text() {
     // #1163: a rule's number format replaces the cell's own; unmatched cells keep theirs.
-    let mut session = gridcraft_engine::Session::new();
+    let mut session = celdas_engine::Session::new();
     session.new_workbook();
     session.execute("range.setValues", json!({"range": "A1", "values": [[1], [3], [4]]})).unwrap();
     session.execute("home.numberFormat", json!({"range": "A3", "code": "0.0"})).unwrap();
@@ -154,7 +154,7 @@ fn conditional_number_format_reaches_the_cell_text() {
 
 #[test]
 fn filter_menu_uses_the_table_whose_header_was_clicked() {
-    use gridcraft_engine::model::Table;
+    use celdas_engine::model::Table;
     let table = |id: u32, r0: u32, r1: u32| Table {
         id,
         name: format!("T{id}"),
@@ -417,9 +417,9 @@ fn grid_frame(app: &mut crate::SheetApp) {
 /// what a fresh build gives.
 #[test]
 fn kept_sheet_geometry_and_cf_statistics_follow_every_change() {
-    use gridcraft_engine::cf::CfCache;
-    use gridcraft_engine::core::CellRef;
-    let mut session = gridcraft_engine::Session::new();
+    use celdas_engine::cf::CfCache;
+    use celdas_engine::core::CellRef;
+    let mut session = celdas_engine::Session::new();
     session.new_workbook();
     let mut app = crate::SheetApp::new(session, Default::default());
     app.run("range.setValues", json!({"range": "A1:A3", "values": [[1], [2], [3]]})).unwrap();
@@ -473,11 +473,11 @@ fn kept_sheet_geometry_and_cf_statistics_follow_every_change() {
         let d = app.session.active_mut().unwrap();
         d.undo.clear();
         d.redo.clear();
-        d.saved = Arc::new(gridcraft_engine::model::Workbook::default());
+        d.saved = Arc::new(celdas_engine::model::Workbook::default());
         let sheet = Arc::make_mut(&mut d.wb).sheet_mut(0).unwrap();
         sheet.rows.entry(0).or_default().hidden = true;
         sheet.rows.entry(1).or_default().hidden = true;
-        sheet.set_value(CellRef::new(2, 0), gridcraft_engine::core::Value::Number(300.0));
+        sheet.set_value(CellRef::new(2, 0), celdas_engine::core::Value::Number(300.0));
     }
     grid_frame(&mut app);
     let geo = app.grid.geo.clone().unwrap();

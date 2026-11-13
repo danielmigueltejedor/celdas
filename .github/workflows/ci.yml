@@ -20,7 +20,7 @@ jobs:
   gate:
     uses: getnodalia/foundation/.github/workflows/rust-gate.yml@ec62c63fd3206e4ed729fccf18a57170f8fa5dd6 # foundation main
     with:
-      # The same craft-fonts commit as release.yml and freebsd.yml, so the gate tests the fonts that ship.
+      # The same craft-fonts commit as the release workflows and freebsd.yml, so the gate tests the fonts that ship.
       fonts-repository: getnodalia/foundation
       fonts-ref: b076417b5880bd4154bd22f00695b1d28c6bea83
       packages: >-
@@ -32,3 +32,29 @@ jobs:
     name: git-sources
     uses: getnodalia/foundation/.github/workflows/git-sources.yml@ec62c63fd3206e4ed729fccf18a57170f8fa5dd6 # foundation main
 
+
+  # Celdas's own names everywhere; upstream's arrive renamed by the weekly sync.
+  names:
+    name: No upstream names
+    runs-on: ubuntu-24.04
+    steps:
+      - uses: actions/checkout@3d3c42e5aac5ba805825da76410c181273ba90b1 # v7.0.1
+        with:
+          persist-credentials: false
+      - run: python3 scripts/rebrand.py check
+
+  # A released version needs its hand-written notes (docs/release-notes/README.md).
+  release-notes:
+    name: Release notes are written
+    runs-on: ubuntu-24.04
+    steps:
+      - uses: actions/checkout@3d3c42e5aac5ba805825da76410c181273ba90b1 # v7.0.1
+        with:
+          persist-credentials: false
+      - shell: bash
+        run: |
+          version="$(sed -n 's/^version = "\(.*\)"/\1/p' Cargo.toml | head -1)"
+          case "$version" in
+            *-dev*) echo "Version $version is a development version: no notes needed." ;;
+            *) scripts/check-release-notes.sh "v$version" ;;
+          esac

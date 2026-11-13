@@ -1,0 +1,23 @@
+[package]
+name = "celdas-cli"
+version.workspace = true
+edition.workspace = true
+license.workspace = true
+description = "Celdas command line: inspect, convert, evaluate, script and serve MCP without a window"
+publish = false
+
+[lints]
+workspace = true
+
+[[bin]]
+name = "celdas-cli"
+path = "src/main.rs"
+
+[dependencies]
+celdas-engine = { workspace = true }
+celdas-mcp = { workspace = true }
+serde_json = { workspace = true }
+log = { workspace = true }
+# `check`: validating the packages Celdas writes (content types, relationships).
+zip = { workspace = true }
+quick-xml = { workspace = true }

@@ -1,6 +1,6 @@
 //! Calendars a format section can show dates in: the `B1` (Gregorian) and `B2` (Hijri) prefixes.
 
-use gridcraft_core::date::{DateTime, MONTHS, WEEKDAYS, days_from_civil, days_in_month};
+use celdas_core::date::{DateTime, MONTHS, WEEKDAYS, days_from_civil, days_in_month};
 
 /// The calendar a section's year, month and day parts count in.
 #[derive(Clone, Copy, Debug, PartialEq, Eq, Default)]
@@ -124,8 +124,8 @@ fn hijri_date(dt: &DateTime) -> Option<CalendarDate> {
 #[cfg(test)]
 mod tests {
     use super::*;
-    use gridcraft_core::DateSystem;
-    use gridcraft_core::date::{datetime_from_serial, max_serial};
+    use celdas_core::DateSystem;
+    use celdas_core::date::{datetime_from_serial, max_serial};
 
     /// Leap years of the 30-year cycle (Excel's set, per the reviewer's 43,512-serial comparison).
     const LEAP: [i64; 11] = [2, 5, 7, 10, 13, 15, 18, 21, 24, 26, 29];

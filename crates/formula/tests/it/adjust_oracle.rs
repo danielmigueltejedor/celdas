@@ -3,15 +3,15 @@
 //! (and so the same text) for every formula and edit, and `adjust_if_changed` must say
 //! "unchanged" exactly when the old code returned the formula as it was.
 
-use gridcraft_core::{CellRef, MAX_COLS, MAX_ROWS, RangeRef};
-use gridcraft_formula::adjust::{Axis, Edit, adjust, adjust_if_changed, shift_relative};
-use gridcraft_formula::{Expr, parse, print};
+use celdas_core::{CellRef, MAX_COLS, MAX_ROWS, RangeRef};
+use celdas_formula::adjust::{Axis, Edit, adjust, adjust_if_changed, shift_relative};
+use celdas_formula::{Expr, parse, print};
 
 /// The implementation before the borrowed check, kept as the test oracle.
 mod old {
-    use gridcraft_core::{CellError, MAX_COLS, MAX_ROWS};
-    use gridcraft_formula::adjust::{Axis, Edit};
-    use gridcraft_formula::{Anchor, Expr, RefKind, Reference, SheetSel};
+    use celdas_core::{CellError, MAX_COLS, MAX_ROWS};
+    use celdas_formula::adjust::{Axis, Edit};
+    use celdas_formula::{Anchor, Expr, RefKind, Reference, SheetSel};
 
     fn clamp_anchor(row: i64, col: i64) -> Option<(u32, u32)> {
         if (0..MAX_ROWS as i64).contains(&row) && (0..MAX_COLS as i64).contains(&col) { Some((row as u32, col as u32)) } else { None }
@@ -244,7 +244,7 @@ const FORMULAS: &[&str] = &[
 ];
 
 fn col(c: u32) -> String {
-    gridcraft_core::addr::col_to_letters(c)
+    celdas_core::addr::col_to_letters(c)
 }
 
 /// The realistic mix the structural-edit benchmark uses, row-dependent.
@@ -457,11 +457,11 @@ fn adjust_if_changed_reports_unchanged_exactly_when_nothing_moves() {
 }
 
 /// The whole formula corpus (one formula per line, with or without `=`) when
-/// `GRIDCRAFT_ADJUST_CORPUS` names a file: `cargo test -p gridcraft-formula --test it -- --ignored adjust_corpus`.
+/// `CELDAS_ADJUST_CORPUS` names a file: `cargo test -p celdas-formula --test it -- --ignored adjust_corpus`.
 #[test]
-#[ignore = "needs GRIDCRAFT_ADJUST_CORPUS"]
+#[ignore = "needs CELDAS_ADJUST_CORPUS"]
 fn adjust_corpus_matches_the_previous_implementation() {
-    let Ok(path) = std::env::var("GRIDCRAFT_ADJUST_CORPUS") else { return };
+    let Ok(path) = std::env::var("CELDAS_ADJUST_CORPUS") else { return };
     let text = std::fs::read_to_string(&path).unwrap_or_else(|e| panic!("{path}: {e}"));
     let edits = edits();
     let (mut parsed, mut skipped, mut cases) = (0, 0, 0);

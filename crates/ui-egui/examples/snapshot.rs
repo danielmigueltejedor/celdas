@@ -1,14 +1,14 @@
-//! Renders the whole GridCraft window offscreen (wgpu, no window) to a PNG.
+//! Renders the whole Celdas window offscreen (wgpu, no window) to a PNG.
 //!
-//! `cargo run --release -p gridcraft-ui-egui --example snapshot -- [--sample sales] [--in file.xlsx]
+//! `cargo run --release -p celdas-ui-egui --example snapshot -- [--sample sales] [--in file.xlsx]
 //!  [--size 1440x900] [--scale 2] [--cmd 'id={json}']... [--tab Insert] [--dark] [--language en|es|zh|ja|ko|ru|pt|de|cs|fr|tr]
 //!  [--pane name] [--object id] [--dialog 'name={json}'] [--refedit key=A1:B2] [--hf-edit header|footer] out.png`
 //!
 //! `--refedit key=range` collapses the open dialog to its reference box `key`, then selects
 //! `range` on the grid, as a person picking a range for that box does.
 
-use gridcraft_engine::Session;
-use gridcraft_ui_egui::SheetApp;
+use celdas_engine::Session;
+use celdas_ui_egui::SheetApp;
 use serde_json::json;
 
 fn main() {
@@ -90,7 +90,7 @@ fn main() {
     }
     // Catalog the installed fonts first (the app scans in the background from its first frame), so
     // the workbook's fonts are drawn in their own faces, not a substitute.
-    let _ = gridcraft_ui_egui::fonts::catalog();
+    let _ = celdas_ui_egui::fonts::catalog();
     let mut session = Session::new();
     if let Some(p) = &input {
         session.execute("file.open", json!({"path": p})).expect("open");
@@ -116,7 +116,7 @@ fn main() {
                 let mut app = SheetApp::new(session, Default::default());
                 app.ui.dark = dark;
                 if let Some(code) = &language
-                    && let Some(l) = gridcraft_ui_egui::i18n::Language::parse(code)
+                    && let Some(l) = celdas_ui_egui::i18n::Language::parse(code)
                 {
                     app.ui.language = l;
                 }
@@ -133,8 +133,8 @@ fn main() {
                 // Page Layout view: edit the first page's centre header (or footer) section.
                 let active = app.session.active().and_then(|d| d.wb.active().cloned().map(|s| (d.wb.active_sheet(), s)));
                 if let (Some(part), Some((si, sh))) = (&hf_edit, active) {
-                    let zone = gridcraft_engine::paper::HfZone { footer: part == "footer", section: 1 };
-                    gridcraft_ui_egui::paper_view::begin(&mut app, si, &sh, (0, 0), zone);
+                    let zone = celdas_engine::paper::HfZone { footer: part == "footer", section: 1 };
+                    celdas_ui_egui::paper_view::begin(&mut app, si, &sh, (0, 0), zone);
                 }
                 app
             },

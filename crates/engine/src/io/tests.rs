@@ -1,8 +1,8 @@
 use super::*;
 
-fn book(rtl: bool, cells: &[(&str, gridcraft_core::Value, gridcraft_model::HAlign)]) -> Workbook {
+fn book(rtl: bool, cells: &[(&str, celdas_core::Value, celdas_model::HAlign)]) -> Workbook {
     let mut wb = Workbook::new();
-    let ids: Vec<_> = cells.iter().map(|(_, _, h)| wb.styles.derive(gridcraft_model::StyleId::DEFAULT, |st| st.align.h = *h)).collect();
+    let ids: Vec<_> = cells.iter().map(|(_, _, h)| wb.styles.derive(celdas_model::StyleId::DEFAULT, |st| st.align.h = *h)).collect();
     let sh = wb.sheet_mut(0).unwrap();
     sh.right_to_left = rtl;
     for ((at, value, _), id) in cells.iter().zip(ids) {
@@ -24,7 +24,7 @@ fn copied(wb: &Workbook, range: &str) -> String {
 fn save_fails_upfront_when_the_temp_name_is_taken() {
     // Another local user who can write the directory must not be able to point the
     // save's predictable temporary name at their own file: creation is exclusive.
-    let dir = std::env::temp_dir().join(format!("gridcraft-fs-safety-temp-name-{}", std::process::id()));
+    let dir = std::env::temp_dir().join(format!("celdas-fs-safety-temp-name-{}", std::process::id()));
     let _ = std::fs::remove_dir_all(&dir);
     std::fs::create_dir_all(&dir).unwrap();
     let victim = dir.join("victim.txt");
@@ -42,7 +42,7 @@ fn save_fails_upfront_when_the_temp_name_is_taken() {
 #[test]
 fn save_keeps_the_destination_access_restrictions() {
     use std::os::unix::fs::PermissionsExt;
-    let dir = std::env::temp_dir().join(format!("gridcraft-fs-safety-permissions-{}", std::process::id()));
+    let dir = std::env::temp_dir().join(format!("celdas-fs-safety-permissions-{}", std::process::id()));
     let _ = std::fs::remove_dir_all(&dir);
     std::fs::create_dir_all(&dir).unwrap();
     let dest = dir.join("private.xlsx");
@@ -62,7 +62,7 @@ fn save_keeps_the_destination_access_restrictions() {
 #[cfg(not(target_arch = "wasm32"))]
 #[test]
 fn open_refuses_directories_and_unknowable_lengths() {
-    let dir = std::env::temp_dir().join(format!("gridcraft-fs-safety-open-{}", std::process::id()));
+    let dir = std::env::temp_dir().join(format!("celdas-fs-safety-open-{}", std::process::id()));
     let _ = std::fs::remove_dir_all(&dir);
     std::fs::create_dir_all(&dir).unwrap();
     assert!(read_file(dir.to_str().unwrap()).is_err(), "a directory is not a regular file");
@@ -77,22 +77,22 @@ fn html_export_refuses_an_outsized_grid_instead_of_growing_forever() {
     // 300 rows down is 4.9M cells → refused before a byte of `<td>` is written.
     let mut wb = Workbook::new();
     let sh = wb.sheet_mut(0).unwrap();
-    sh.set_value(CellRef::new(0, 0), gridcraft_core::Value::Text("start".into()));
-    sh.set_value(CellRef::new(300, 16383), gridcraft_core::Value::Text("corner".into()));
+    sh.set_value(CellRef::new(0, 0), celdas_core::Value::Text("start".into()));
+    sh.set_value(CellRef::new(300, 16383), celdas_core::Value::Text("corner".into()));
     let err = to_html(&wb, 0).unwrap_err();
     assert!(err.to_string().contains("too tall × wide"), "{err}");
     // A normal sheet is fine.
     let mut ok = Workbook::new();
-    ok.sheet_mut(0).unwrap().set_value(CellRef::new(5, 2), gridcraft_core::Value::Text("t".into()));
+    ok.sheet_mut(0).unwrap().set_value(CellRef::new(5, 2), celdas_core::Value::Text("t".into()));
     assert!(to_html(&ok, 0).is_ok());
 }
 
 #[test]
 fn html_export_embeds_images_as_data_uris() {
     let mut wb = Workbook::new();
-    wb.sheet_mut(0).unwrap().images.push(gridcraft_model::Image {
+    wb.sheet_mut(0).unwrap().images.push(celdas_model::Image {
         id: 1,
-        anchor: gridcraft_model::Anchor { cell: CellRef::new(0, 0), dx: 0.0, dy: 0.0, width: 72.0, height: 36.0, mode: Default::default() },
+        anchor: celdas_model::Anchor { cell: CellRef::new(0, 0), dx: 0.0, dy: 0.0, width: 72.0, height: 36.0, mode: Default::default() },
         data: vec![1, 2, 3].into(),
         mime: "image/png".into(),
         alt: "a \"logo\"".into(),
@@ -110,16 +110,16 @@ fn html_export_embeds_images_as_data_uris() {
 fn html_export_places_images_at_their_anchor_using_sheet_geometry() {
     let mut wb = Workbook::new();
     let sh = wb.sheet_mut(0).unwrap();
-    sh.cols.insert(1, gridcraft_model::LineInfo { size: Some(100.0), ..Default::default() });
-    sh.rows.insert(1, gridcraft_model::LineInfo { size: Some(30.0), ..Default::default() });
-    sh.images.push(gridcraft_model::Image {
+    sh.cols.insert(1, celdas_model::LineInfo { size: Some(100.0), ..Default::default() });
+    sh.rows.insert(1, celdas_model::LineInfo { size: Some(30.0), ..Default::default() });
+    sh.images.push(celdas_model::Image {
         id: 1,
-        anchor: gridcraft_model::Anchor { cell: CellRef::new(3, 2), dx: 5.0, dy: 7.0, width: 10.0, height: 20.0, mode: Default::default() },
+        anchor: celdas_model::Anchor { cell: CellRef::new(3, 2), dx: 5.0, dy: 7.0, width: 10.0, height: 20.0, mode: Default::default() },
         data: vec![1].into(),
         mime: "image/png".into(),
         alt: String::new(),
     });
-    sh.set_value(CellRef::new(1, 1), gridcraft_core::Value::Number(1.0));
+    sh.set_value(CellRef::new(1, 1), celdas_core::Value::Number(1.0));
     let html = to_html(&wb, 0).unwrap();
     // The table starts at B2; the picture is at C4: one 100 px column and two rows (30 + 20) further on.
     assert!(html.contains("<col style=\"width:100px\">"), "{html}");
@@ -130,17 +130,10 @@ fn html_export_places_images_at_their_anchor_using_sheet_geometry() {
 fn book_with_picture(anchor: &str, cell_at: (u32, u32)) -> Workbook {
     let mut wb = Workbook::new();
     let sh = wb.sheet_mut(0).unwrap();
-    sh.set_value(CellRef::new(cell_at.0, cell_at.1), gridcraft_core::Value::Number(1.0));
-    sh.images.push(gridcraft_model::Image {
+    sh.set_value(CellRef::new(cell_at.0, cell_at.1), celdas_core::Value::Number(1.0));
+    sh.images.push(celdas_model::Image {
         id: 1,
-        anchor: gridcraft_model::Anchor {
-            cell: CellRef::parse(anchor).unwrap(),
-            dx: 0.0,
-            dy: 0.0,
-            width: 10.0,
-            height: 10.0,
-            mode: Default::default(),
-        },
+        anchor: celdas_model::Anchor { cell: CellRef::parse(anchor).unwrap(), dx: 0.0, dy: 0.0, width: 10.0, height: 10.0, mode: Default::default() },
         data: vec![1].into(),
         mime: "image/png".into(),
         alt: String::new(),
@@ -152,9 +145,9 @@ fn book_with_picture(anchor: &str, cell_at: (u32, u32)) -> Workbook {
 fn html_export_places_images_past_hidden_columns_and_rows() {
     let mut wb = book_with_picture("C3", (0, 0));
     let sh = wb.sheet_mut(0).unwrap();
-    sh.set_value(CellRef::new(2, 2), gridcraft_core::Value::Number(2.0));
-    sh.cols.insert(1, gridcraft_model::LineInfo { hidden: true, ..Default::default() });
-    sh.rows.insert(1, gridcraft_model::LineInfo { hidden: true, ..Default::default() });
+    sh.set_value(CellRef::new(2, 2), celdas_core::Value::Number(2.0));
+    sh.cols.insert(1, celdas_model::LineInfo { hidden: true, ..Default::default() });
+    sh.rows.insert(1, celdas_model::LineInfo { hidden: true, ..Default::default() });
     let html = to_html(&wb, 0).unwrap();
     // Column B and row 2 take no room: C3 is one default column and row from A1.
     assert_eq!(html.matches("<col ").count(), 2, "{html}");
@@ -171,8 +164,8 @@ fn html_export_places_images_above_and_left_of_the_table() {
 
 #[test]
 fn html_export_marks_right_to_left_sheets() {
-    use gridcraft_core::Value;
-    use gridcraft_model::HAlign;
+    use celdas_core::Value;
+    use celdas_model::HAlign;
     let wb = book(true, &[("A1", Value::text("Hello!"), HAlign::General), ("B1", Value::Number(-5.0), HAlign::General)]);
     let html = to_html(&wb, 0).unwrap();
     assert!(html.contains("<body><table dir=\"rtl\">"), "{html}");
@@ -190,8 +183,8 @@ fn html_export_marks_right_to_left_sheets() {
 
 #[test]
 fn html_export_lets_arabic_general_text_align_by_direction() {
-    use gridcraft_core::Value;
-    use gridcraft_model::HAlign;
+    use celdas_core::Value;
+    use celdas_model::HAlign;
     let wb = book(
         false,
         &[
@@ -218,8 +211,8 @@ fn html_export_lets_arabic_general_text_align_by_direction() {
 
 #[test]
 fn html_export_of_latin_ltr_sheet_is_unchanged() {
-    use gridcraft_core::Value;
-    use gridcraft_model::HAlign;
+    use celdas_core::Value;
+    use celdas_model::HAlign;
     let mut wb = book(
         false,
         &[
@@ -254,12 +247,12 @@ fn html_export_of_latin_ltr_sheet_is_unchanged() {
 fn html_export_fails_instead_of_dropping_cells_past_the_row_limit() {
     let mut wb = Workbook::new();
     let sh = wb.sheet_mut(0).unwrap();
-    sh.set_value(CellRef::new(0, 0), gridcraft_core::Value::text("near"));
-    sh.set_value(CellRef::new(149_999, 0), gridcraft_core::Value::text("far"));
+    sh.set_value(CellRef::new(0, 0), celdas_core::Value::text("near"));
+    sh.set_value(CellRef::new(149_999, 0), celdas_core::Value::text("far"));
     assert!(save_bytes(&wb, "book.html").is_err());
     let sh = wb.sheet_mut(0).unwrap();
     sh.remove_cell(CellRef::new(149_999, 0));
-    sh.set_value(CellRef::new(100_000, 0), gridcraft_core::Value::text("far"));
+    sh.set_value(CellRef::new(100_000, 0), celdas_core::Value::text("far"));
     let html = String::from_utf8(save_bytes(&wb, "book.html").unwrap()).unwrap();
     assert!(html.contains(">near</td>") && html.contains(">far</td>"));
 }
@@ -270,7 +263,7 @@ fn macros_are_saved_only_into_xlsm() {
     wb.vba_project = Some(b"vba".to_vec().into());
     let has_macros = |path: &str| {
         let bytes = save_bytes(&wb, path).unwrap();
-        gridcraft_xlsx::read_xlsx(&bytes).unwrap().0.vba_project.is_some()
+        celdas_xlsx::read_xlsx(&bytes).unwrap().0.vba_project.is_some()
     };
     assert!(has_macros("book.xlsm"));
     assert!(has_macros("BOOK.XLSM"));
@@ -293,12 +286,12 @@ fn csv_named_history_does_not_get_the_reserved_sheet_name() {
 
 #[test]
 fn csv_and_text_open_read_day_first_dates_and_report_a_guessed_order() {
-    let may = gridcraft_core::date::serial_from_ymd(gridcraft_core::DateSystem::D1900, 2026, 5, 31).unwrap();
-    let april = gridcraft_core::date::serial_from_ymd(gridcraft_core::DateSystem::D1900, 2026, 4, 3).unwrap();
+    let may = celdas_core::date::serial_from_ymd(celdas_core::DateSystem::D1900, 2026, 5, 31).unwrap();
+    let april = celdas_core::date::serial_from_ymd(celdas_core::DateSystem::D1900, 2026, 4, 3).unwrap();
     for file in ["dates.csv", "dates.txt"] {
         let (wb, warnings) = open_bytes(file, b"When\n31/05/2026\n03/04/2026\n").unwrap();
-        assert_eq!(wb.sheet(0).unwrap().value(CellRef::new(1, 0)), gridcraft_core::Value::Number(may), "{file}");
-        assert_eq!(wb.sheet(0).unwrap().value(CellRef::new(2, 0)), gridcraft_core::Value::Number(april), "{file}");
+        assert_eq!(wb.sheet(0).unwrap().value(CellRef::new(1, 0)), celdas_core::Value::Number(may), "{file}");
+        assert_eq!(wb.sheet(0).unwrap().value(CellRef::new(2, 0)), celdas_core::Value::Number(april), "{file}");
         assert!(warnings.is_empty(), "{file}: {warnings:?}");
     }
     let (_, warnings) = open_bytes("ambiguous.csv", b"When\n03/04/2026\n12/01/2026\n").unwrap();
@@ -310,7 +303,7 @@ fn csv_and_text_open_read_day_first_dates_and_report_a_guessed_order() {
 #[cfg(not(target_arch = "wasm32"))]
 #[test]
 fn failed_save_leaves_no_temporary_file() {
-    let dir = std::env::temp_dir().join(format!("gridcraft-write-{}", std::process::id()));
+    let dir = std::env::temp_dir().join(format!("celdas-write-{}", std::process::id()));
     let _ = std::fs::remove_dir_all(&dir);
     std::fs::create_dir_all(&dir).unwrap();
     let blocked = dir.join("Book1.xlsx");
@@ -330,7 +323,7 @@ fn failed_save_leaves_no_temporary_file() {
 #[cfg(not(target_arch = "wasm32"))]
 #[test]
 fn script_sandbox_refuses_file_access_until_dropped() {
-    let dir = std::env::temp_dir().join(format!("gridcraft-sandbox-{}", std::process::id()));
+    let dir = std::env::temp_dir().join(format!("celdas-sandbox-{}", std::process::id()));
     let _ = std::fs::remove_dir_all(&dir);
     std::fs::create_dir_all(&dir).unwrap();
     let existing = dir.join("in.csv");
@@ -400,8 +393,8 @@ fn csv_save_keeps_the_separator_it_was_opened_with() {
 fn csv_save_of_a_workbook_not_read_from_csv_uses_commas() {
     let mut wb = Workbook::new();
     if let Some(sh) = wb.sheet_mut(0) {
-        sh.set_value(CellRef::new(0, 0), gridcraft_core::Value::text("a"));
-        sh.set_value(CellRef::new(0, 1), gridcraft_core::Value::Number(1.0));
+        sh.set_value(CellRef::new(0, 0), celdas_core::Value::text("a"));
+        sh.set_value(CellRef::new(0, 1), celdas_core::Value::Number(1.0));
     }
     assert_eq!(save_bytes(&wb, "new.csv").unwrap(), b"a,1\r\n");
     // Through .xlsx the CSV origin is gone, as in Excel.
@@ -417,7 +410,7 @@ fn csv_save_of_a_workbook_not_read_from_csv_uses_commas() {
 
 #[test]
 fn encrypted_workbook_is_reported_not_misread() {
-    let file = gridcraft_xlsx::testing::encrypt_workbook(b"package", "pw");
+    let file = celdas_xlsx::testing::encrypt_workbook(b"package", "pw");
     let msg = open_bytes("secret.xlsx", &file).unwrap_err().to_string();
     assert!(msg.contains(PASSWORD_REQUIRED), "got: {msg}");
     assert!(!msg.contains("zip"), "must not surface the zip error: {msg}");
@@ -433,10 +426,10 @@ fn encrypted_workbook_is_reported_not_misread() {
 #[test]
 fn encryption_no_password_opens_is_reported_without_asking_for_one() {
     let info: &[u8] = &[3, 0, 2, 0, 4, 0, 0, 0]; // Standard header flags: RC4, not AES
-    let file = gridcraft_xlsx::testing::compound_file(&[("EncryptionInfo", info), ("EncryptedPackage", &[0; 8])]);
+    let file = celdas_xlsx::testing::compound_file(&[("EncryptionInfo", info), ("EncryptedPackage", &[0; 8])]);
     let msg = open_bytes("rc4.xlsx", &file).unwrap_err().to_string();
     assert!(msg.contains("RC4") && !msg.contains(PASSWORD_REQUIRED), "got: {msg}");
-    let irm = gridcraft_xlsx::testing::compound_file(&[("EncryptedPackage", &[0; 8])]);
+    let irm = celdas_xlsx::testing::compound_file(&[("EncryptedPackage", &[0; 8])]);
     let msg = open_bytes("irm.xlsx", &irm).unwrap_err().to_string();
     assert!(msg.contains("rights-management") && !msg.contains("damaged"), "got: {msg}");
 }
@@ -453,8 +446,8 @@ fn other_compound_files_are_not_called_encrypted() {
 /// whole values in narrow columns (never `#####`), quoting unchanged.
 #[test]
 fn csv_writes_displayed_text() {
-    use gridcraft_core::{CellError, Value};
-    use gridcraft_model::{Cell, Formula, LineInfo, NumFmt, StyleId};
+    use celdas_core::{CellError, Value};
+    use celdas_model::{Cell, Formula, LineInfo, NumFmt, StyleId};
     let mut wb = Workbook::new();
     let mut styled = |code: &str| wb.styles.derive(StyleId::DEFAULT, |s| s.num_fmt = NumFmt::new(code));
     let (date, money, pct, frac, text, fixed, thousands) =
@@ -487,8 +480,8 @@ fn csv_writes_displayed_text() {
 
 #[test]
 fn delimited_exports_preserve_general_precision_and_explicit_number_formats() {
-    use gridcraft_core::Value;
-    use gridcraft_model::{Cell, NumFmt, StyleId};
+    use celdas_core::Value;
+    use celdas_model::{Cell, NumFmt, StyleId};
     let mut workbook = Workbook::new();
     let scientific = workbook.styles.derive(StyleId::DEFAULT, |style| style.num_fmt = NumFmt::new("0.00E+00"));
     let sheet = workbook.sheet_mut(0).unwrap();
@@ -538,7 +531,7 @@ fn declaring(mut package: Vec<u8>, part: &str, size: u32) -> Vec<u8> {
 #[test]
 fn a_part_over_the_size_limit_says_how_to_get_the_data_in() {
     let mut wb = Workbook::new();
-    wb.sheet_mut(0).unwrap().set_value(CellRef::new(0, 0), gridcraft_core::Value::text("big"));
+    wb.sheet_mut(0).unwrap().set_value(CellRef::new(0, 0), celdas_core::Value::text("big"));
     let package = save_bytes(&wb, "big.xlsx").unwrap();
     // The size reported in storytold/gridcraft#1242.
     let msg = open_bytes("big.xlsx", &declaring(package.clone(), "xl/worksheets/sheet1.xml", 540_278_731)).unwrap_err().to_string();
@@ -564,25 +557,25 @@ fn a_part_over_the_size_limit_says_how_to_get_the_data_in() {
 #[test]
 fn content_wins_over_a_mismatched_extension() {
     let mut wb = Workbook::new();
-    wb.sheet_mut(0).unwrap().set_value(CellRef::new(0, 0), gridcraft_core::Value::Number(7.0));
+    wb.sheet_mut(0).unwrap().set_value(CellRef::new(0, 0), celdas_core::Value::Number(7.0));
     let package = save_bytes(&wb, "book.xlsx").unwrap();
     for name in ["book.xlsx", "book.ods", "book.xlsb", "book.csv"] {
         let (opened, _) = open_bytes(name, &package).unwrap_or_else(|e| panic!("{name}: {e}"));
-        assert_eq!(opened.sheet(0).unwrap().value(CellRef::new(0, 0)), gridcraft_core::Value::Number(7.0), "{name}");
+        assert_eq!(opened.sheet(0).unwrap().value(CellRef::new(0, 0)), celdas_core::Value::Number(7.0), "{name}");
     }
     for name in ["data.xlsx", "data.csv"] {
         let (opened, _) = open_bytes(name, b"a,b\n1,2\n").unwrap_or_else(|e| panic!("{name}: {e}"));
-        assert_eq!(opened.sheet(0).unwrap().value(CellRef::new(0, 1)), gridcraft_core::Value::text("b"), "{name}");
+        assert_eq!(opened.sheet(0).unwrap().value(CellRef::new(0, 1)), celdas_core::Value::text("b"), "{name}");
     }
 }
 
 /// #2871: opening an XLSX reads Google Sheets' `IFERROR(__xludf.DUMMYFUNCTION("…"),cached)`
-/// wrapper as the formula inside when GridCraft calculates every function it calls (including
+/// wrapper as the formula inside when Celdas calculates every function it calls (including
 /// the evaluator's own, such as ROW), and keeps the wrapper, and so the cached value, for a
 /// Google-only function.
 #[test]
-fn opening_google_sheets_export_unwraps_only_formulas_gridcraft_calculates() {
-    use gridcraft_core::{CellRef, Value};
+fn opening_google_sheets_export_unwraps_only_formulas_celdas_calculates() {
+    use celdas_core::{CellRef, Value};
     let mut wb = Workbook::new();
     let sh = std::sync::Arc::make_mut(&mut wb.sheets[0]);
     let wrapped = [
@@ -590,14 +583,11 @@ fn opening_google_sheets_export_unwraps_only_formulas_gridcraft_calculates() {
         ("A2", "IFERROR(__xludf.DUMMYFUNCTION(\"GOOGLETRANSLATE(\"\"hi\"\",\"\"en\"\",\"\"fr\"\")\"),\"salut\")", Value::text("salut")),
     ];
     for (at, text, value) in &wrapped {
-        let cell = gridcraft_model::Cell {
-            value: value.clone(),
-            formula: Some(std::sync::Arc::new(gridcraft_model::Formula::new(text))),
-            ..Default::default()
-        };
+        let cell =
+            celdas_model::Cell { value: value.clone(), formula: Some(std::sync::Arc::new(celdas_model::Formula::new(text))), ..Default::default() };
         sh.cells.set(CellRef::parse(at).unwrap(), cell);
     }
-    let bytes = gridcraft_xlsx::write_xlsx(&wb).unwrap();
+    let bytes = celdas_xlsx::write_xlsx(&wb).unwrap();
     let (opened, _) = open_bytes("google.xlsx", &bytes).unwrap();
     let text = |at: &str| opened.sheets[0].cells.get(CellRef::parse(at).unwrap()).and_then(|c| c.formula.as_ref()).map(|f| f.text.clone());
     assert_eq!(text("A1").as_deref(), Some("SUM(ROW(B1:B3))"));
@@ -620,21 +610,21 @@ fn a_web_page_saved_as_xls_opens_its_table() {
     let sh = wb.sheet(0).unwrap();
     assert_eq!(sh.name, "Orders");
     let v = |a: &str| sh.value(CellRef::parse(a).unwrap());
-    assert_eq!(v("A1"), gridcraft_core::Value::text("Item"));
-    assert_eq!(v("A2"), gridcraft_core::Value::text("Kiwi & Lime"));
-    assert_eq!(v("B2"), gridcraft_core::Value::number(12.0));
-    assert_eq!(v("C2"), gridcraft_core::Value::number(7.0), "read like typed input, as Excel does");
-    assert_eq!(v("B3"), gridcraft_core::Value::number(4.5), "the number the page recorded");
+    assert_eq!(v("A1"), celdas_core::Value::text("Item"));
+    assert_eq!(v("A2"), celdas_core::Value::text("Kiwi & Lime"));
+    assert_eq!(v("B2"), celdas_core::Value::number(12.0));
+    assert_eq!(v("C2"), celdas_core::Value::number(7.0), "read like typed input, as Excel does");
+    assert_eq!(v("B3"), celdas_core::Value::number(4.5), "the number the page recorded");
     let style = |a: &str| wb.styles.get(sh.style_id(CellRef::parse(a).unwrap())).clone();
-    assert!(style("A1").font.bold && style("A1").align.h == gridcraft_model::HAlign::Center);
+    assert!(style("A1").font.bold && style("A1").align.h == celdas_model::HAlign::Center);
     assert!(!style("A2").font.bold);
     // Opened as text, codes keep their zeros; a page named .html gets no warning.
     let (wb, warnings) = open_bytes_with("orders.html", page.as_bytes(), None, true).unwrap();
     assert!(warnings.is_empty(), "{warnings:?}");
-    assert_eq!(wb.sheet(0).unwrap().value(CellRef::parse("C2").unwrap()), gridcraft_core::Value::text("007"));
+    assert_eq!(wb.sheet(0).unwrap().value(CellRef::parse("C2").unwrap()), celdas_core::Value::text("007"));
     // Plain text that merely starts with a tag-like word is still read as CSV.
     let (wb, _) = open_bytes("notes.csv", b"<b>,1\nx,2\n").unwrap();
-    assert_eq!(wb.sheet(0).unwrap().value(CellRef::parse("B2").unwrap()), gridcraft_core::Value::number(2.0));
+    assert_eq!(wb.sheet(0).unwrap().value(CellRef::parse("B2").unwrap()), celdas_core::Value::number(2.0));
 }
 
 #[test]
@@ -645,16 +635,16 @@ fn a_web_page_table_keeps_its_characters_text_and_header_formats() {
     page.extend_from_slice(b"</th><th>2024-01-15</th></tr><tr><td>Plum</td><td x:num=\"4.5\">4,50</td></tr></table></body></html>");
     let (wb, _) = open_bytes("menu.xls", &page).unwrap();
     let sh = wb.sheet(0).unwrap();
-    assert_eq!(sh.value(CellRef::parse("A1").unwrap()), gridcraft_core::Value::text("Café"));
+    assert_eq!(sh.value(CellRef::parse("A1").unwrap()), celdas_core::Value::text("Café"));
     // A date in a header cell stays a date, bold and centred (its format was replaced).
     let b1 = wb.styles.get(sh.style_id(CellRef::parse("B1").unwrap()));
-    assert!(matches!(sh.value(CellRef::parse("B1").unwrap()), gridcraft_core::Value::Number(_)));
-    assert!(b1.font.bold && b1.align.h == gridcraft_model::HAlign::Center);
+    assert!(matches!(sh.value(CellRef::parse("B1").unwrap()), celdas_core::Value::Number(_)));
+    assert!(b1.font.bold && b1.align.h == celdas_model::HAlign::Center);
     assert_ne!(b1.num_fmt.as_str(), "General", "the date keeps its date format");
-    assert_eq!(sh.value(CellRef::parse("B2").unwrap()), gridcraft_core::Value::number(4.5));
+    assert_eq!(sh.value(CellRef::parse("B2").unwrap()), celdas_core::Value::number(4.5));
     // Opened as text, a cell keeps the text it shows, not the number the page recorded for it.
     let (wb, _) = open_bytes_with("menu.xls", &page, None, true).unwrap();
-    assert_eq!(wb.sheet(0).unwrap().value(CellRef::parse("B2").unwrap()), gridcraft_core::Value::text("4,50"));
+    assert_eq!(wb.sheet(0).unwrap().value(CellRef::parse("B2").unwrap()), celdas_core::Value::text("4,50"));
 }
 
 #[test]
@@ -665,8 +655,8 @@ fn a_web_page_table_opens_after_a_leading_comment_and_keeps_nonbreaking_spaces()
     let (wb, warnings) = open_bytes("cities.xls", page.as_bytes()).unwrap();
     assert!(warnings.first().is_some_and(|w| w.contains("is a web page (HTML)")), "{warnings:?}");
     let sh = wb.sheet(0).unwrap();
-    assert_eq!(sh.value(CellRef::parse("A1").unwrap()), gridcraft_core::Value::text("New\u{a0}\u{a0}York"));
-    assert_eq!(sh.value(CellRef::parse("B1").unwrap()), gridcraft_core::Value::text("a b"));
+    assert_eq!(sh.value(CellRef::parse("A1").unwrap()), celdas_core::Value::text("New\u{a0}\u{a0}York"));
+    assert_eq!(sh.value(CellRef::parse("B1").unwrap()), celdas_core::Value::text("a b"));
 }
 
 /// A small SYLK file written the way spreadsheets export one: a header, number formats, column
@@ -687,14 +677,14 @@ fn sylk_files_open_with_values_formulas_formats_and_widths() {
     assert_eq!(sh.name, "Parts list", "the sheet is named after the file");
     let at = |a: &str| CellRef::parse(a).unwrap();
     let formula = |a: &str| sh.cell(at(a)).and_then(|c| c.formula.as_ref()).map(|f| f.text.clone());
-    let text = |s: &str| gridcraft_core::Value::Text(s.into());
+    let text = |s: &str| celdas_core::Value::Text(s.into());
     assert_eq!(sh.value(at("A1")), text("Item"));
     assert_eq!(sh.value(at("A2")), text("Bolts; small"), ";; is a semicolon");
     assert_eq!(sh.value(at("A3")), text("Nuts \"\"hex\"\""), "text is kept between the outer quotes as written");
-    assert_eq!(sh.value(at("B2")), gridcraft_core::Value::Number(12.0));
-    assert_eq!(sh.value(at("F2")), gridcraft_core::Value::Bool(true));
-    assert_eq!(sh.value(at("E4")), gridcraft_core::Value::Error(gridcraft_core::CellError::Div0));
-    assert_eq!(sh.value(at("D4")), gridcraft_core::Value::Number(9.0), "a formula keeps the value the file cached");
+    assert_eq!(sh.value(at("B2")), celdas_core::Value::Number(12.0));
+    assert_eq!(sh.value(at("F2")), celdas_core::Value::Bool(true));
+    assert_eq!(sh.value(at("E4")), celdas_core::Value::Error(celdas_core::CellError::Div0));
+    assert_eq!(sh.value(at("D4")), celdas_core::Value::Number(9.0), "a formula keeps the value the file cached");
     assert_eq!(formula("D2").as_deref(), Some("B2*C2"));
     assert_eq!(formula("E2").as_deref(), Some("$B$2+B3"));
     assert_eq!(formula("E3").as_deref(), Some("IF($D$4>5,\"big\",\"small\")"));
@@ -708,7 +698,7 @@ fn sylk_files_open_with_values_formulas_formats_and_widths() {
     assert_eq!(fmt("C3"), "General");
     assert_eq!(fmt("B5"), "yyyy\\-mm\\-dd");
     // Widths are in characters, like the Column Width dialog's.
-    let chars = |c: u32| gridcraft_model::points_to_chars(f64::from(sh.col_width(c)));
+    let chars = |c: u32| celdas_model::points_to_chars(f64::from(sh.col_width(c)));
     assert_eq!((chars(0), chars(1), chars(2)), (18.0, 9.0, 9.0));
     assert_eq!(sh.cols.get(&3).and_then(|i| i.size), None, "column D keeps the default width");
 }
@@ -743,7 +733,7 @@ fn sylk_rejects_other_files_and_survives_damage() {
         open_bytes("damaged.slk", b"ID;P\nC;Y0;X1;K1\nC;Y2;X99999;K2\nC;Y3;X1;K1e999\nF;P7;Y3;X1\nF;W5 2 9\nC;Y4;X1;K5;E(((\n").unwrap();
     let sh = wb.sheet(0).unwrap();
     assert_eq!(sh.cells.iter().count(), 2, "{:?}", sh.cells.iter().collect::<Vec<_>>());
-    assert_eq!(sh.value(CellRef::parse("A3").unwrap()), gridcraft_core::Value::Text("1e999".into()));
+    assert_eq!(sh.value(CellRef::parse("A3").unwrap()), celdas_core::Value::Text("1e999".into()));
     assert_eq!(warnings.len(), 1, "skipped records are reported: {warnings:?}");
 }
 
@@ -759,5 +749,5 @@ fn sylk_survives_huge_relative_offsets_and_width_floods() {
     }
     flood.extend_from_slice(b"C;Y1;X1;K1\nE\n");
     let (wb, _) = open_bytes("widths.slk", &flood).unwrap();
-    assert_eq!(wb.sheet(0).unwrap().value(CellRef::parse("A1").unwrap()), gridcraft_core::Value::Number(1.0));
+    assert_eq!(wb.sheet(0).unwrap().value(CellRef::parse("A1").unwrap()), celdas_core::Value::Number(1.0));
 }

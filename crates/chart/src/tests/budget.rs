@@ -3,8 +3,8 @@
 
 use std::borrow::Cow;
 
-use gridcraft_core::{CellRef, Value};
-use gridcraft_model::{ChartKind, Series, Trendline, TrendlineKind, Workbook};
+use celdas_core::{CellRef, Value};
+use celdas_model::{ChartKind, Series, Trendline, TrendlineKind, Workbook};
 
 use super::{assert_sane, chart};
 use crate::render::{sanitize, sanitized};

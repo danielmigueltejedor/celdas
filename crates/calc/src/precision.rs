@@ -1,14 +1,14 @@
 //! "Set precision as displayed" (File › Options › Advanced; `fullPrecision="0"` in `.xlsx`,
 //! CalcPrecision in `.xls`): with it on, a number is stored as its cell's number format shows it,
 //! and formulas read those rounded values. The rounding itself is the number format crate's
-//! ([`gridcraft_numfmt::NumberFormat::round_as_displayed`]); this module looks up each cell's
+//! ([`celdas_numfmt::NumberFormat::round_as_displayed`]); this module looks up each cell's
 //! format, parsing every style's code once.
 
 use std::collections::HashMap;
 
-use gridcraft_core::{CellRef, Value};
-use gridcraft_model::{StyleId, Workbook};
-use gridcraft_numfmt::NumberFormat;
+use celdas_core::{CellRef, Value};
+use celdas_model::{StyleId, Workbook};
+use celdas_numfmt::NumberFormat;
 
 /// Rounds values to their cell's displayed precision, remembering each style's parsed format.
 /// Styles don't change while it is used (one recalculation pass, one sweep of a workbook).

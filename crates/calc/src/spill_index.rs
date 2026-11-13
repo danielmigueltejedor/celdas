@@ -6,7 +6,7 @@
 //! so registering costs what the area's size warrants only for small areas.
 
 use crate::recalc::{FxHasher, Key};
-use gridcraft_core::{CellRef, RangeRef};
+use celdas_core::{CellRef, RangeRef};
 use std::hash::BuildHasherDefault;
 
 type HashMap<K, V> = std::collections::HashMap<K, V, BuildHasherDefault<FxHasher>>;

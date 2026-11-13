@@ -1,7 +1,7 @@
 //! Native print onboarding preserves engine PDF generation and submits the selected settings.
-use gridcraft_engine::Session;
-use gridcraft_ui_egui::printing::{Duplex, Feedback, Printer};
-use gridcraft_ui_egui::{Services, SheetApp};
+use celdas_engine::Session;
+use celdas_ui_egui::printing::{Duplex, Feedback, Printer};
+use celdas_ui_egui::{Services, SheetApp};
 use serde_json::json;
 use std::{cell::RefCell, rc::Rc};
 

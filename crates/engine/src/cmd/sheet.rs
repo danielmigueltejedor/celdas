@@ -2,9 +2,9 @@
 
 use std::sync::Arc;
 
-use gridcraft_core::{CellRef, MAX_COLS, MAX_ROWS, RangeRef};
-use gridcraft_formula::adjust::{Axis, Edit};
-use gridcraft_model::{Anchor, AnchorMode, Sheet, Visibility};
+use celdas_core::{CellRef, MAX_COLS, MAX_ROWS, RangeRef};
+use celdas_formula::adjust::{Axis, Edit};
+use celdas_model::{Anchor, AnchorMode, Sheet, Visibility};
 use serde_json::{Value as Json, json};
 
 use super::{
@@ -225,8 +225,8 @@ pub(super) fn rewrite(cx: &mut Ctx, target: &str, e: &Edit) -> Result<()> {
         let host = wb.sheets.get(si).map(|s| s.name.clone()).unwrap_or_default();
         let Some(sh) = wb.sheet_mut(si) else { continue };
         let fix = |text: &str| -> String {
-            match gridcraft_formula::parse(text) {
-                Ok(expr) => gridcraft_formula::print(&gridcraft_formula::adjust::adjust(expr, &host, target, e)),
+            match celdas_formula::parse(text) {
+                Ok(expr) => celdas_formula::print(&celdas_formula::adjust::adjust(expr, &host, target, e)),
                 Err(_) => text.to_string(),
             }
         };
@@ -237,9 +237,9 @@ pub(super) fn rewrite(cx: &mut Ctx, target: &str, e: &Edit) -> Result<()> {
         // moves them, so table and name sources keep their text.
         for pt in sh.pivots.iter_mut() {
             let body = pt.source.trim().trim_start_matches('=');
-            if let Ok(expr) = gridcraft_formula::parse(body) {
-                let before = gridcraft_formula::print(&expr);
-                let after = gridcraft_formula::print(&gridcraft_formula::adjust::adjust(expr, &host, target, e));
+            if let Ok(expr) = celdas_formula::parse(body) {
+                let before = celdas_formula::print(&expr);
+                let after = celdas_formula::print(&celdas_formula::adjust::adjust(expr, &host, target, e));
                 if after != before {
                     pt.source = after;
                 }
@@ -266,7 +266,7 @@ fn inherit_line_format(sh: &mut Sheet, axis: Axis, at: u32, count: u32) {
     if let Some(info) = prev {
         for i in at..at + count {
             let map = if axis == Axis::Rows { &mut sh.rows } else { &mut sh.cols };
-            map.insert(i, gridcraft_model::LineInfo { hidden: false, outline: 0, collapsed: false, ..info });
+            map.insert(i, celdas_model::LineInfo { hidden: false, outline: 0, collapsed: false, ..info });
         }
     }
 }
@@ -275,7 +275,7 @@ fn check_push_off_sheet(s: &Session, sheet: usize, axis: Axis, at: u32, count: u
     if let Some(u) = s.doc()?.wb.sheet(sheet).and_then(|sh| sh.used_range()) {
         let last = if axis == Axis::Rows { u.end.row } else { u.end.col };
         if last >= at && last as u64 + count as u64 >= limit as u64 {
-            return Err(EngineError::Other("To prevent possible loss of data, GridCraft cannot shift nonblank cells off of the worksheet.".into()));
+            return Err(EngineError::Other("To prevent possible loss of data, Celdas cannot shift nonblank cells off of the worksheet.".into()));
         }
     }
     Ok(())
@@ -498,7 +498,7 @@ fn insert_cells(s: &mut Session, p: &Json) -> Result<Json> {
             RangeRef::new(CellRef::new(r.start.row.max(MAX_ROWS.saturating_sub(r.height())), r.start.col), CellRef::new(MAX_ROWS - 1, r.end.col))
         };
         if sh.cells.iter_range(doomed).any(|(_, x)| x.has_content()) {
-            return Err(EngineError::Other("To prevent possible loss of data, GridCraft cannot shift nonblank cells off of the worksheet.".into()));
+            return Err(EngineError::Other("To prevent possible loss of data, Celdas cannot shift nonblank cells off of the worksheet.".into()));
         }
     }
     let right = shift == "right";
@@ -690,7 +690,7 @@ fn check_lines_protection(s: &Session, p: &Json, axis: Axis, at: u32, count: u32
         (Axis::Cols, true) => pr.insert_columns,
         (Axis::Cols, false) => pr.delete_columns,
     };
-    let locked = |st: gridcraft_model::StyleId| wb.styles.get(st).protection.locked;
+    let locked = |st: celdas_model::StyleId| wb.styles.get(st).protection.locked;
     let refuse = || EngineError::Other(PROTECTED.into());
     if !allowed {
         return Err(refuse());
@@ -712,15 +712,15 @@ fn check_lines_protection(s: &Session, p: &Json, axis: Axis, at: u32, count: u32
 
 /// Where a range of the edited sheet goes after a structural edit (`None` = deleted).
 pub(crate) fn map_range(r: RangeRef, e: &Edit) -> Option<RangeRef> {
-    let expr = gridcraft_formula::Expr::Ref(gridcraft_formula::Reference {
-        sheet: gridcraft_formula::SheetSel::Current,
-        kind: gridcraft_formula::RefKind::Range(
-            gridcraft_formula::Anchor { row: r.start.row, col: r.start.col, row_abs: false, col_abs: false },
-            gridcraft_formula::Anchor { row: r.end.row, col: r.end.col, row_abs: false, col_abs: false },
+    let expr = celdas_formula::Expr::Ref(celdas_formula::Reference {
+        sheet: celdas_formula::SheetSel::Current,
+        kind: celdas_formula::RefKind::Range(
+            celdas_formula::Anchor { row: r.start.row, col: r.start.col, row_abs: false, col_abs: false },
+            celdas_formula::Anchor { row: r.end.row, col: r.end.col, row_abs: false, col_abs: false },
         ),
     });
-    match gridcraft_formula::adjust::adjust(expr, "S", "S", e) {
-        gridcraft_formula::Expr::Ref(r) => Some(r.range()),
+    match celdas_formula::adjust::adjust(expr, "S", "S", e) {
+        celdas_formula::Expr::Ref(r) => Some(r.range()),
         _ => None,
     }
 }
@@ -775,7 +775,7 @@ pub(super) fn shift_cell_features(sh: &mut Sheet, e: &Edit) {
 
 /// Columns inserted inside a table become new table columns (with names no other column has);
 /// deleted ones leave it.
-fn shift_table_columns(t: &mut gridcraft_model::Table, at: u32, count: u32, insert: bool) {
+fn shift_table_columns(t: &mut celdas_model::Table, at: u32, count: u32, insert: bool) {
     if insert {
         if at > t.range.start.col && at <= t.range.end.col {
             let idx = (at - t.range.start.col) as usize;
@@ -788,14 +788,8 @@ fn shift_table_columns(t: &mut gridcraft_model::Table, at: u32, count: u32, inse
                         break name;
                     }
                 };
-                let col = gridcraft_model::TableColumn {
-                    name,
-                    totals: Default::default(),
-                    totals_label: None,
-                    formula: None,
-                    unique_name: None,
-                    xml: None,
-                };
+                let col =
+                    celdas_model::TableColumn { name, totals: Default::default(), totals_label: None, formula: None, unique_name: None, xml: None };
                 t.columns.insert((idx + k).min(t.columns.len()), col);
             }
         }

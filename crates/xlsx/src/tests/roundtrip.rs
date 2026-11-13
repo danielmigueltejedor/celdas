@@ -4,8 +4,8 @@ use std::collections::BTreeMap;
 use std::io::Read;
 use std::sync::Arc;
 
-use gridcraft_core::{CellError, CellRef, DateSystem, RangeRef, Value};
-use gridcraft_model::*;
+use celdas_core::{CellError, CellRef, DateSystem, RangeRef, Value};
+use celdas_model::*;
 
 use crate::package::Package;
 use crate::{read_xlsx, write_xlsx};
@@ -22,7 +22,7 @@ fn sample() -> Workbook {
     wb.date_system = DateSystem::D1904;
     wb.calc = CalcSettings { mode: CalcMode::Manual, iterative: true, max_iterations: 42, max_change: 0.5, precision_as_displayed: true, r1c1: true };
     wb.protected_structure = true;
-    wb.structure_password = Some(gridcraft_model::PasswordHash::new_sha512("s3cret", b"0123456789abcdef"));
+    wb.structure_password = Some(celdas_model::PasswordHash::new_sha512("s3cret", b"0123456789abcdef"));
     wb.props = DocProps {
         title: "T & <x>".into(),
         subject: "S".into(),
@@ -127,7 +127,7 @@ fn sample() -> Workbook {
     s.show_zeros = false;
     s.right_to_left = true;
     s.zoom = 125;
-    s.view = gridcraft_model::SheetViewMode::PageLayout;
+    s.view = celdas_model::SheetViewMode::PageLayout;
     s.view_active = at("C7");
 
     let red_b = Box::new(red.clone());
@@ -281,7 +281,7 @@ fn sample() -> Workbook {
         sort: true,
         select_locked: true,
         select_unlocked: true,
-        password: Some(gridcraft_model::PasswordHash::new_sha512("sheet pw", b"fedcba9876543210")),
+        password: Some(celdas_model::PasswordHash::new_sha512("sheet pw", b"fedcba9876543210")),
         ..Default::default()
     });
     s.print = PrintSettings {
@@ -558,7 +558,7 @@ fn assert_sheet_cells_and_settings(wb: &Workbook, back: &Workbook, a: &Sheet, b:
     assert_eq!(b.tab_color, a.tab_color);
     assert_eq!((b.show_gridlines, b.show_headings, b.show_zeros, b.right_to_left, b.zoom), (false, false, false, true, 125));
     assert_eq!(b.view_active, a.view_active);
-    assert_eq!(b.view, gridcraft_model::SheetViewMode::PageLayout, "sheetView view=\"pageLayout\" round-trips");
+    assert_eq!(b.view, celdas_model::SheetViewMode::PageLayout, "sheetView view=\"pageLayout\" round-trips");
     assert_eq!(b.cond_formats, a.cond_formats);
     assert_eq!(b.validations, a.validations);
     assert_eq!(b.hyperlinks, a.hyperlinks);
@@ -1402,7 +1402,7 @@ fn table_newline_column_and_backslash_name_survive() {
     assert_eq!(s.tables[0].columns[0].name, "Handle\nBars");
     assert_eq!(s.value(at("A1")), Value::text("Handle\nBars"));
     assert_eq!(s.cell(at("D1")).and_then(|c| c.formula.as_ref()).map(|f| f.text.as_str()), Some("COUNTA(\\_Prime.1[Name])"));
-    assert!(gridcraft_formula::parse("COUNTA(\\_Prime.1[Name])").is_ok(), "backslash table name parses as a structured reference");
+    assert!(celdas_formula::parse("COUNTA(\\_Prime.1[Name])").is_ok(), "backslash table name parses as a structured reference");
 }
 
 /// A table that is only a header row and a totals row (Insert Table on one row, then Total
@@ -1975,7 +1975,7 @@ fn r1c1_reference_style_is_kept() {
 #[test]
 fn remove_personal_information_is_kept_and_honoured() {
     // #3089: `<workbookPr filterPrivacy="1"/>` was dropped, so a workbook cleaned of personal
-    // information came back with it switched off, and GridCraft wrote the author and company back.
+    // information came back with it switched off, and Celdas wrote the author and company back.
     let bytes = super::minimal("<sheetData/>", &[], "", r#"<workbookPr filterPrivacy="1"/>"#);
     let (mut wb, _) = read_xlsx(&bytes).unwrap();
     assert!(wb.remove_personal_info);

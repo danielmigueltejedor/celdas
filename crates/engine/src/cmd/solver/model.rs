@@ -1,4 +1,4 @@
-use gridcraft_core::split_areas;
+use celdas_core::split_areas;
 
 use super::{
     CMD, CellRef, DEFAULT_EVALS, DefinedName, EngineError, Json, MAX_CONSTRAINTS, MAX_EVALS, MAX_POPULATION, MAX_VARS, MIN_POPULATION, RangeRef,
@@ -163,7 +163,7 @@ fn cells_of(wb: &Workbook, t: &str, default_sheet: usize, cap: usize) -> Result<
 }
 
 fn num_text(t: &str) -> Option<f64> {
-    gridcraft_core::parse::parse_number_text(t.trim()).filter(|v| v.is_finite())
+    celdas_core::parse::parse_number_text(t.trim()).filter(|v| v.is_finite())
 }
 
 /// `t` split at the first `pat` outside quoted sheet names: `'A<=B'!$C$1 <= 5` splits at the
@@ -362,7 +362,7 @@ fn abs_text(sheet_name: Option<&str>, cells: &str) -> String {
         .filter(|x| !x.is_empty())
         .filter_map(|part| {
             let r = RangeRef::parse(split_sheet(part).1.trim())?;
-            let abs = |c: CellRef| format!("${}${}", gridcraft_core::col_to_letters(c.col), c.row as u64 + 1);
+            let abs = |c: CellRef| format!("${}${}", celdas_core::col_to_letters(c.col), c.row as u64 + 1);
             Some(if r.is_single() { format!("{q}{}", abs(r.start)) } else { format!("{q}{}:{}", abs(r.start), abs(r.end)) })
         })
         .collect::<Vec<_>>()
@@ -375,12 +375,12 @@ fn ref_text(sheet_name: &str, cells: &str) -> String {
 
 /// The evaluation limit and the generations without improvement have no Excel equivalent:
 /// Excel's `solver_itr` counts iterations (100 by default) and `solver_mni` seconds, so a
-/// workbook from Excel would cut GridCraft's search short. They are saved under GridCraft's own
+/// workbook from Excel would cut Celdas's search short. They are saved under Celdas's own
 /// names, which Excel ignores.
-const EVALS_NAME: &str = "gridcraft_solver_evals";
-const STALL_NAME: &str = "gridcraft_solver_stall";
+const EVALS_NAME: &str = "celdas_solver_evals";
+const STALL_NAME: &str = "celdas_solver_stall";
 
-/// The names of a saved model after `solver_`, as Excel's Solver writes them (GridCraft writes
+/// The names of a saved model after `solver_`, as Excel's Solver writes them (Celdas writes
 /// some of them). Saving a model and Reset All remove these and no other `solver_` names.
 const SOLVER_KEYS: [&str; 28] = [
     "adj", "cvg", "drv", "eng", "est", "itr", "lin", "mip", "mni", "mrt", "msl", "neg", "nod", "num", "nwt", "opt", "pre", "rbv", "rlx", "rsd",
@@ -388,7 +388,7 @@ const SOLVER_KEYS: [&str; 28] = [
 ];
 
 /// Whether `name` is one of the names of a saved model: Excel's Solver names (`solver_opt`,
-/// `solver_lhs1` and so on) and GridCraft's own. A user's name such as `solver_budget` is not.
+/// `solver_lhs1` and so on) and Celdas's own. A user's name such as `solver_budget` is not.
 pub(super) fn is_model_name(name: &str) -> bool {
     let name = name.to_ascii_lowercase();
     if name == EVALS_NAME || name == STALL_NAME {
@@ -581,7 +581,7 @@ pub(super) fn model_formulas(m: &Model) -> Result<Vec<String>> {
     rows.push(match m.goal {
         Goal::Max => format!("=MAX({obj})"),
         Goal::Min => format!("=MIN({obj})"),
-        Goal::Value(v) => format!("={obj}={}", gridcraft_core::number_to_text(v)),
+        Goal::Value(v) => format!("={obj}={}", celdas_core::number_to_text(v)),
     });
     rows.push(format!("=COUNT({})", abs_text(None, &m.vars_text)));
     for c in &m.cons {
@@ -594,12 +594,12 @@ pub(super) fn model_formulas(m: &Model) -> Result<Vec<String>> {
             (Rel::Int, _) => format!("=AND({lhs}=INT({lhs}))"),
             (Rel::Bin, _) => format!("=AND(({lhs}=0)+({lhs}=1))"),
             (rel, Rhs::Cells(_)) => format!("=AND({lhs}{}{})", rel.text(), abs_text(None, &c.rhs_text)),
-            (rel, Rhs::Const(v)) => format!("=AND({lhs}{}{})", rel.text(), gridcraft_core::number_to_text(*v)),
+            (rel, Rhs::Const(v)) => format!("=AND({lhs}{}{})", rel.text(), celdas_core::number_to_text(*v)),
             (rel, Rhs::None) => format!("=AND({lhs}{}0)", rel.text()),
         });
     }
     let e = &m.evo;
-    let n = gridcraft_core::number_to_text;
+    let n = celdas_core::number_to_text;
     let eng = match m.method {
         Method::Grg => 1,
         Method::Simplex => 2,

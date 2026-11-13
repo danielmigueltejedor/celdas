@@ -3,8 +3,8 @@
 use std::sync::Arc;
 use std::sync::atomic::{AtomicUsize, Ordering};
 
-use gridcraft_core::DateSystem;
-use gridcraft_formula::Expr;
+use celdas_core::DateSystem;
+use celdas_formula::Expr;
 use serde::{Deserialize, Serialize};
 
 use crate::cell::Formula;
@@ -96,7 +96,7 @@ pub struct CalcSettings {
     /// Use precision as displayed.
     pub precision_as_displayed: bool,
     /// R1C1 reference style (`<calcPr refMode="R1C1"/>`): kept with the file and written back;
-    /// GridCraft itself shows and takes A1 references.
+    /// Celdas itself shows and takes A1 references.
     #[serde(default)]
     pub r1c1: bool,
 }
@@ -207,7 +207,7 @@ pub struct Workbook {
     pub show_objects: ShowObjects,
     /// Trust Center › Privacy Options › "Remove personal information from file properties on save"
     /// (`<workbookPr filterPrivacy="1"/>`): kept with the file, and while it is on the author and
-    /// company are left out of the XLSX files GridCraft writes, as Excel leaves them empty. Other
+    /// company are left out of the XLSX files Celdas writes, as Excel leaves them empty. Other
     /// formats aren't filtered: the workbook's own serialization still holds them.
     #[serde(default, skip_serializing_if = "std::ops::Not::not")]
     pub remove_personal_info: bool,
@@ -237,7 +237,7 @@ pub struct Workbook {
     /// which holds unmodelled parts), so it is saved to JSON as well as to XLSX.
     #[serde(default, skip_serializing_if = "Vec::is_empty")]
     pub phonetics: Vec<PhoneticString>,
-    /// VBA project (`xl/vbaProject.bin`) carried through unchanged. GridCraft does not run
+    /// VBA project (`xl/vbaProject.bin`) carried through unchanged. Celdas does not run
     /// macros; the blob is preserved so that saving a macro-enabled workbook never destroys the
     /// macros it arrived with. base64 in JSON. `None` = the workbook has no macros. Shared, so a
     /// copy of the workbook (every edit's undo step) doesn't copy it.
@@ -247,7 +247,7 @@ pub struct Workbook {
     /// separator back (a `;` file stays a `;` file). `None` = not read from CSV: CSV saves use `,`.
     #[serde(default, skip_serializing_if = "Option::is_none")]
     pub csv_delimiter: Option<u8>,
-    /// GridCraft macros (typed command lists, not VBA), in the order the macro list shows them.
+    /// Celdas macros (typed command lists, not VBA), in the order the macro list shows them.
     /// The JSON format keeps them as this field; xlsx keeps them in hidden defined names.
     #[serde(default, skip_serializing_if = "crate::macros::Macros::is_empty", skip_deserializing)]
     pub macros: crate::macros::Macros,
@@ -271,8 +271,8 @@ pub struct Workbook {
     /// The region whose formats this workbook is typed and shown in (Options › Region). A runtime
     /// setting of the application, not of the file: it is not saved, and the engine session sets
     /// it on every document it holds. en-US until then.
-    #[serde(skip, default = "gridcraft_core::region::default_region")]
-    pub region: &'static gridcraft_core::Region,
+    #[serde(skip, default = "celdas_core::region::default_region")]
+    pub region: &'static celdas_core::Region,
     /// The file this workbook reports as its own, which is what `CELL("filename")` returns.
     /// `None` = no file yet, which Excel reports as an empty string until the workbook has been
     /// saved once. Deliberately separate from `source_dir`: that one names the folder relative
@@ -370,7 +370,7 @@ impl Workbook {
             macros_unread: Arc::default(),
             preserved: None,
             source_dir: None,
-            region: gridcraft_core::region::default_region(),
+            region: celdas_core::region::default_region(),
             source_path: None,
         }
     }
@@ -466,10 +466,10 @@ impl Workbook {
             }
         }
         for n in self.names.iter_mut() {
-            if let Ok(e) = gridcraft_formula::parse_name(&n.formula) {
+            if let Ok(e) = celdas_formula::parse_name(&n.formula) {
                 let ne = spell_calls(e.clone(), &lambdas);
                 if ne != e {
-                    n.formula = gridcraft_formula::print(&ne);
+                    n.formula = celdas_formula::print(&ne);
                 }
             }
         }

@@ -1,7 +1,7 @@
 //! Form controls: buttons, sliders and spin buttons (insert, format, assign, setValue, press).
 
-use gridcraft_core::Value;
-use gridcraft_model::{ControlAction, ControlKind, FormControl, MacroInput};
+use celdas_core::Value;
+use celdas_model::{ControlAction, ControlKind, FormControl, MacroInput};
 use serde_json::{Value as Json, json};
 
 use super::{s, v};
@@ -114,7 +114,7 @@ fn editing_the_linked_cell_moves_the_control() {
     assert_eq!(control(&s, e).link.as_deref(), Some("'Data Sheet'!$A$1"));
     let wb = &s.doc().unwrap().wb;
     let other = wb.sheet(wb.sheet_index("Data Sheet").unwrap()).unwrap();
-    assert_eq!(other.cell(gridcraft_core::CellRef::new(0, 0)).unwrap().value, Value::Number(30.0));
+    assert_eq!(other.cell(celdas_core::CellRef::new(0, 0)).unwrap().value, Value::Number(30.0));
 }
 
 #[test]
@@ -403,8 +403,8 @@ fn a_kept_button_action_comes_back_only_on_the_same_button() {
     s.execute("insert.button", json!({"at": "D9", "text": "Fixed", "macro": "Mark", "input": "F1:G2"})).unwrap();
     let wb = (*s.doc().unwrap().wb).clone();
     let stored = with_action_names(&wb).unwrap().unwrap();
-    let actions = |wb: &gridcraft_model::Workbook| wb.sheet(0).unwrap().controls.iter().map(|c| c.action.clone()).collect::<Vec<_>>();
-    let kept = |wb: &gridcraft_model::Workbook| {
+    let actions = |wb: &celdas_model::Workbook| wb.sheet(0).unwrap().controls.iter().map(|c| c.action.clone()).collect::<Vec<_>>();
+    let kept = |wb: &celdas_model::Workbook| {
         let mut wb = wb.clone();
         for c in &mut wb.sheet_mut(0).unwrap().controls {
             // As xlsx carries them: a macro on the selection, or nothing for a command.
@@ -672,7 +672,7 @@ fn every_kind_and_action_survives_xlsx() {
 /// or edited by hand) can't use a button as a way around the policy.
 #[test]
 fn a_denied_command_is_refused_when_assigned_and_when_a_file_brings_it_in() {
-    let dir = std::env::temp_dir().join(format!("gridcraft-control-deny-{}", std::process::id()));
+    let dir = std::env::temp_dir().join(format!("celdas-control-deny-{}", std::process::id()));
     let leak = dir.join("leak.xlsx").to_string_lossy().to_string();
     let denied = [
         ("link.open", json!({"url": "https://example.com/?d=secret"})),
@@ -756,7 +756,7 @@ fn a_formula_in_the_linked_cell_survives_a_write_of_the_value_it_shows() {
     s.execute("cell.set", json!({"cell": "A1", "input": "10"})).unwrap();
     s.execute("cell.set", json!({"cell": "B1", "input": "=A1*2"})).unwrap();
     let formula =
-        |s: &Session| s.doc().unwrap().wb.sheet(0).unwrap().cell(gridcraft_core::CellRef::parse("B1").unwrap()).is_some_and(|c| c.formula.is_some());
+        |s: &Session| s.doc().unwrap().wb.sheet(0).unwrap().cell(celdas_core::CellRef::parse("B1").unwrap()).is_some_and(|c| c.formula.is_some());
     assert!(formula(&s));
     // Inserting with the value the formula shows (10 * 2 = 20) writes nothing.
     let c = id(&s.execute("insert.slider", json!({"at": "D2", "link": "B1", "value": 20})).unwrap());
@@ -825,7 +825,7 @@ fn a_link_to_another_sheet_obeys_that_sheets_protection() {
     assert_eq!(control(&s, c).link.as_deref(), Some("Data!$B$1"));
     let data = |s: &Session| {
         let wb = &s.doc().unwrap().wb;
-        wb.sheet(wb.sheet_index("Data").unwrap()).unwrap().value(gridcraft_core::CellRef::new(0, 1))
+        wb.sheet(wb.sheet_index("Data").unwrap()).unwrap().value(celdas_core::CellRef::new(0, 1))
     };
     assert_eq!(data(&s), Value::Number(10.0));
     s.execute("review.protectSheet", json!({"sheet": "Data"})).unwrap();

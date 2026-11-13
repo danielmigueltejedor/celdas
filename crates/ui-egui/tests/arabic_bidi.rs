@@ -1,12 +1,12 @@
 //! Spreadsheet text remains logical while the shared renderer lays it out visually.
 
-use egui::{Event, Key, Modifiers, Shape, vec2};
-use egui_kittest::kittest::Queryable as _;
-use gridcraft_engine::{
+use celdas_engine::{
     Session,
     core::{CellRef, Value},
 };
-use gridcraft_ui_egui::SheetApp;
+use celdas_ui_egui::SheetApp;
+use egui::{Event, Key, Modifiers, Shape, vec2};
+use egui_kittest::kittest::Queryable as _;
 use serde_json::json;
 
 type Harness = egui_kittest::Harness<'static, SheetApp>;
@@ -93,8 +93,8 @@ fn marked_arabic_survives_copy_paste_commit_undo_and_xlsx() {
         h.state_mut().session.execute("edit.redo", json!({})).unwrap();
         assert_eq!(value(&h), Value::text(replacement));
         let wb = &h.state().session.active().unwrap().wb;
-        let bytes = gridcraft_xlsx::write_xlsx(wb).unwrap();
-        let (reopened, _) = gridcraft_xlsx::read_xlsx(&bytes).unwrap();
+        let bytes = celdas_xlsx::write_xlsx(wb).unwrap();
+        let (reopened, _) = celdas_xlsx::read_xlsx(&bytes).unwrap();
         assert_eq!(reopened.active().unwrap().value(CellRef::new(1, 1)), Value::text(replacement));
     }
 }

@@ -1,9 +1,9 @@
 //! Pulls chart data (names, categories, values, formats, colours) out of a workbook.
 
-use gridcraft_calc::evaluate;
-use gridcraft_core::{CellRef, MAX_COLS, MAX_ROWS, RangeRef, Value, category_levels, number_to_text};
-use gridcraft_model::{Chart, ChartKind, Theme, Workbook, style::apply_tint};
-use gridcraft_numfmt::{NumberFormat, format_value};
+use celdas_calc::evaluate;
+use celdas_core::{CellRef, MAX_COLS, MAX_ROWS, RangeRef, Value, category_levels, number_to_text};
+use celdas_model::{Chart, ChartKind, Theme, Workbook, style::apply_tint};
+use celdas_numfmt::{NumberFormat, format_value};
 
 use crate::{ChartData, Rgba, SeriesData, TrendlineData};
 
@@ -50,7 +50,7 @@ fn parse_ref(wb: &Workbook, sheet: usize, formula: &str) -> Option<(usize, Range
     let (sh, addr) = match f.rfind('!') {
         Some(i) => {
             let name = f.get(..i)?.trim();
-            let name = gridcraft_core::unquote_sheet(name);
+            let name = celdas_core::unquote_sheet(name);
             (wb.sheet_index(&name)?, f.get(i + 1..)?)
         }
         None => (sheet, f),
@@ -90,11 +90,11 @@ fn eval_list(wb: &Workbook, sheet: usize, formula: &str) -> Vec<Value> {
 }
 
 /// calc reads a reference of up to this many cells at its full size and trims a larger one to the
-/// sheet's used range (`FULL_SIZE_CELLS` in `gridcraft_calc::eval`). A clipped reference must stay
+/// sheet's used range (`FULL_SIZE_CELLS` in `celdas_calc::eval`). A clipped reference must stay
 /// above it, or the clip would turn a trimmed read into a full-size one with trailing blanks.
 const CALC_FULL_SIZE_CELLS: u64 = 16_384;
 /// Bounded references up to this many cells are read at their full size too
-/// (`FULL_SIZE_BOUNDED_CELLS` in `gridcraft_calc::eval`).
+/// (`FULL_SIZE_BOUNDED_CELLS` in `celdas_calc::eval`).
 const CALC_FULL_SIZE_BOUNDED_CELLS: u64 = 1_048_576;
 
 /// `formula` as a plain reference (`Sheet!A1:A1000000`) cut after the rows that can still hold
@@ -259,7 +259,7 @@ fn category_table(wb: &Workbook, sheet: usize, formula: &str, values: &str, limi
 /// that sheet), the way the evaluator looks names up.
 fn is_defined_name(wb: &Workbook, sheet: usize, t: &str) -> bool {
     // `'Bob''s'!Name`: the sheet is unquoted as everywhere else (#2012).
-    match gridcraft_core::split_sheet(t) {
+    match celdas_core::split_sheet(t) {
         (Some(s), bare) => wb.sheet_index(&s).is_some_and(|i| wb.name(bare, i).is_some()),
         (None, _) => wb.name(t, sheet).is_some(),
     }
@@ -371,7 +371,7 @@ pub fn resolve(wb: &Workbook, sheet: usize, chart: &Chart) -> ChartData {
 
 #[cfg(test)]
 mod tests {
-    use gridcraft_model::Workbook;
+    use celdas_model::Workbook;
 
     use super::*;
 

@@ -1,8 +1,8 @@
 //! Form controls: the three parts written for each control agree, they read back, and files with
 //! only VML or with odd values give valid controls.
 
-use gridcraft_core::CellRef;
-use gridcraft_model::{Anchor, AnchorMode, Comment, ControlAction, ControlKind, FormControl, MacroInput, Sheet, Workbook};
+use celdas_core::CellRef;
+use celdas_model::{Anchor, AnchorMode, Comment, ControlAction, ControlKind, FormControl, MacroInput, Sheet, Workbook};
 
 use super::minimal;
 use crate::package::Package;
@@ -284,7 +284,7 @@ fn an_unsupported_control_beside_a_modelled_one_in_one_alternate_content_is_kept
 /// second one, which the worksheet schema does not allow.
 #[test]
 fn a_modelled_control_joins_a_kept_controls_element_with_a_namespace_prefix() {
-    use gridcraft_model::{Anchor, ControlKind, FormControl};
+    use celdas_model::{Anchor, ControlKind, FormControl};
     let rels = r#"<?xml version="1.0"?><Relationships xmlns="http://schemas.openxmlformats.org/package/2006/relationships"><Relationship Id="rId9" Type="http://schemas.openxmlformats.org/officeDocument/2006/relationships/vmlDrawing" Target="../drawings/vmlDrawing1.vml"/><Relationship Id="rIdB" Type="http://schemas.openxmlformats.org/officeDocument/2006/relationships/ctrlProp" Target="../ctrlProps/b.xml"/></Relationships>"#;
     let prop_b = r#"<?xml version="1.0"?><formControlPr xmlns="http://schemas.microsoft.com/office/spreadsheetml/2009/9/main" objectType="List" fmlaRange="$D$1:$D$3" sel="2"/>"#;
     let vml = r##"<xml xmlns:v="urn:schemas-microsoft-com:vml" xmlns:o="urn:schemas-microsoft-com:office:office" xmlns:x="urn:schemas-microsoft-com:office:excel"><v:shape id="_x0000_s1026" type="#_x0000_t201"><x:ClientData ObjectType="List"><x:Anchor>2, 0, 6, 0, 5, 0, 9, 0</x:Anchor><x:FmlaRange>$D$1:$D$3</x:FmlaRange><x:Sel>2</x:Sel></x:ClientData></v:shape></xml>"##;
@@ -306,7 +306,7 @@ fn a_modelled_control_joins_a_kept_controls_element_with_a_namespace_prefix() {
         .map(|e| e.xml.clone())
         .unwrap_or_default();
     assert!(kept.contains("</x:controls>"), "kept with its prefix: {kept}");
-    let anchor = Anchor { cell: gridcraft_core::CellRef::new(2, 1), width: 120.0, height: 20.0, ..Default::default() };
+    let anchor = Anchor { cell: celdas_core::CellRef::new(2, 1), width: 120.0, height: 20.0, ..Default::default() };
     wb.sheet_mut(0).unwrap().controls.push(FormControl {
         id: 900,
         kind: ControlKind::Slider,
@@ -334,7 +334,7 @@ fn a_modelled_control_joins_a_kept_controls_element_with_a_namespace_prefix() {
 /// the Fallback's element is left as the file had it.
 #[test]
 fn a_modelled_control_joins_the_choice_controls_element_of_a_kept_alternate_content() {
-    use gridcraft_model::{Anchor, ControlKind, FormControl};
+    use celdas_model::{Anchor, ControlKind, FormControl};
     let rels = r#"<?xml version="1.0"?><Relationships xmlns="http://schemas.openxmlformats.org/package/2006/relationships"><Relationship Id="rId9" Type="http://schemas.openxmlformats.org/officeDocument/2006/relationships/vmlDrawing" Target="../drawings/vmlDrawing1.vml"/><Relationship Id="rIdB" Type="http://schemas.openxmlformats.org/officeDocument/2006/relationships/ctrlProp" Target="../ctrlProps/b.xml"/></Relationships>"#;
     let prop_b = r#"<?xml version="1.0"?><formControlPr xmlns="http://schemas.microsoft.com/office/spreadsheetml/2009/9/main" objectType="List" fmlaRange="$D$1:$D$3" sel="2"/>"#;
     let vml = r##"<xml xmlns:v="urn:schemas-microsoft-com:vml" xmlns:o="urn:schemas-microsoft-com:office:office" xmlns:x="urn:schemas-microsoft-com:office:excel"><v:shape id="_x0000_s1026" type="#_x0000_t201"><x:ClientData ObjectType="List"><x:Anchor>2, 0, 6, 0, 5, 0, 9, 0</x:Anchor><x:FmlaRange>$D$1:$D$3</x:FmlaRange><x:Sel>2</x:Sel></x:ClientData></v:shape></xml>"##;
@@ -350,7 +350,7 @@ fn a_modelled_control_joins_the_choice_controls_element_of_a_kept_alternate_cont
     );
     let (mut wb, _) = read_xlsx(&bytes).unwrap();
     assert!(wb.sheet(0).unwrap().controls.is_empty(), "the list box stays with pass-through");
-    let anchor = Anchor { cell: gridcraft_core::CellRef::new(2, 1), width: 120.0, height: 20.0, ..Default::default() };
+    let anchor = Anchor { cell: celdas_core::CellRef::new(2, 1), width: 120.0, height: 20.0, ..Default::default() };
     wb.sheet_mut(0).unwrap().controls.push(FormControl {
         id: 900,
         kind: ControlKind::Slider,
@@ -476,7 +476,7 @@ fn hostile_form_controls_are_capped_and_repaired() {
         assert!(x.check_numbers().is_ok(), "{x:?}");
         assert!(x.value >= x.min && x.value <= x.max, "{x:?}");
         assert!(x.name.chars().count() <= 255 && x.link.is_none(), "{x:?}");
-        assert!(x.anchor.width >= 1.0 && x.anchor.height >= 1.0 && x.anchor.cell.row < gridcraft_core::MAX_ROWS, "{x:?}");
+        assert!(x.anchor.width >= 1.0 && x.anchor.height >= 1.0 && x.anchor.cell.row < celdas_core::MAX_ROWS, "{x:?}");
     }
     // Written back and read again, the kept controls stay valid.
     let (back, _) = read_xlsx(&write_xlsx(&wb).unwrap()).unwrap();
@@ -730,7 +730,7 @@ fn vml_only_controls_beside_a_note_are_kept() {
 #[test]
 fn a_note_spelled_in_another_case_or_quote_is_not_kept_beside_the_written_one() {
     // The note's client data reads ObjectType='note': still a note, so the kept drawing drops it
-    // and the note GridCraft writes for the comment is the only one.
+    // and the note Celdas writes for the comment is the only one.
     for attr in ["ObjectType='note'", "ObjectType = \"NOTE\"", "ObjectType=\" Note \""] {
         let (wb, report) = read_xlsx(&vml_only_others(false, true, Some(attr))).unwrap();
         assert_eq!(wb.sheet(0).unwrap().comments.len(), 1, "{attr}: {:?}", report.warnings);

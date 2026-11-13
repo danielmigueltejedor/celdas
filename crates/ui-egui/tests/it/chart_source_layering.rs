@@ -1,9 +1,9 @@
 //! #2861: a selected chart's source outline belongs behind floating objects, in cell space.
 
+use celdas_engine::core::RangeRef;
+use celdas_engine::model::Anchor;
+use celdas_ui_egui::{SheetApp, theme::Tokens};
 use egui::{Color32, Rect, Shape, pos2, vec2};
-use gridcraft_engine::core::RangeRef;
-use gridcraft_engine::model::Anchor;
-use gridcraft_ui_egui::{SheetApp, theme::Tokens};
 use serde_json::json;
 
 type Harness = egui_kittest::Harness<'static, SheetApp>;

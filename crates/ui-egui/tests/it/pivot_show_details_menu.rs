@@ -1,11 +1,11 @@
 //! Right-clicking a PivotTable's value cell offers Show Details in the cell menu (Excel's
 //! right-click › Show Details); labels of the report and ordinary cells don't offer it.
 
+use celdas_engine::Session;
+use celdas_engine::core::{CellRef, Value};
+use celdas_ui_egui::{SheetApp, grid::Geo};
 use egui::{Event, Modifiers, PointerButton, Pos2};
 use egui_kittest::kittest::Queryable as _;
-use gridcraft_engine::Session;
-use gridcraft_engine::core::{CellRef, Value};
-use gridcraft_ui_egui::{SheetApp, grid::Geo};
 use serde_json::json;
 
 fn harness() -> egui_kittest::Harness<'static, SheetApp> {

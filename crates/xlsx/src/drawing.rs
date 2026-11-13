@@ -3,13 +3,13 @@
 //!
 //! An equation is written as `mc:AlternateContent`: the `a14` choice is a text box holding the
 //! equation as Office Math (`a14:m`), the fallback the same text box holding the LaTeX as plain
-//! text. Both carry the source in `descr="gridcraft:latex:…"`, which wins on reading; without it,
+//! text. Both carry the source in `descr="celdas:latex:…"`, which wins on reading; without it,
 //! Office Math in the subset `omml` reads is converted back to LaTeX.
 
 use std::fmt::Write as _;
 
-use gridcraft_core::{CellRef, MAX_COLS, MAX_ROWS};
-use gridcraft_model::{Anchor, AnchorMode, Color, Image, Shape, ShapeFormat, ShapeKind, ShapeTextAlign, ShapeTextAnchor, Sheet, Theme};
+use celdas_core::{CellRef, MAX_COLS, MAX_ROWS};
+use celdas_model::{Anchor, AnchorMode, Color, Image, Shape, ShapeFormat, ShapeKind, ShapeTextAlign, ShapeTextAnchor, Sheet, Theme};
 
 use crate::IoError;
 use crate::read::Ctx;
@@ -231,7 +231,7 @@ fn read_shape(obj: &El, anchor: Anchor) -> Option<Shape> {
         "rightArrow" => ShapeKind::Arrow,
         _ => ShapeKind::Rectangle,
     };
-    // An equation: GridCraft's own source while the marker in the description still matches the
+    // An equation: Celdas's own source while the marker in the description still matches the
     // body (another application that edits the Office Math, or the text of a box without Office
     // Math, leaves the description alone, as Excel does), else the Office Math converted back to
     // LaTeX. A box without Office Math whose text was edited is a text box with the edited text,
@@ -305,11 +305,11 @@ fn read_text_format(body: Option<&El>) -> ShapeFormat {
 }
 
 /// The `descr` prefix that carries an equation's LaTeX source, as
-/// `gridcraft:latex:<marker>:<source>`: the marker is [`crate::omml::body_marker`] of the text
+/// `celdas:latex:<marker>:<source>`: the marker is [`crate::omml::body_marker`] of the text
 /// body written beside it, 16 hex digits.
-const LATEX_DESCR: &str = "gridcraft:latex:";
+const LATEX_DESCR: &str = "celdas:latex:";
 
-/// The marker and source of a `gridcraft:latex:<marker>:<source>` description; `None` for any
+/// The marker and source of a `celdas:latex:<marker>:<source>` description; `None` for any
 /// other description, a malformed marker or a blank source.
 fn described_source(descr: &str) -> Option<(&str, &str)> {
     let rest = descr.strip_prefix(LATEX_DESCR)?;
@@ -367,7 +367,7 @@ fn write_equation(s: &mut String, sh: &Shape, id: usize, theme: &Theme) {
         )
     };
     let plain = plain_paragraphs(&sh.text, &format!("<a:rPr lang=\"en-US\" sz=\"{sz}\">{fill}</a:rPr>"));
-    match gridcraft_math::to_omml(&sh.text, size_pt, sh.line.resolve(theme)) {
+    match celdas_math::to_omml(&sh.text, size_pt, sh.line.resolve(theme)) {
         Ok(omml) => {
             let math = format!(
                 "<a:p><a:pPr algn=\"ctr\"/><a14:m><m:oMathPara xmlns:m=\"http://schemas.openxmlformats.org/officeDocument/2006/math\"><m:oMathParaPr><m:jc m:val=\"centerGroup\"/></m:oMathParaPr>{omml}</m:oMathPara></a14:m><a:endParaRPr lang=\"en-US\" sz=\"{sz}\"/></a:p>"
@@ -447,7 +447,7 @@ pub fn srgb(c: &Color, theme: &Theme) -> Option<String> {
 /// One drawing object to write.
 pub enum Obj<'a> {
     Image(&'a Image, String),
-    Chart(&'a gridcraft_model::Chart, String),
+    Chart(&'a celdas_model::Chart, String),
     Shape(&'a Shape),
 }
 

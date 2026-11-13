@@ -1,12 +1,12 @@
 //! Reference boxes (RefEdit) in dialogs: selecting on the grid fills the box, and the collapse
 //! button shrinks the dialog to the box while the person selects. Real pointer and keyboard input.
 
+use celdas_engine::Session;
+use celdas_engine::core::CellRef;
+use celdas_ui_egui::control::{Outcome, handle};
+use celdas_ui_egui::{SheetApp, grid::Geo};
 use egui::{Event, Key, Modifiers, PointerButton};
 use egui_kittest::kittest::Queryable as _;
-use gridcraft_engine::Session;
-use gridcraft_engine::core::CellRef;
-use gridcraft_ui_egui::control::{Outcome, handle};
-use gridcraft_ui_egui::{SheetApp, grid::Geo};
 use serde_json::json;
 
 type H = egui_kittest::Harness<'static, SheetApp>;
@@ -1472,7 +1472,7 @@ fn the_name_box_keeps_its_arrow_keys_and_escape_while_a_dialog_is_collapsed() {
     drag(&mut h, "C3", "C3");
     assert_eq!(field(&h, "changing"), "$C$3");
     // The Name Box takes the keyboard: its arrow keys edit its text, not the grid selection.
-    let name_box = egui::Id::unique("gridcraft.name_box");
+    let name_box = egui::Id::unique("celdas.name_box");
     let center = h.get_by_label("Name Box").rect().center();
     click_at(&mut h, center);
     assert_eq!(h.ctx.memory(|m| m.focused()), Some(name_box), "the Name Box has the keyboard");
@@ -1864,7 +1864,7 @@ fn a_second_quick_click_on_a_cell_picks_it_instead_of_editing() {
     click_at(&mut h, boxes[2].center());
     // The last click on the grid was on B5 a moment ago (before the box was clicked into), so
     // this click would be a double-click.
-    let now = gridcraft_engine::core::date::unix_now_ms().unwrap();
+    let now = celdas_engine::core::date::unix_now_ms().unwrap();
     h.state_mut().grid.last_click = Some((CellRef::parse("B5").unwrap(), now));
     let pos = cell_pos(&h, "B5");
     click_at(&mut h, pos);

@@ -1,12 +1,12 @@
 //! Format Painter through the real ribbon button and a click on the grid.
 
+use celdas_engine::Session;
+use celdas_engine::core::CellRef;
+use celdas_engine::model::Style;
+use celdas_ui_egui::{SheetApp, grid::Geo};
 use egui::accesskit::Toggled;
 use egui::{Event, Modifiers, PointerButton, Pos2};
 use egui_kittest::kittest::{NodeT, Queryable};
-use gridcraft_engine::Session;
-use gridcraft_engine::core::CellRef;
-use gridcraft_engine::model::Style;
-use gridcraft_ui_egui::{SheetApp, grid::Geo};
 use serde_json::json;
 
 type Harness = egui_kittest::Harness<'static, SheetApp>;

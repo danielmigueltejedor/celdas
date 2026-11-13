@@ -15,14 +15,14 @@ pub struct KeptOut {
 }
 
 impl KeptOut {
-    /// Reserves a part name GridCraft writes itself, so kept parts don't take it. False when it is
+    /// Reserves a part name Celdas writes itself, so kept parts don't take it. False when it is
     /// taken.
     pub fn reserve(&mut self, name: &str) -> bool {
         self.used.insert(name.to_ascii_lowercase())
     }
 
     /// Reserves the VML shape blocks the kept header and footer drawings of `wb` use, so that the
-    /// notes drawings GridCraft writes don't reuse their shape ids.
+    /// notes drawings Celdas writes don't reuse their shape ids.
     pub fn reserve_vml_blocks(&mut self, wb: &Workbook) {
         let vmls =
             wb.sheets.iter().filter_map(|s| s.preserved.as_deref()).flat_map(|p| &p.parts).filter(|q| q.content_type.eq_ignore_ascii_case(CT_VML));

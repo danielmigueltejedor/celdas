@@ -1,0 +1,228 @@
+# What `scripts/rebrand.py` renames: upstream's GridCraft becomes Celdas, in file contents and in
+# paths. The weekly upstream sync applies the same rules to upstream's tree before merging it, so
+# a rule added here applies to everything upstream sends from then on.
+#
+# Replacements are literal and case-sensitive, applied in order: put the longer, more specific
+# ones first. Keep spans are found before any replacement, so a replacement never reaches inside
+# one.
+
+# Left as they are wherever they appear (in file contents and in paths).
+keep = [
+    # Links to upstream's issues, pull requests and commits, and to other people's repositories:
+    # history, not branding. Links to upstream's tree and repository page are renamed below.
+    "(https?://)?github\\.com/storytold/[\\w.-]+/(issues|pull|commit|discussions)/[^\\s)\\]\"'<>`]*",
+    "https?://(github\\.com|raw\\.githubusercontent\\.com)/(?!storytold/(gridcraft|craft-fonts|craft-i18n|craft-libs|egui|winit)\\b|getnodalia|danielmigueltejedor)[^\\s)\\]\"'<>`]*",
+    # A Cargo [patch] names the source it overrides, which other crates still point at.
+    "\\[patch\\.\"https://github\\.com/storytold/[^\"]+\"\\]",
+    # Upstream's issues named without a link (`storytold/gridcraft#123`).
+    "storytold/[\\w.-]+#\\d+",
+    # Upstream's repository in the sync workflow and in the record of what came from it.
+    "(?<=UPSTREAM_REPO: )storytold/gridcraft",
+    # Credit for work done upstream.
+    "GridCraft contributors",
+    "ArtCraft Team",
+]
+
+# Files left alone entirely.
+skip = [
+    ".github/rebrand.toml",
+    "scripts/rebrand.py",
+    # Licence notices keep upstream's copyright line, which the licences require.
+    "NOTICE",
+    "LICENSE-*",
+    "licenses/*",
+    # The record of what came from upstream, and upstream's own README kept for reference.
+    "docs/upstream.md",
+    "NODALIA_MIGRATION.md",
+    "docs/upstream-readme.md",
+    # Binary Finder layout of the disk image: rebuilt by its own script.
+    "*.DS_Store",
+]
+
+# Run after renaming: shorter names change how rustfmt wraps lines and sorts imports.
+after = [["cargo", "fmt", "--all"]]
+
+# Lines that keep this app's value when upstream's tree is rebranded (the sync passes --pin-from).
+[[pin]]
+file = "Cargo.toml"
+pattern = '^version = "[^"]*"'
+
+# Identity: app id, publisher, installer identities (a product of its own, never GridCraft's).
+[[replace]]
+from = "ai.storyteller.gridcraft"
+to = "dev.danielmiguelt.Celdas"
+
+[[replace]]
+from = "GridCraft maintainers <gridcraft@storyteller.ai>"
+to = "Nodalia <https://github.com/getnodalia/celdas/issues>"
+
+[[replace]]
+from = "<developer id=\"ai.storyteller\">"
+to = "<developer id=\"dev.danielmiguelt\">"
+
+[[replace]]
+from = "Learning Machines LLC"
+to = "Nodalia"
+
+[[replace]]
+from = "5511327B-F305-41BE-92D0-EB84944E7C4D"
+to = "8E3C1A47-52D9-4B6F-A0E8-3F7B2C9D1E64"
+
+[[replace]]
+from = "0507D4B6-12FF-4882-84E1-59083E74A4EB"
+to = "D24F6B91-7C3E-4A58-9E1D-6B0A8F3C5E27"
+
+# The shared libraries, fonts and translations: Nodalia keeps them in getnodalia/foundation, on
+# vendor branches.
+[[replace]]
+from = "github.com/storytold/craft-fonts/blob/main/"
+to = "github.com/getnodalia/foundation/blob/vendor/craft-fonts/main/"
+
+[[replace]]
+from = "github.com/storytold/craft-i18n/blob/main/"
+to = "github.com/getnodalia/foundation/blob/vendor/craft-i18n/main/"
+
+[[replace]]
+from = "github.com/storytold/craft-libs/tree/main/"
+to = "github.com/getnodalia/foundation/tree/vendor/craft-libs/main/"
+
+[[replace]]
+from = "github.com/storytold/craft-libs/blob/main/"
+to = "github.com/getnodalia/foundation/blob/vendor/craft-libs/main/"
+
+[[replace]]
+from = "github.com/storytold/egui/blob/"
+to = "github.com/getnodalia/foundation/blob/"
+
+[[replace]]
+from = "github.com/storytold/craft-fonts"
+to = "github.com/getnodalia/foundation/tree/vendor/craft-fonts/main"
+
+[[replace]]
+from = "github.com/storytold/craft-i18n"
+to = "github.com/getnodalia/foundation/tree/vendor/craft-i18n/main"
+
+[[replace]]
+from = "github.com/storytold/craft-libs"
+to = "github.com/getnodalia/foundation/tree/vendor/craft-libs/main"
+
+[[replace]]
+from = "github.com/storytold/egui"
+to = "github.com/getnodalia/foundation/tree/vendor/egui/main"
+
+[[replace]]
+from = "github.com/storytold/winit"
+to = "github.com/getnodalia/foundation/tree/vendor/winit/master"
+
+[[replace]]
+from = "storytold/craft-fonts"
+to = "getnodalia/foundation (vendor/craft-fonts)"
+
+[[replace]]
+from = "storytold/craft-i18n"
+to = "getnodalia/foundation (vendor/craft-i18n)"
+
+[[replace]]
+from = "storytold/craft-libs"
+to = "getnodalia/foundation (vendor/craft-libs)"
+
+[[replace]]
+from = "storytold/winprint.rs"
+to = "getnodalia/foundation (vendor/winprint.rs)"
+
+# Where the app lives: its repository, releases, container images and web page.
+[[replace]]
+from = "ghcr.io/storytold/gridcraft"
+to = "ghcr.io/getnodalia/celdas"
+
+[[replace]]
+from = "storytold/gridcraft"
+to = "getnodalia/celdas"
+
+[[replace]]
+from = "https://discord.gg/artcraft"
+to = "https://github.com/getnodalia/celdas/issues"
+
+[[replace]]
+from = "getartcraft.com/apps/gridcraft"
+to = "getnodalia.com/celdas"
+
+[[replace]]
+from = "getartcraft.com"
+to = "getnodalia.com"
+
+# The default workbook theme upstream calls "Craft", and the sibling apps upstream names in its
+# comments, by the names they have here.
+[[replace]]
+from = "\\\"Craft\\\""
+to = "\\\"Nodalia\\\""
+
+[[replace]]
+from = "\"Craft\""
+to = "\"Nodalia\""
+
+[[replace]]
+from = "Craft|Slate"
+to = "Nodalia|Slate"
+
+[[replace]]
+from = "Craft theme"
+to = "Nodalia theme"
+
+[[replace]]
+from = "PhotoCraft"
+to = "Lienzo"
+
+[[replace]]
+from = "WordCraft"
+to = "Letra"
+
+[[replace]]
+from = "DeckCraft"
+to = "Lámina"
+
+[[replace]]
+from = "PdfCraft"
+to = "Papel"
+
+[[replace]]
+from = "DesignCraft"
+to = "Pliego"
+
+[[replace]]
+from = "VectorCraft"
+to = "Pluma"
+
+[[replace]]
+from = "the other Craft"
+to = "the other Nodalia"
+
+[[replace]]
+from = "from the Craft app that shares its ID"
+to = "from another app"
+
+[[replace]]
+from = "keeps the Craft icon name"
+to = "keeps the app's icon name"
+
+# The family the app belongs to: install folders, the About box.
+[[replace]]
+from = "ArtCraft"
+to = "Nodalia"
+
+# The name, in every casing upstream uses.
+[[replace]]
+from = "GridCraft"
+to = "Celdas"
+
+[[replace]]
+from = "Gridcraft"
+to = "Celdas"
+
+[[replace]]
+from = "gridcraft"
+to = "celdas"
+
+[[replace]]
+from = "GRIDCRAFT"
+to = "CELDAS"

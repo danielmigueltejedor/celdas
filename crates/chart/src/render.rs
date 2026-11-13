@@ -3,7 +3,7 @@
 use std::borrow::Cow;
 use std::f32::consts::{PI, TAU};
 
-use gridcraft_model::{Chart, ChartKind, LineDash, QuartileMethod, Theme, TrendlineKind};
+use celdas_model::{Chart, ChartKind, LineDash, QuartileMethod, Theme, TrendlineKind};
 
 use crate::axis::{Fmt, Scale, clean, nice_scale};
 use crate::resolve::{MAX_POINTS, MAX_SERIES, MAX_TRENDLINES, points_per_series, series_color};

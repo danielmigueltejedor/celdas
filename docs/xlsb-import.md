@@ -15,8 +15,8 @@ Save opens Save As and suggests a new `.xlsx` file. The source XLSB file is not 
 workbook's save destination; requests to save to `.xlsb` return an error.
 
 ```sh
-gridcraft-cli info source.xlsb
-gridcraft-cli convert source.xlsb imported.xlsx
+celdas-cli info source.xlsb
+celdas-cli convert source.xlsb imported.xlsx
 ```
 
 CLI import warnings go to stderr, leaving structured output on stdout available for scripts.

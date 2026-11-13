@@ -4,7 +4,7 @@ use super::font_fallback::{load_fallback, load_preferred_arabic};
 use super::{Arc, Color32, FontData, FontDefinitions, FontFamily, FontId};
 
 /// A font from the optional craft-fonts build input (`CRAFT_FONTS_DIR` at build time; see
-/// <https://github.com/storytold/craft-fonts> and its `docs/integration.md`). The slice is empty
+/// <https://github.com/getnodalia/foundation/tree/vendor/craft-fonts/main> and its `docs/integration.md`). The slice is empty
 /// when the app is built without the checkout; nothing is downloaded and no font is in this repo.
 #[derive(Debug)]
 pub struct CraftFont {
@@ -112,7 +112,7 @@ pub fn cell_family(name: &str, bold: bool, italic: bool) -> FontFamily {
 /// `exact` lays the text out (a galley kept until the end of the frame); otherwise the glyph
 /// advances are summed without kerning, which is cheap and never narrower. This takes the
 /// Context lock (`fonts_mut`): never call it, or run a command, while an egui lock is held.
-pub fn cell_text_width(ctx: &egui::Context, text: &str, font: &gridcraft_engine::model::Font, exact: bool) -> f32 {
+pub fn cell_text_width(ctx: &egui::Context, text: &str, font: &celdas_engine::model::Font, exact: bool) -> f32 {
     let family = cell_family(&font.name, font.bold, font.italic);
     let id = FontId::new(font.size * 96.0 / 72.0, family);
     ctx.fonts_mut(|f| {
@@ -125,7 +125,7 @@ pub fn cell_text_width(ctx: &egui::Context, text: &str, font: &gridcraft_engine:
             }
         })
     })
-    .unwrap_or_else(|| gridcraft_engine::cmd::format::approx_text_width(text, font.size, font.bold))
+    .unwrap_or_else(|| celdas_engine::cmd::format::approx_text_width(text, font.size, font.bold))
 }
 
 /// Whether epaint can open face `index` of this font file and it maps characters to glyphs.

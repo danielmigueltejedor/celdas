@@ -24,7 +24,6 @@ Read [`ROADMAP.md`](ROADMAP.md) and [`docs/gaps.md`](docs/gaps.md). `plan/` is a
 - Prefer art generated in code: the UI icon set (`crates/ui-egui/src/icons.rs`), table and cell style palettes, themes and sample workbooks are drawn/defined in code and original.
 - Never copy Office's icons, ribbon artwork, theme XML, table-style definitions, templates, clip art or wording beyond feature names. Excel feature *names* (menu labels, function names) are fine.
 - Screenshots of Microsoft software are never committed (they live only in `plan/excel/screenshots/`).
-- The ArtCraft brand files in `docs/brand/` are ArtCraft trademarks under `docs/brand/LICENSE-brand.txt`, the one exception.
 
 ## Never crash
 People trust Celdas with their numbers; a crash loses their work. **This outranks feature work.**
@@ -33,7 +32,7 @@ People trust Celdas with their numbers; a crash loses their work. **This outrank
 - **Input-derived numbers are hostile** (files, formulas, commands, MCP/control params): validate indexes and ranges before access, use checked access when validity is not established, use checked/saturating arithmetic, and cap input-sized allocations (huge ranges, `REPT`, `SEQUENCE`, whole-column references).
 - **Bound recursion** (formula nesting, dependency chains, names referring to names).
 - **Last-resort guard:** `Session::execute` catches escaped panics and restores the workbook. It's a safety net, not a licence.
-- **Prove it:** every crash fix lands with a regression test (`tests::every_command_survives_empty_params` fuzzes every command; `crates/engine/tests/it/command_sequence_fuzz.rs` fuzzes random command sequences against undo/redo, XLSX round-trip and full-recalc invariants; soak it with `GRIDCRAFT_FUZZ_SEEDS`/`GRIDCRAFT_FUZZ_STEPS`, replay with `GRIDCRAFT_FUZZ_SEED`).
+- **Prove it:** every crash fix lands with a regression test (`tests::every_command_survives_empty_params` fuzzes every command; `crates/engine/tests/it/command_sequence_fuzz.rs` fuzzes random command sequences against undo/redo, XLSX round-trip and full-recalc invariants; soak it with `CELDAS_FUZZ_SEEDS`/`CELDAS_FUZZ_STEPS`, replay with `CELDAS_FUZZ_SEED`).
 - Crates carry `#![deny(clippy::unwrap_used, clippy::expect_used, clippy::panic, clippy::unimplemented, clippy::todo, clippy::unreachable)]`.
 
 ## Non-negotiables
@@ -48,10 +47,10 @@ People trust Celdas with their numbers; a crash loses their work. **This outrank
 - **Quality gates** before every commit: `cargo xtask ci` (fmt, clippy -D warnings, tests, assets, layers, wasm). One task id per commit (`M2.1: borders gallery`).
 
 ## Running and looking at the app
-- `cargo run --release -p gridcraft -- --sample sales --control 7979` (sample workbook + control channel).
-- Drive it: `gridcraft-cli send 7979 <method> '<json>'` (reads the token file the app printed on stderr), or JSON lines on `127.0.0.1:7979` whose first line is `{"id":0,"method":"auth","params":{"token":"…"}}` (token: `$XDG_RUNTIME_DIR/gridcraft/control-7979.token`, or your own `GRIDCRAFT_CONTROL_TOKEN`), e.g. `{"id":1,"method":"engine.execute","params":{"command":"cell.set","params":{"cell":"B2","input":"=SUM(A1:A9)"}}}` then `{"id":2,"method":"ui.screenshot","params":{"path":"/tmp/shot.png"}}`. Methods: `crates/ui-egui/src/control.rs`, docs: `docs/control-protocol.md`.
-- **Offscreen UI render** (no window, from a source checkout): `cargo run -p gridcraft-ui-egui --example snapshot -- --sample sales out.png`.
-- Headless: `gridcraft-cli eval '=SUM(1,2,3)'`, `gridcraft-cli run --in book.xlsx --cmd 'home.bold={"range":"A1:C1"}' --out book.xlsx`, `gridcraft-cli mcp`.
+- `cargo run --release -p celdas -- --sample sales --control 7979` (sample workbook + control channel).
+- Drive it: `celdas-cli send 7979 <method> '<json>'` (reads the token file the app printed on stderr), or JSON lines on `127.0.0.1:7979` whose first line is `{"id":0,"method":"auth","params":{"token":"…"}}` (token: `$XDG_RUNTIME_DIR/celdas/control-7979.token`, or your own `CELDAS_CONTROL_TOKEN`), e.g. `{"id":1,"method":"engine.execute","params":{"command":"cell.set","params":{"cell":"B2","input":"=SUM(A1:A9)"}}}` then `{"id":2,"method":"ui.screenshot","params":{"path":"/tmp/shot.png"}}`. Methods: `crates/ui-egui/src/control.rs`, docs: `docs/control-protocol.md`.
+- **Offscreen UI render** (no window, from a source checkout): `cargo run -p celdas-ui-egui --example snapshot -- --sample sales out.png`.
+- Headless: `celdas-cli eval '=SUM(1,2,3)'`, `celdas-cli run --in book.xlsx --cmd 'home.bold={"range":"A1:C1"}' --out book.xlsx`, `celdas-cli mcp`.
 - **For UI work, look at the result** (snapshot PNG) and, when available, compare with `plan/excel/observed-ui.md`. Without that optional notebook, verify the intended behaviour against the task and committed documentation.
 - macOS has no `timeout`; use `perl -e 'alarm 60; exec @ARGV' cmd`.
 - Parallel agents: separate `CARGO_TARGET_DIR` per agent; edit only the crates you own; delete your target dir when done.
@@ -76,8 +75,9 @@ People trust Celdas with their numbers; a crash loses their work. **This outrank
 
 ## CI workflows
 
-- Workflows call [getnodalia/foundation](https://github.com/getnodalia/foundation)'s reusable workflows, pinned by commit. Release and
-  Windows ARM64 still call the inherited ones; `NODALIA_MIGRATION.md` tracks them.
+- Workflows call [getnodalia/foundation](https://github.com/getnodalia/foundation)'s reusable workflows, pinned by commit. Releases run on
+  this repository's own workflows (`release-auto.yml`, `release-linux.yml`, `release-macos.yml`,
+  `release-windows.yml`).
 - Pin every action to a full commit SHA, give each job the least permissions it needs, and use only
   standard GitHub-hosted runners (Foundation's [CI standard](https://github.com/getnodalia/foundation/blob/main/standards/ci.md)).
 - Keep CI changes in their own pull request unless a change cannot work without them.
@@ -104,4 +104,13 @@ The sections above are this repository's rules. With them:
 
 ## Release
 
-`release.yml` runs on a push to the `release` branch and drafts the release; a maintainer reviews the draft and publishes it. It still calls the inherited release workflow (see `NODALIA_MIGRATION.md`).
+Merging a version bump with its notes (`docs/release-notes/vX.Y.Z.md`, rules in that folder's
+README) releases it: `release-auto.yml` tags the merge, builds the Linux, macOS and Windows
+packages and publishes the release. Nobody pushes a tag by hand.
+
+## Upstream names
+
+Every name is Celdas's, internal ones included. `scripts/rebrand.py` with `.github/rebrand.toml`
+renames upstream's tree for the weekly sync (`docs/upstream.md`), and
+`python3 scripts/rebrand.py check` fails when an old name comes back; a line that must keep one
+says `rebrand: keep`.

@@ -5,7 +5,7 @@ use std::collections::HashMap;
 use std::io::Read;
 use std::sync::Arc;
 
-use gridcraft_model::Sheet;
+use celdas_model::Sheet;
 
 use super::make_zip;
 use crate::package::{normalize, resolve, split_dir};
@@ -280,7 +280,7 @@ fn assert_kept_sheet_parts(u: &Unpacked, sheet: &str, sx: &str) {
     assert!(pos("<pageSetup") < pos("<legacyDrawing") && pos("<legacyDrawing") < pos("<oleObjects") && pos("<oleObjects") < pos("<controls"));
     // Query table: a sheet relationship only.
     assert!(u.rels(sheet).iter().any(|r| r.1.ends_with("/queryTable") && u.parts.get(&r.2).is_some_and(|b| b == QUERY_TABLE.as_bytes())));
-    // One VML drawing: the kept control shapes plus GridCraft's note, in a fresh shape block.
+    // One VML drawing: the kept control shapes plus Celdas's note, in a fresh shape block.
     let vml_id = attr_of(sx, "legacyDrawing", "r:id");
     let vml_part = u.target(sheet, &vml_id).1;
     let vml = u.text(&vml_part);
@@ -293,7 +293,7 @@ fn assert_kept_sheet_parts(u: &Unpacked, sheet: &str, sx: &str) {
     assert_eq!(u.parts.get(&img[0].2).unwrap(), EMF);
 }
 
-fn assert_round_trip_kept_content(wb: &gridcraft_model::Workbook, out: &[u8]) {
+fn assert_round_trip_kept_content(wb: &celdas_model::Workbook, out: &[u8]) {
     // Reading the output keeps the same content again.
     let (wb2, rep2) = read_xlsx(out).unwrap();
     assert!(!rep2.warnings.iter().any(|w| w.contains("dropped")), "{:?}", rep2.warnings);
@@ -316,7 +316,7 @@ fn edited_workbooks_keep_consistent_relationships() {
     let s = wb.sheet_mut(1).unwrap();
     s.name = "Renamed".into();
     s.comments.clear();
-    s.set_value(gridcraft_core::CellRef::new(5, 5), gridcraft_core::Value::Number(3.0));
+    s.set_value(celdas_core::CellRef::new(5, 5), celdas_core::Value::Number(3.0));
     let u = Unpacked::new(&write_xlsx(&wb).unwrap());
     u.assert_valid();
     let sheet = sheet_part(&u, "Renamed");
@@ -386,7 +386,7 @@ fn damaged_kept_content_is_dropped_without_failing_the_read() {
         ("rId4", "customXml", "../customXml/missing.xml"),
         // A cycle: item1 → itemProps1 → item1.
         ("rId5", "customXml", "../customXml/item1.xml"),
-        // Kept content that points into a part GridCraft rewrites.
+        // Kept content that points into a part Celdas rewrites.
         ("rId6", "customXml", "../customXml/item2.xml"),
         // Damaged rels behind a kept part.
         ("rId7", "connections", "connections.xml"),
@@ -573,20 +573,20 @@ fn xml_maps_and_their_bindings_survive_a_round_trip() {
 /// Where a link with `target`, in a workbook read from `from`, points once saved into `to`.
 #[cfg(unix)]
 fn rebased(target: &str, from: &str, to: &str) -> String {
-    let link = |rel_type: &str| gridcraft_model::PreservedRel {
+    let link = |rel_type: &str| celdas_model::PreservedRel {
         id: "rId1".into(),
         rel_type: format!("{NS_R}/{rel_type}"),
         target: target.into(),
         external: true,
     };
-    let part = gridcraft_model::PreservedPart {
+    let part = celdas_model::PreservedPart {
         name: "xl/externalLinks/externalLink1.xml".into(),
         content_type: String::new(),
         data: Arc::from(&b""[..]),
         rels: vec![link("externalLinkPath"), link("hyperlink")],
     };
-    let mut wb = gridcraft_model::Workbook::new();
-    wb.preserved = Some(Arc::new(gridcraft_model::Preserved { parts: vec![part], ..Default::default() }));
+    let mut wb = celdas_model::Workbook::new();
+    wb.preserved = Some(Arc::new(celdas_model::Preserved { parts: vec![part], ..Default::default() }));
     wb.source_dir = Some(from.into());
     let Some(out) = crate::rebase_links(&wb, std::path::Path::new(to)) else { return target.into() };
     let rels = &out.preserved.as_ref().unwrap().parts[0].rels;
@@ -831,9 +831,9 @@ fn file_version_and_calc_features_survive_a_save() {
         assert!(text.contains(&format!("<extLst>{calc_features}</extLst>")), "{text}");
     }
 
-    // A workbook that had neither gets a <fileVersion> naming GridCraft (#1699), kept on the next
+    // A workbook that had neither gets a <fileVersion> naming Celdas (#1699), kept on the next
     // save, and no calcFeatures: Excel recalculates it on open.
-    let new = write_xlsx(&gridcraft_model::Workbook::new()).unwrap();
+    let new = write_xlsx(&celdas_model::Workbook::new()).unwrap();
     let (reread, _) = read_xlsx(&new).unwrap();
     for saved in [new, write_xlsx(&reread).unwrap()] {
         let u = Unpacked::new(&saved);
@@ -841,7 +841,7 @@ fn file_version_and_calc_features_survive_a_save() {
         let plain = u.text("xl/workbook.xml");
         let root = xml::parse(plain.as_bytes()).unwrap();
         assert_eq!(root.children.first().map(|e| e.name.as_str()), Some("fileVersion"), "{plain}");
-        assert!(plain.contains(r#"<fileVersion appName="gridcraft"/>"#) && !plain.contains("extLst"), "{plain}");
+        assert!(plain.contains(r#"<fileVersion appName="celdas"/>"#) && !plain.contains("extLst"), "{plain}");
     }
 }
 
@@ -854,7 +854,7 @@ const HF_VML: &str = r##"<xml xmlns:v="urn:schemas-microsoft-com:vml" xmlns:o="u
 const NOTE_VML: &str = r##"<xml xmlns:v="urn:schemas-microsoft-com:vml" xmlns:o="urn:schemas-microsoft-com:office:office" xmlns:x="urn:schemas-microsoft-com:office:excel"><o:shapelayout v:ext="edit"><o:idmap v:ext="edit" data="1"/></o:shapelayout><v:shape id="_x0000_s1027" type="#_x0000_t202" style="position:absolute"><v:textbox><div>old note<br></div></v:textbox><x:ClientData ObjectType="Note"><x:Row>0</x:Row><x:Column>0</x:Column></x:ClientData></v:shape></xml>"##;
 
 /// #1257: a letterhead in the header and a picture in the footer (`&G`), drawn from a VML part
-/// that `<legacyDrawingHF>` names, next to a note whose VML drawing GridCraft rewrites.
+/// that `<legacyDrawingHF>` names, next to a note whose VML drawing Celdas rewrites.
 fn header_picture_package() -> Vec<u8> {
     let types = r#"<?xml version="1.0"?><Types xmlns="http://schemas.openxmlformats.org/package/2006/content-types"><Default Extension="xml" ContentType="application/xml"/><Default Extension="rels" ContentType="application/vnd.openxmlformats-package.relationships+xml"/><Default Extension="png" ContentType="image/png"/><Default Extension="vml" ContentType="application/vnd.openxmlformats-officedocument.vmlDrawing"/><Override PartName="/xl/workbook.xml" ContentType="application/vnd.openxmlformats-officedocument.spreadsheetml.sheet.main+xml"/><Override PartName="/xl/worksheets/sheet1.xml" ContentType="application/vnd.openxmlformats-officedocument.spreadsheetml.worksheet+xml"/><Override PartName="/xl/comments1.xml" ContentType="application/vnd.openxmlformats-officedocument.spreadsheetml.comments+xml"/></Types>"#;
     let workbook = format!(
@@ -945,10 +945,10 @@ fn notes_take_shape_blocks_the_header_pictures_dont_use() {
 
 #[test]
 fn modelled_form_controls_join_kept_ones_in_one_controls_element() {
-    use gridcraft_model::{Anchor, ControlKind, FormControl};
+    use celdas_model::{Anchor, ControlKind, FormControl};
     let (mut wb, _) = read_xlsx(&rich_package()).unwrap();
     assert!(wb.sheet(0).unwrap().controls.is_empty(), "a check box stays with pass-through");
-    let anchor = Anchor { cell: gridcraft_core::CellRef::new(8, 1), width: 120.0, height: 20.0, ..Default::default() };
+    let anchor = Anchor { cell: celdas_core::CellRef::new(8, 1), width: 120.0, height: 20.0, ..Default::default() };
     let slider = FormControl { id: 900, kind: ControlKind::Slider, anchor, link: Some("$B$9".into()), value: 40, ..Default::default() };
     if let Some(sh) = wb.sheet_mut(0) {
         sh.controls.push(slider);
@@ -991,8 +991,8 @@ fn modelled_form_controls_join_kept_ones_in_one_controls_element() {
 
 #[test]
 fn a_sheet_of_modelled_controls_keeps_nothing_for_them() {
-    use gridcraft_model::{ControlKind, FormControl};
-    let mut wb = gridcraft_model::Workbook::default();
+    use celdas_model::{ControlKind, FormControl};
+    let mut wb = celdas_model::Workbook::default();
     if let Some(sh) = wb.sheet_mut(0) {
         sh.controls.push(FormControl { id: 1, kind: ControlKind::Button, text: "Go".into(), ..Default::default() });
         sh.controls.push(FormControl { id: 2, kind: ControlKind::Spin, ..Default::default() });

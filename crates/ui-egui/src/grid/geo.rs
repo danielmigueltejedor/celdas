@@ -30,7 +30,7 @@ pub struct Geo {
     /// The sheet's used range, from [`SheetLines`].
     pub(super) used: Option<RangeRef>,
     /// Page Layout view: cells sit on pages (`scroll` is then in page-layout units).
-    pub paper: Option<Arc<gridcraft_engine::paper::PageGrid>>,
+    pub paper: Option<Arc<celdas_engine::paper::PageGrid>>,
 }
 
 /// The parts of the grid's geometry that depend on the sheet alone: where each row and column
@@ -122,11 +122,11 @@ impl Geo {
     }
     /// Page Layout view geometry: `rect` excludes the rulers; cells are drawn at the print scale
     /// on pages laid out by `grid`; frozen panes don't apply (as in Excel).
-    pub fn paged(sh: &Sheet, rect: Rect, scroll: egui::Vec2, grid: Arc<gridcraft_engine::paper::PageGrid>) -> Geo {
+    pub fn paged(sh: &Sheet, rect: Rect, scroll: egui::Vec2, grid: Arc<celdas_engine::paper::PageGrid>) -> Geo {
         Geo::paged_with_lines(sh, rect, scroll, grid, &SheetLines::of(sh))
     }
     /// [`Geo::paged`] with the sheet's `lines` already built.
-    pub fn paged_with_lines(sh: &Sheet, rect: Rect, scroll: egui::Vec2, grid: Arc<gridcraft_engine::paper::PageGrid>, lines: &SheetLines) -> Geo {
+    pub fn paged_with_lines(sh: &Sheet, rect: Rect, scroll: egui::Vec2, grid: Arc<celdas_engine::paper::PageGrid>, lines: &SheetLines) -> Geo {
         let mut g = Geo::with_lines(sh, rect, scroll, lines);
         let zoom = (sh.zoom as f32 / 100.0).clamp(0.1, 4.0);
         g.z = zoom * DISPLAY_SCALE * grid.scale.clamp(0.1, 4.0);

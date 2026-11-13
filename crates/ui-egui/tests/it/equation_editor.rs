@@ -2,11 +2,11 @@
 //! typing LaTeX, the quick-insert buttons, the error in the preview, inserting, and editing an
 //! equation by double-clicking it.
 
+use celdas_engine::Session;
+use celdas_engine::model::{ObjKind, ObjRef, Shape, ShapeKind};
+use celdas_ui_egui::{SheetApp, chartview, grid::Geo};
 use egui::{Event, Key, Modifiers, PointerButton, Pos2, os::OperatingSystem, vec2};
 use egui_kittest::kittest::Queryable as _;
-use gridcraft_engine::Session;
-use gridcraft_engine::model::{ObjKind, ObjRef, Shape, ShapeKind};
-use gridcraft_ui_egui::{SheetApp, chartview, grid::Geo};
 use serde_json::{Value as Json, json};
 
 type Harness = egui_kittest::Harness<'static, SheetApp>;
@@ -178,7 +178,7 @@ fn the_gallery_inserts_its_examples() {
     h.run_steps(3);
     let eqs = equations(&h);
     assert_eq!(eqs.len(), 1, "one gallery example inserted");
-    assert_eq!(eqs[0].text, gridcraft_engine::math::GALLERY[0].1);
+    assert_eq!(eqs[0].text, celdas_engine::math::GALLERY[0].1);
 }
 
 #[test]

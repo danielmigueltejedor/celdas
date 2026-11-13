@@ -1,10 +1,10 @@
 //! Python mode in the formula bar: entering and leaving it, its keys (applied in input order, also
 //! several in one frame), committing through `python.set`, and the PY badge.
 
+use celdas_engine::Session;
+use celdas_engine::core::{CellError, CellRef, Value};
 use egui::{Event, Key, Modifiers, vec2};
 use egui_kittest::kittest::Queryable as _;
-use gridcraft_engine::Session;
-use gridcraft_engine::core::{CellError, CellRef, Value};
 use serde_json::json;
 
 use crate::common::Harness;

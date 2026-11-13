@@ -275,7 +275,7 @@ pub const CATALOG: &[(&str, &str, &str, &str)] = &[
     ("automate.allScripts", "Automate", "Scripting Tools", "All Scripts"),
     ("automate.recordActions", "Automate", "Scripting Tools", "Record Actions"),
     ("automate.trustScripts", "Automate", "Scripting Tools", "Trust Scripts"),
-    // Developer (Insert › Controls in GridCraft)
+    // Developer (Insert › Controls in Celdas)
     ("insert.button", "Developer", "Controls", "Button (Form Control)"),
     ("insert.spinButton", "Developer", "Controls", "Spin Button (Form Control)"),
     ("insert.slider", "Developer", "Controls", "Scroll Bar (Form Control)"),
