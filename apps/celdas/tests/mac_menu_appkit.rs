@@ -6,6 +6,9 @@
 // The app's own module, built into this test (cargo builds harness = false tests with cfg(test), so its
 // unit tests compile here too without a harness to run them).
 #[cfg(target_os = "macos")]
+#[path = "../src/menu_tree.rs"]
+mod menu_tree;
+#[cfg(target_os = "macos")]
 #[path = "../src/native_menu.rs"]
 mod native_menu;
 
