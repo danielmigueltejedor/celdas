@@ -159,7 +159,7 @@ pub(super) fn draw_text(pg: &mut Page, b: &Block, placement: TextPlacement<'_>) 
     let avail = (w - 2.0 * pad - indent).max(0.0);
     let code = st.num_fmt.as_str();
     let formatted = crate::display::format(&v, code, wb);
-    let mut color = formatted.color.and_then(gridcraft_numfmt::FormatColor::rgb).or_else(|| rgb_of(st.font.color, wb)).unwrap_or([0, 0, 0]);
+    let mut color = formatted.color.and_then(celdas_numfmt::FormatColor::rgb).or_else(|| rgb_of(st.font.color, wb)).unwrap_or([0, 0, 0]);
     if l.cf.as_ref().and_then(|x| x.style.as_ref()).is_some_and(|s| s.font.color != Color::Auto) {
         color = rgb_of(st.font.color, wb).unwrap_or(color);
     }
@@ -170,9 +170,9 @@ pub(super) fn draw_text(pg: &mut Page, b: &Block, placement: TextPlacement<'_>) 
     } else if code == "General"
         && let Value::Number(n) = v
     {
-        let digit = gridcraft_pdf::text_width(font, size, "0").max(0.1);
+        let digit = celdas_pdf::text_width(font, size, "0").max(0.1);
         let max_chars = (avail / digit).floor().max(1.0) as usize;
-        gridcraft_numfmt::format_general_fit(n, max_chars.min(11)).unwrap_or_else(|| "#".repeat(max_chars.min(255)))
+        celdas_numfmt::format_general_fit(n, max_chars.min(11)).unwrap_or_else(|| "#".repeat(max_chars.min(255)))
     } else {
         // The look's code, which a conditional format can override (#1163).
         crate::display::value_text_as(wb, &v, code)
@@ -183,15 +183,15 @@ pub(super) fn draw_text(pg: &mut Page, b: &Block, placement: TextPlacement<'_>) 
     if text.is_empty() {
         return;
     }
-    let mut tw = gridcraft_pdf::text_width(font, size, &text);
+    let mut tw = celdas_pdf::text_width(font, size, &text);
     if st.align.shrink && !wrap && tw > avail && tw > 0.0 {
         size = (size * avail / tw).max(1.0);
-        tw = gridcraft_pdf::text_width(font, size, &text);
+        tw = celdas_pdf::text_width(font, size, &text);
     }
     if is_num && !wrap && tw > avail + 0.01 && !sh.show_formulas {
-        let hash = gridcraft_pdf::text_width(font, size, "#").max(0.1);
+        let hash = celdas_pdf::text_width(font, size, "#").max(0.1);
         text = "#".repeat(((avail / hash).floor().max(1.0) as usize).min(255));
-        tw = gridcraft_pdf::text_width(font, size, &text);
+        tw = celdas_pdf::text_width(font, size, &text);
     }
     let h_align = text_align(st.align.h, &v);
     let rot = st.align.rotation;
@@ -248,7 +248,7 @@ pub(super) fn draw_text(pg: &mut Page, b: &Block, placement: TextPlacement<'_>) 
         let mut yy = y + pad + size * 0.8;
         for ch in chars {
             let s = ch.to_string();
-            let cw = gridcraft_pdf::text_width(font, size, &s);
+            let cw = celdas_pdf::text_width(font, size, &s);
             pg.text(x + (w - cw) / 2.0, yy, size, font, color, &s);
             yy += line_h;
             if yy > y + h + line_h {
@@ -259,7 +259,7 @@ pub(super) fn draw_text(pg: &mut Page, b: &Block, placement: TextPlacement<'_>) 
         return;
     }
     for (i, line) in lines.iter().enumerate() {
-        let lw = gridcraft_pdf::text_width(font, size, line);
+        let lw = celdas_pdf::text_width(font, size, line);
         let lx = match h_align {
             HAlign::Right => x + w - pad - lw - indent,
             HAlign::Center => x + (w + across - lw) / 2.0,

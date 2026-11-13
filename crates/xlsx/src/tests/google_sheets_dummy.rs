@@ -1,10 +1,10 @@
 //! #2871: Google Sheets' XLSX export writes a formula that uses a function it thinks Excel lacks
-//! as `IFERROR(__xludf.DUMMYFUNCTION("<formula, quotes doubled>"),<cached value>)`. GridCraft
-//! reads the formula inside when GridCraft calculates every function it calls, keeps the file's
+//! as `IFERROR(__xludf.DUMMYFUNCTION("<formula, quotes doubled>"),<cached value>)`. Celdas
+//! reads the formula inside when Celdas calculates every function it calls, keeps the file's
 //! cached value, and saves the real formula.
 
-use gridcraft_core::{CellRef, Value};
-use gridcraft_model::{Formula, Workbook};
+use celdas_core::{CellRef, Value};
+use celdas_model::{Formula, Workbook};
 
 use crate::package::Package;
 use crate::{read_xlsx, read_xlsx_with, write_xlsx};
@@ -53,14 +53,14 @@ fn assert_google_book(wb: &Workbook) {
     assert_eq!(formula(wb, "A1").text, HEBREW_MODEL);
     let e1 = formula(wb, "E1");
     assert_eq!(e1.text, "FILTER(B1:B3,B1:B3>1)");
-    assert_eq!(e1.array, Some(gridcraft_core::RangeRef::parse("E1:E2").unwrap()));
+    assert_eq!(e1.array, Some(celdas_core::RangeRef::parse("E1:E2").unwrap()));
     assert_eq!(formula(wb, "F1").text, "B1*2");
     assert_eq!(formula(wb, "F2").text, "B2*2");
     assert_eq!(formula(wb, "F3").text, "B3*2");
     assert_eq!(formula(wb, "G1").text, "1+(B1+B2)");
     assert_eq!(formula(wb, "H1").text, "IFERROR(__XLUDF.DUMMYFUNCTION(\"SUM(\"),5)");
     assert_eq!(formula(wb, "I1").text, "\"a\"&B1&CHAR(10)&B2");
-    // GridCraft has no GOOGLETRANSLATE: the wrapper stays, so the cell shows the cached text.
+    // Celdas has no GOOGLETRANSLATE: the wrapper stays, so the cell shows the cached text.
     assert_eq!(formula(wb, "J1").text, "IFERROR(__XLUDF.DUMMYFUNCTION(\"GOOGLETRANSLATE(\"\"hello\"\",\"\"en\"\",\"\"fr\"\")\"),\"bonjour\")");
     // The cached values are the file's (inside an array range the reader keeps only the anchor's).
     for (cell, v) in [("A1", 40.0), ("E1", 2.0), ("F1", 2.0), ("F2", 8.0), ("F3", 6.0), ("G1", 6.0), ("H1", 5.0)] {
@@ -88,7 +88,7 @@ fn google_sheets_wrapper_reads_as_the_original_formula() {
 }
 
 /// Saving writes the real formula, with the file prefixes Excel expects, as for any formula
-/// GridCraft reads; reopening gives the same workbook.
+/// Celdas reads; reopening gives the same workbook.
 #[test]
 fn google_sheets_wrapper_saves_the_real_formula() {
     let wb = open(&google_book());

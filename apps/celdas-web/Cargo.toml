@@ -1,0 +1,33 @@
+[package]
+name = "celdas-web"
+description = "Celdas in the browser (eframe web runner, WebGPU with WebGL2 fallback)"
+version.workspace = true
+edition.workspace = true
+license.workspace = true
+publish = false
+
+[lints]
+workspace = true
+
+[[bin]]
+name = "celdas-web"
+path = "src/main.rs"
+
+[dependencies]
+celdas-engine = { workspace = true }
+celdas-ui-egui = { workspace = true }
+# The host messages (getnodalia/foundation (vendor/craft-libs)): one contract and one bridge for the web builds.
+# The page command API (storytold/craft-libs#413): window.celdas over the control channel.
+craft-web-api = { git = "https://github.com/getnodalia/foundation/tree/vendor/craft-libs/main", rev = "fd5e2feff6ea25bed371a99cc732b3968d621505", version = "0.1.0" }
+craft-web-host = { git = "https://github.com/getnodalia/foundation/tree/vendor/craft-libs/main", rev = "fd5e2feff6ea25bed371a99cc732b3968d621505", version = "0.1.0" }
+egui = { workspace = true }
+log = { workspace = true }
+serde_json = { workspace = true }
+
+[target.'cfg(target_arch = "wasm32")'.dependencies]
+eframe = { workspace = true, features = ["default_fonts", "wgpu", "accesskit"] }
+rfd = { workspace = true }
+wasm-bindgen = "0.2"
+wasm-bindgen-futures = "0.4"
+js-sys = "0.3"
+web-sys = { version = "0.3", features = ["Window", "Document", "Element", "Event", "EventTarget", "HtmlElement", "HtmlCanvasElement", "HtmlAnchorElement", "HtmlIFrameElement", "Blob", "BlobPropertyBag", "Url", "Location", "CssStyleDeclaration", "Clipboard", "ClipboardItem", "Navigator", "MessageEvent", "UrlSearchParams", "AddEventListenerOptions", "Storage", "CustomEvent", "CustomEventInit"] }

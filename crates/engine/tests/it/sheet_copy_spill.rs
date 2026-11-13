@@ -1,6 +1,6 @@
-use gridcraft_core::{CellRef, Value};
-use gridcraft_engine::Session;
-use gridcraft_engine::calc::Calc;
+use celdas_core::{CellRef, Value};
+use celdas_engine::Session;
+use celdas_engine::calc::Calc;
 use serde_json::{Value as Json, json};
 
 fn run(s: &mut Session, command: &str, params: Json) {

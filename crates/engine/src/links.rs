@@ -9,7 +9,7 @@
 //! external addresses; only the host, after showing the address and getting OK from the user,
 //! opens one through [`crate::Session::open_confirmed_link`], which no command reaches.
 
-use gridcraft_core::RangeRef;
+use celdas_core::RangeRef;
 use serde_json::{Value as Json, json};
 
 use crate::{EngineError, Result, Session, UiRequest};

@@ -1,11 +1,11 @@
 //! Form dialogs open ready to type, as in Excel: Alt+H, O, W then a number and Enter sets the
 //! column width without clicking into the field first.
 
+use celdas_engine::Session;
+use celdas_engine::core::CellRef;
+use celdas_ui_egui::SheetApp;
 use egui::{Event, Key, vec2};
 use egui_kittest::kittest::Queryable;
-use gridcraft_engine::Session;
-use gridcraft_engine::core::CellRef;
-use gridcraft_ui_egui::SheetApp;
 use serde_json::json;
 
 fn harness() -> egui_kittest::Harness<'static, SheetApp> {
@@ -42,7 +42,7 @@ fn column_width_opens_with_the_width_ready_to_type() {
     let chars = {
         let d = h.state().session.active().unwrap();
         let sheet = d.wb.active().unwrap();
-        gridcraft_engine::cmd::format::points_to_chars(sheet.col_width(CellRef::parse("C3").unwrap().col) as f64)
+        celdas_engine::cmd::format::points_to_chars(sheet.col_width(CellRef::parse("C3").unwrap().col) as f64)
     };
     assert!((chars - 12.0).abs() < 0.2, "column C is 12 characters wide, got {chars}");
 }
@@ -146,7 +146,7 @@ fn command_search_shows_paste_special_metadata() {
 /// The engine registry is the authoritative shortcut source.
 #[test]
 fn command_palette_shortcuts_come_from_engine_metadata() {
-    let session = gridcraft_engine::Session::new();
+    let session = celdas_engine::Session::new();
     let commands = session.commands();
 
     for (id, mac, other) in [

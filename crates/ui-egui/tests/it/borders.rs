@@ -1,11 +1,11 @@
 //! Border menu and dialog behavior through real egui controls.
 
+use celdas_engine::Session;
+use celdas_engine::core::{CellRef, Value};
+use celdas_engine::model::{BorderLine, BorderStyle, Borders, Color};
+use celdas_ui_egui::SheetApp;
 use egui::{Color32, Shape, vec2};
 use egui_kittest::kittest::Queryable;
-use gridcraft_engine::Session;
-use gridcraft_engine::core::{CellRef, Value};
-use gridcraft_engine::model::{BorderLine, BorderStyle, Borders, Color};
-use gridcraft_ui_egui::SheetApp;
 use serde_json::json;
 
 fn harness() -> egui_kittest::Harness<'static, SheetApp> {
@@ -175,7 +175,7 @@ fn frozen_merged_range_keeps_its_outline_when_scrolled() {
     let freeze_x = {
         let app = h.state();
         let sheet = app.session.active().unwrap().wb.active().unwrap();
-        let geo = gridcraft_ui_egui::grid::Geo::new(sheet, app.grid.rect.unwrap(), app.view().scroll);
+        let geo = celdas_ui_egui::grid::Geo::new(sheet, app.grid.rect.unwrap(), app.view().scroll);
         geo.cells.left() + geo.frozen_w
     };
     let red = Color32::from_rgb(0xC8, 0x1E, 0x1E);

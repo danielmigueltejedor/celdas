@@ -4,10 +4,10 @@
 //! Action and Format Control dialogs. Everything goes through the `insert.*` and `control.*`
 //! commands.
 
+use celdas_engine::core::CellRef;
+use celdas_engine::macros::policy::{Policy, macro_policy};
+use celdas_engine::model::{CONTROL_MAX, ControlAction, ControlKind, FormControl, MacroInput, ObjKind, ObjRef, Sheet};
 use egui::{Pos2, Rect, Stroke, StrokeKind, Ui, vec2};
-use gridcraft_engine::core::CellRef;
-use gridcraft_engine::macros::policy::{Policy, macro_policy};
-use gridcraft_engine::model::{CONTROL_MAX, ControlAction, ControlKind, FormControl, MacroInput, ObjKind, ObjRef, Sheet};
 use serde_json::{Value as Json, json};
 
 use crate::SheetApp;
@@ -137,7 +137,7 @@ fn press_binding(app: &SheetApp, params: &Json) -> Option<String> {
     let c = sh.controls.iter().find(|c| c.id == id && c.kind == ControlKind::Button)?;
     let mac = match &c.action {
         Some(ControlAction::Macro { name, .. }) => {
-            gridcraft_engine::macros::find(&d.wb, name).and_then(|i| d.wb.macros.get(i)).map(gridcraft_engine::macros::fingerprint)
+            celdas_engine::macros::find(&d.wb, name).and_then(|i| d.wb.macros.get(i)).map(celdas_engine::macros::fingerprint)
         }
         _ => None,
     };
@@ -309,10 +309,10 @@ pub fn assign_params(d: &Dialog) -> Result<Json, String> {
 /// (id, label). File commands are left out: the ones a button may run only produce bytes.
 fn command_choices(search: &str) -> Vec<(&'static str, &'static str)> {
     let q = search.trim().to_lowercase();
-    gridcraft_engine::command_specs()
+    celdas_engine::command_specs()
         .iter()
         .filter(|c| c.journal && !c.id.starts_with("file."))
-        .filter(|c| !matches!(macro_policy(c.id, &json!({}), gridcraft_engine::Trust::Local), Policy::Deny(_)))
+        .filter(|c| !matches!(macro_policy(c.id, &json!({}), celdas_engine::Trust::Local), Policy::Deny(_)))
         .filter(|c| q.is_empty() || c.id.to_lowercase().contains(&q) || c.label.to_lowercase().contains(&q))
         .map(|c| (c.id, c.label))
         .take(200)
@@ -388,7 +388,7 @@ pub fn assign_dialog(app: &mut SheetApp, ui: &mut Ui, d: &mut Dialog, open: &mut
             });
         });
         d.values.insert("search".into(), json!(search));
-        let doc = gridcraft_engine::find_command(val(d, "command").trim()).map(|c| c.params).unwrap_or("");
+        let doc = celdas_engine::find_command(val(d, "command").trim()).map(|c| c.params).unwrap_or("");
         if !doc.is_empty() {
             ui.label(egui::RichText::new(doc).small().color(t.text_dim));
         }

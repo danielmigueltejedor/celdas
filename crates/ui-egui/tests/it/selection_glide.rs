@@ -1,11 +1,11 @@
 //! The selection outline glides to a new selection, and View ▸ Animations turns that off.
 
+use celdas_engine::Session;
+use celdas_engine::core::CellRef;
+use celdas_ui_egui::control::{self, Outcome};
+use celdas_ui_egui::{ControlRequest, SheetApp, UiState, grid::Geo};
 use egui::Rect;
 use egui_kittest::kittest::Queryable;
-use gridcraft_engine::Session;
-use gridcraft_engine::core::CellRef;
-use gridcraft_ui_egui::control::{self, Outcome};
-use gridcraft_ui_egui::{ControlRequest, SheetApp, UiState, grid::Geo};
 use serde_json::{Value, json};
 
 type Harness = egui_kittest::Harness<'static, SheetApp>;

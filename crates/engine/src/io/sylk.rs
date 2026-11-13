@@ -14,8 +14,8 @@
 use std::collections::HashMap;
 use std::sync::Arc;
 
-use gridcraft_core::{CellError, CellRef, MAX_COLS, MAX_ROWS, Value, col_to_letters};
-use gridcraft_model::{Cell, Formula, NumFmt, Sheet, Style, Workbook};
+use celdas_core::{CellError, CellRef, MAX_COLS, MAX_ROWS, Value, col_to_letters};
+use celdas_model::{Cell, Formula, NumFmt, Sheet, Style, Workbook};
 
 use crate::{EngineError, Result};
 
@@ -157,7 +157,7 @@ pub fn read(name: &str, bytes: &[u8]) -> Result<(Workbook, Vec<String>)> {
     }
     let mut warnings = Vec::new();
     if skipped > 0 {
-        warnings.push(format!("{name}: {skipped} SYLK records GridCraft couldn't read were skipped"));
+        warnings.push(format!("{name}: {skipped} SYLK records Celdas couldn't read were skipped"));
     }
     Ok((wb, warnings))
 }

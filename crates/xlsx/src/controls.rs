@@ -15,8 +15,8 @@
 use std::collections::{HashMap, HashSet};
 use std::fmt::Write as _;
 
-use gridcraft_core::CellRef;
-use gridcraft_model::{Anchor, AnchorMode, CONTROL_MAX, ControlAction, ControlKind, FormControl, MacroInput, Sheet};
+use celdas_core::CellRef;
+use celdas_model::{Anchor, AnchorMode, CONTROL_MAX, ControlAction, ControlKind, FormControl, MacroInput, Sheet};
 
 use crate::package::Rel;
 use crate::read::Ctx;
@@ -62,7 +62,7 @@ fn macro_ref(c: &FormControl) -> Option<String> {
 /// The macro name in `[0]!Name`, `Book1.xlsm!Name` or `Name`.
 fn macro_name(text: &str) -> Option<String> {
     let name = text.rsplit_once('!').map_or(text, |(_, n)| n).trim().trim_matches('\'');
-    (!name.is_empty() && name.chars().count() <= gridcraft_model::MAX_MACRO_NAME).then(|| name.to_string())
+    (!name.is_empty() && name.chars().count() <= celdas_model::MAX_MACRO_NAME).then(|| name.to_string())
 }
 
 /// The cell under a sheet position and the offset into it: (cell, dx, dy).
@@ -401,7 +401,7 @@ pub(crate) fn number_of(shape: &El) -> Option<u64> {
 /// What [`read`] took from a sheet's form controls, for pass-through.
 #[derive(Debug, Default)]
 pub struct ReadControls {
-    /// The VML shape numbers of the controls read into the model: GridCraft writes those, so they
+    /// The VML shape numbers of the controls read into the model: Celdas writes those, so they
     /// are left out of the kept content.
     pub modelled: HashSet<u64>,
     /// The VML drawing also holds a control that the sheet doesn't list and the model doesn't
@@ -411,7 +411,7 @@ pub struct ReadControls {
 }
 
 /// Whether a VML shape the sheet doesn't list is a control that only pass-through can keep: it
-/// has client data that is neither a note (GridCraft writes notes) nor an embedded object's
+/// has client data that is neither a note (Celdas writes notes) nor an embedded object's
 /// picture (`Pict`, which means nothing without its sheet entry).
 fn unlisted_kept(shape: &El) -> bool {
     object_type_of(shape).is_some_and(|t| !t.eq_ignore_ascii_case("note") && !t.eq_ignore_ascii_case("pict"))
@@ -551,8 +551,8 @@ fn vml_anchor(shape: &El, sheet: &Sheet) -> Option<Anchor> {
     let data = shape.child("ClientData")?;
     let nums: Vec<i64> = data.child("Anchor")?.text.split(',').filter_map(|t| t.trim().parse::<i64>().ok()).collect();
     let [c1, dx1, r1, dy1, c2, dx2, r2, dy2] = nums.as_slice() else { return None };
-    let col = |c: i64| c.clamp(0, gridcraft_core::MAX_COLS as i64 - 1) as u32;
-    let row = |r: i64| r.clamp(0, gridcraft_core::MAX_ROWS as i64 - 1) as u32;
+    let col = |c: i64| c.clamp(0, celdas_core::MAX_COLS as i64 - 1) as u32;
+    let row = |r: i64| r.clamp(0, celdas_core::MAX_ROWS as i64 - 1) as u32;
     let off = |v: i64| v.clamp(0, 10_000) as f64;
     let cell = CellRef::new(row(*r1), col(*c1));
     let x1 = sheet.col_left(cell.col) + off(*dx1);

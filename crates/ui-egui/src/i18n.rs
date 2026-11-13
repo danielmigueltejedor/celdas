@@ -185,8 +185,8 @@ impl Language {
         }
     }
 
-    pub fn formula_locale(self) -> gridcraft_engine::formula::FormulaLocale {
-        if self == Self::Es { gridcraft_engine::formula::FormulaLocale::Es } else { gridcraft_engine::formula::FormulaLocale::En }
+    pub fn formula_locale(self) -> celdas_engine::formula::FormulaLocale {
+        if self == Self::Es { celdas_engine::formula::FormulaLocale::Es } else { celdas_engine::formula::FormulaLocale::En }
     }
 
     /// Translates an interface label; untranslated labels fall back to English.
@@ -287,7 +287,7 @@ pub fn saved_language(ui_json: &serde_json::Value) -> Option<Language> {
 /// egui context-data key holding the language of the frame being drawn. Widgets that only get a
 /// `Ui` (not the app) read it to translate their labels; [`set_current`] writes it once per frame.
 fn lang_key() -> egui::Id {
-    egui::Id::unique("gridcraft.language")
+    egui::Id::unique("celdas.language")
 }
 
 /// The language the current frame is drawing in. `En` when unset.
@@ -325,7 +325,7 @@ fn name_sort_key(name: &str) -> String {
 mod tests {
     use super::*;
 
-    /// Every shipped catalog names GridCraft's own Diagram and Decorative Text features, and
+    /// Every shipped catalog names Celdas's own Diagram and Decorative Text features, and
     /// Diagram never repeats that catalog's chart word (both sit on the Insert tab).
     #[test]
     fn every_catalog_has_distinct_diagram_and_decorative_text() {
@@ -515,7 +515,7 @@ mod tests {
 
     #[test]
     fn language_commands_switch_and_persist() {
-        let mut app = crate::SheetApp::new(gridcraft_engine::Session::default(), Default::default());
+        let mut app = crate::SheetApp::new(celdas_engine::Session::default(), Default::default());
         for language in Language::ALL {
             app.run("app.language.set", serde_json::json!({"language": language.code()})).unwrap();
             assert_eq!(app.ui.language, language);

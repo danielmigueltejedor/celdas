@@ -1,9 +1,9 @@
 //! Right-clicking the status bar opens a menu that turns its selection statistics on and off.
 
+use celdas_engine::Session;
+use celdas_ui_egui::SheetApp;
 use egui::{Event, Modifiers, PointerButton, Pos2, pos2, vec2};
 use egui_kittest::kittest::Queryable;
-use gridcraft_engine::Session;
-use gridcraft_ui_egui::SheetApp;
 use serde_json::json;
 
 type Harness = egui_kittest::Harness<'static, SheetApp>;

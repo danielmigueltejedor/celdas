@@ -1,23 +1,23 @@
-# Hosting GridCraft for the web
+# Hosting Celdas for the web
 
 
-`gridcraft-web-<version>.zip` (from the GitHub release, or `packaging/web/package.sh`) holds a
-static site in `gridcraft-web-<version>/`:
+`celdas-web-<version>.zip` (from the GitHub release, or `packaging/web/package.sh`) holds a
+static site in `celdas-web-<version>/`:
 
 | File | What it is |
 |---|---|
 | `index.html` | The page. It loads everything through relative URLs. |
-| `gridcraft-web-<hash>.js` | wasm-bindgen glue (generated, ES module) |
-| `gridcraft-web-<hash>_bg.wasm` | The app (compresses to roughly a third with gzip/Brotli) |
+| `celdas-web-<hash>.js` | wasm-bindgen glue (generated, ES module) |
+| `celdas-web-<hash>_bg.wasm` | The app (compresses to roughly a third with gzip/Brotli) |
 | `_headers`, `.htaccess` | Sample header rules for Netlify/Cloudflare Pages and Apache |
 
 There is no server-side code. Upload the folder's contents anywhere that serves static files.
 
 ## Any path works
 
-All URLs in `index.html` are relative (`public_url = "./"` in `apps/gridcraft-web/Trunk.toml`),
+All URLs in `index.html` are relative (`public_url = "./"` in `apps/celdas-web/Trunk.toml`),
 so the site works at a domain root (`https://example.com/`), under a prefix
-(`https://example.com/tools/gridcraft/`) and from a CDN bucket. The asset names carry a content
+(`https://example.com/tools/celdas/`) and from a CDN bucket. The asset names carry a content
 hash, so they can be cached forever. Only `index.html` needs revalidation.
 
 ## Required server settings
@@ -32,7 +32,7 @@ hash, so they can be cached forever. Only `index.html` needs revalidation.
   `.js` files, and `no-cache` on `index.html`.
 - **HTTPS:** WebGPU (and the clipboard) only work in a secure context, which means `https://`
   or `http://localhost`. Over plain HTTP elsewhere, the app falls back to WebGL2.
-- **No special isolation headers:** GridCraft doesn't use `SharedArrayBuffer`, so it doesn't
+- **No special isolation headers:** Celdas doesn't use `SharedArrayBuffer`, so it doesn't
   need `Cross-Origin-Opener-Policy` or `Cross-Origin-Embedder-Policy`. If your site already sends
   COEP `require-corp`, also send `Cross-Origin-Resource-Policy: same-origin` (or `cross-origin`
   when the files live on a CDN) on the app's files.
@@ -40,7 +40,7 @@ hash, so they can be cached forever. Only `index.html` needs revalidation.
 nginx example:
 
 ```nginx
-location /gridcraft/ {
+location /celdas/ {
     types { application/wasm wasm; text/javascript js; text/html html; }
     gzip on;
     gzip_types application/wasm text/javascript text/html;
@@ -55,8 +55,8 @@ Local test: `python3 -m http.server 8765` inside the folder, then open http://lo
 
 ```html
 <iframe
-  src="https://example.com/gridcraft/"
-  title="GridCraft spreadsheet"
+  src="https://example.com/celdas/"
+  title="Celdas spreadsheet"
   style="width: 100%; height: 720px; border: 0;"
   allow="fullscreen; clipboard-read; clipboard-write"
   allowfullscreen>
@@ -80,18 +80,18 @@ Local test: `python3 -m http.server 8765` inside the folder, then open http://lo
 
 ### The parent bridge (`?host=parent`)
 
-A page framing GridCraft in a **same-origin** iframe can add `?host=parent` to the iframe's URL
-(`https://example.com/gridcraft/?host=parent`) and have GridCraft hand its files over instead of
+A page framing Celdas in a **same-origin** iframe can add `?host=parent` to the iframe's URL
+(`https://example.com/celdas/?host=parent`) and have Celdas hand its files over instead of
 downloading them. The two sides talk `postMessage` with plain window messages that carry a
 `type`:
 
 | Message | Direction | Fields |
 |---|---|---|
-| `gridcraft:ready` | app → page | `version`, `appVersion`: the app is listening; send a file now |
-| `gridcraft:open` | page → app | `name`, `bytes` (an `ArrayBuffer` or `Uint8Array`): open like File › Open |
-| `gridcraft:save` | app → page | `name`, `bytes` (a transferred `ArrayBuffer`): every file the app would otherwise download (Save, Save As, Export as PDF). The page stores it and reports failures itself. |
-| `gridcraft:dirty` | app → page | `dirty`: unsaved changes appeared or went away |
-| `gridcraft:failed` | app → page | `error`: the app couldn't start |
+| `celdas:ready` | app → page | `version`, `appVersion`: the app is listening; send a file now |
+| `celdas:open` | page → app | `name`, `bytes` (an `ArrayBuffer` or `Uint8Array`): open like File › Open |
+| `celdas:save` | app → page | `name`, `bytes` (a transferred `ArrayBuffer`): every file the app would otherwise download (Save, Save As, Export as PDF). The page stores it and reports failures itself. |
+| `celdas:dirty` | app → page | `dirty`: unsaved changes appeared or went away |
+| `celdas:failed` | app → page | `error`: the app couldn't start |
 
 In host mode the app starts with an empty workbook instead of a sample, so the framing page
 should guard leaving the page while changes are unsaved. `&author=` names the user for the
@@ -100,48 +100,48 @@ app with downloads.
 
 ### Embedding without an iframe (page host mode)
 
-A page that loads the GridCraft module into its own document — its own `<canvas
-id="gridcraft_canvas">` inside a component, sized to a box beside the page's own header and
+A page that loads the Celdas module into its own document — its own `<canvas
+id="celdas_canvas">` inside a component, sized to a box beside the page's own header and
 controls — opts in with `data-host="page"` on that canvas. The behaviour is the same as the
 parent bridge, except the transport is DOM `CustomEvent`s on the canvas instead of
-`postMessage`: the app dispatches `gridcraft:ready`, `gridcraft:save`, `gridcraft:dirty` and
-`gridcraft:failed` on the canvas with the message fields above as the event's `detail`, and the
-page dispatches `gridcraft:open` on the canvas with `detail: { name, bytes }` to open a
+`postMessage`: the app dispatches `celdas:ready`, `celdas:save`, `celdas:dirty` and
+`celdas:failed` on the canvas with the message fields above as the event's `detail`, and the
+page dispatches `celdas:open` on the canvas with `detail: { name, bytes }` to open a
 workbook. Events don't bubble, so two editors on one page can't hear each other; listen on the
 canvas itself.
 
 ```html
-<canvas id="gridcraft_canvas" data-host="page" style="width: 100%; height: 600px; border: 0;"></canvas>
+<canvas id="celdas_canvas" data-host="page" style="width: 100%; height: 600px; border: 0;"></canvas>
 ```
 
 ```js
-import init from "./gridcraft-web-<hash>.js"; // the wasm-bindgen glue shipped with the app
+import init from "./celdas-web-<hash>.js"; // the wasm-bindgen glue shipped with the app
 
 // Listen first: the app announces itself while `init` runs.
-const canvas = document.getElementById("gridcraft_canvas");
+const canvas = document.getElementById("celdas_canvas");
 
-canvas.addEventListener("gridcraft:ready", async () => {
+canvas.addEventListener("celdas:ready", async () => {
   // Open a workbook of the page's own, as with File › Open.
   const bytes = await workbookBytes(); // an ArrayBuffer or Uint8Array
-  canvas.dispatchEvent(new CustomEvent("gridcraft:open", {
+  canvas.dispatchEvent(new CustomEvent("celdas:open", {
     detail: { name: "Budget.xlsx", bytes },
   }));
 });
 
-// Every file GridCraft would otherwise download (Save, Save As, Export as PDF) arrives here.
-canvas.addEventListener("gridcraft:save", (event) => {
+// Every file Celdas would otherwise download (Save, Save As, Export as PDF) arrives here.
+canvas.addEventListener("celdas:save", (event) => {
   const { name, bytes } = event.detail; // bytes is an ArrayBuffer
   storeFile(name, bytes);
 });
 
-canvas.addEventListener("gridcraft:dirty", (event) => {
+canvas.addEventListener("celdas:dirty", (event) => {
   warnBeforeLeaving(event.detail.dirty);
 });
-canvas.addEventListener("gridcraft:failed", (event) => {
+canvas.addEventListener("celdas:failed", (event) => {
   showError(event.detail.error);
 });
 
-await init({ module_or_path: "./gridcraft-web-<hash>_bg.wasm" });
+await init({ module_or_path: "./celdas-web-<hash>_bg.wasm" });
 ```
 
 As with the parent bridge, the app starts with an empty workbook instead of a sample, and
@@ -149,30 +149,30 @@ As with the parent bridge, the app starts with an empty workbook instead of a sa
 must be exactly `page`; anything else is ignored, and the app runs as a standalone page with
 downloads.
 
-The messages and both transports are the shared contract of [`craft-web-host`](https://github.com/storytold/craft-libs/tree/main/crates/web-host) (storytold/craft-libs#420), the same for every Craft app: its README lists every message, including `saved`, with the compatibility notes. In `gridcraft:ready`, `version` is the contract's (`"1"`) and `appVersion` is this app's release. GridCraft reads bytes, so a host sends `bytes`, not a `File`.
+The messages and both transports are the shared contract of [`craft-web-host`](https://github.com/getnodalia/foundation/tree/vendor/craft-libs/main/crates/web-host) (storytold/craft-libs#420), the same for every Craft app: its README lists every message, including `saved`, with the compatibility notes. In `celdas:ready`, `version` is the contract's (`"1"`) and `appVersion` is this app's release. Celdas reads bytes, so a host sends `bytes`, not a `File`.
 
 ### Trust and limits
 
-- **Who is trusted.** In page host mode the page and GridCraft share one document, so any script on the page can drive the app: open files in it and receive what it saves. Use this mode only for a page you control. The iframe mode (`?host=parent`) answers only the parent window, on the page's own origin.
+- **Who is trusted.** In page host mode the page and Celdas share one document, so any script on the page can drive the app: open files in it and receive what it saves. Use this mode only for a page you control. The iframe mode (`?host=parent`) answers only the parent window, on the page's own origin.
 - **Files from the host are untrusted input.** An opened file goes through the same reading as one picked with File ▸ Open or dropped on the window, with the same format limits; before it is copied into the app's memory, its size is checked against the host open limit (512 MiB) and a larger file is refused, and a name is cut to 255 characters.
-- **The event and message names are the interface.** `gridcraft:ready`, `gridcraft:open`, `gridcraft:save`, `gridcraft:dirty` and `gridcraft:failed`, and the fields they carry (the same as the `?host=parent` messages), stay stable; changing one is a breaking change.
+- **The event and message names are the interface.** `celdas:ready`, `celdas:open`, `celdas:save`, `celdas:dirty` and `celdas:failed`, and the fields they carry (the same as the `?host=parent` messages), stay stable; changing one is a breaking change.
 
-### Driving it from the page (`window.gridcraft`)
+### Driving it from the page (`window.celdas`)
 
-Every GridCraft web build puts `window.gridcraft` on the page, from [`craft-web-api`](https://github.com/storytold/craft-libs/tree/main/crates/web-api) (storytold/craft-libs#413), the same shape in every Craft app. `gridcraft.request(method, params)` calls any method of the control channel the desktop app serves (`docs/control-protocol.md`), and `execute(command, params)`, `commands()`, `docInspect(params)`, `uiInspect(params)` and `screenshot(params)` are shortcuts for the common ones. Each returns a Promise that resolves with the method's result and rejects with an `Error`; a call the app does not answer within 30 seconds rejects, and the app skips it if it has not started it; a call the app has already taken still finishes, so a retry after a timeout can apply a command twice.
+Every Celdas web build puts `window.celdas` on the page, from [`craft-web-api`](https://github.com/getnodalia/foundation/tree/vendor/craft-libs/main/crates/web-api) (storytold/craft-libs#413), the same shape in every Craft app. `celdas.request(method, params)` calls any method of the control channel the desktop app serves (`docs/control-protocol.md`), and `execute(command, params)`, `commands()`, `docInspect(params)`, `uiInspect(params)` and `screenshot(params)` are shortcuts for the common ones. Each returns a Promise that resolves with the method's result and rejects with an `Error`; a call the app does not answer within 30 seconds rejects, and the app skips it if it has not started it; a call the app has already taken still finishes, so a retry after a timeout can apply a command twice.
 
 ```js
-const book = await gridcraft.docInspect();               // sheets, used ranges, tables, charts, names, selection
-await gridcraft.execute("cell.set", { cell: "A1", input: "Total" });
-const { data } = await gridcraft.screenshot();          // the canvas as PNG (base64)
+const book = await celdas.docInspect();               // sheets, used ranges, tables, charts, names, selection
+await celdas.execute("cell.set", { cell: "A1", input: "Total" });
+const { data } = await celdas.screenshot();          // the canvas as PNG (base64)
 ```
 
 The API is there in every mode, with or without a host. Opening a workbook, handing a saved or exported file to the page, the file name and the unsaved flag stay with the host messages above.
 
 ## Renderer selection
 
-GridCraft's web build is the same egui app as the desktop one, compiled to wasm
-(`apps/gridcraft-web`). It renders with the backend `apps/gridcraft-web` selects (WebGPU
+Celdas's web build is the same egui app as the desktop one, compiled to wasm
+(`apps/celdas-web`). It renders with the backend `apps/celdas-web` selects (WebGPU
 where available, otherwise WebGL2). If the web app adds URL flags to force a backend (as the
 sibling Craft apps do with `?webgl` / `?cpu`), document them here; they also work on the
 iframe `src`.

@@ -3,10 +3,10 @@
 //! Ctrl+Alt+Shift+P and the PY badge start no edit that would show the code, or
 //! that would write blank code over it.
 
+use celdas_engine::Session;
+use celdas_engine::core::CellRef;
 use egui::{Event, Key, Modifiers, vec2};
 use egui_kittest::kittest::Queryable as _;
-use gridcraft_engine::Session;
-use gridcraft_engine::core::CellRef;
 use serde_json::json;
 
 use crate::common::Harness;

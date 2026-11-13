@@ -4,12 +4,12 @@
 //! sheets, a button's questions (an answer runs only the action it asked about), and the Insert ›
 //! Controls buttons, context menu and dialogs.
 
+use celdas_engine::Session;
+use celdas_engine::core::{CellRef, Value};
+use celdas_engine::model::{FormControl, ObjKind, ObjRef};
+use celdas_ui_egui::form_controls::{Part, part_at, slider_parts};
+use celdas_ui_egui::{SheetApp, chartview, grid::Geo};
 use egui::{Event, Key, Modifiers, PointerButton, Pos2, Rect, vec2};
-use gridcraft_engine::Session;
-use gridcraft_engine::core::{CellRef, Value};
-use gridcraft_engine::model::{FormControl, ObjKind, ObjRef};
-use gridcraft_ui_egui::form_controls::{Part, part_at, slider_parts};
-use gridcraft_ui_egui::{SheetApp, chartview, grid::Geo};
 use serde_json::json;
 
 type Harness = egui_kittest::Harness<'static, SheetApp>;
@@ -396,7 +396,7 @@ fn a_right_click_on_a_cell_takes_the_keyboard_from_a_button() {
 fn a_button_from_a_file_asks_before_it_runs() {
     use egui_kittest::kittest::Queryable as _;
     let (mut h, ids) = fixture();
-    h.state_mut().session.doc_mut().unwrap().trust = gridcraft_engine::Trust::FromFile;
+    h.state_mut().session.doc_mut().unwrap().trust = celdas_engine::Trust::FromFile;
     let r = rect(&h, ids.button);
     click(&mut h, r.center());
     assert_eq!(cell(&h, "H1"), Value::Empty, "nothing runs before the person says so");
@@ -410,9 +410,9 @@ fn a_button_from_a_file_asks_before_it_runs() {
     assert!(h.state().dialog.is_none());
 }
 
-/// A file this test may write, removed first: `<temp>/gridcraft-press-<pid>-<name>`.
+/// A file this test may write, removed first: `<temp>/celdas-press-<pid>-<name>`.
 fn scratch(name: &str) -> std::path::PathBuf {
-    let p = std::env::temp_dir().join(format!("gridcraft-press-{}-{name}", std::process::id()));
+    let p = std::env::temp_dir().join(format!("celdas-press-{}-{name}", std::process::id()));
     let _ = std::fs::remove_file(&p);
     p
 }
@@ -621,7 +621,7 @@ fn the_controls_group_places_by_click_or_drag() {
     // A click places a slider at its default size.
     h.get_by_label("Slider").click();
     h.run_steps(2);
-    assert_eq!(h.state().grid.placing, Some(gridcraft_engine::model::ControlKind::Slider));
+    assert_eq!(h.state().grid.placing, Some(celdas_engine::model::ControlKind::Slider));
     let at = cells_rect(&h).min + vec2(300.0, 120.0);
     click(&mut h, at);
     let list = controls(&h);
@@ -689,7 +689,7 @@ fn assign_action_and_format_control_dialogs() {
     h.get_by_label("   OK   ").click();
     h.run_steps(2);
     assert!(h.state().dialog.is_none(), "{:?}", h.state().message);
-    assert!(matches!(control(&h, ids.button).action, Some(gridcraft_engine::model::ControlAction::Command { ref id, .. }) if id == "cell.set"));
+    assert!(matches!(control(&h, ids.button).action, Some(celdas_engine::model::ControlAction::Command { ref id, .. }) if id == "cell.set"));
     h.state_mut().selected_object = None;
     click(&mut h, r.center());
     assert_eq!(cell(&h, "H2"), Value::text("cmd"), "{:?}", h.state().message);

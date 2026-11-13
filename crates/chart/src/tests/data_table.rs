@@ -1,5 +1,5 @@
 use super::*;
-use gridcraft_model::ChartDataTable;
+use celdas_model::ChartDataTable;
 
 #[test]
 fn combo_table_keys_use_each_series_index() {

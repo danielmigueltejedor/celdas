@@ -1,11 +1,11 @@
 //! Page Setup › Page order: the dialog shows the sheet's order, and OK sets the chosen one with the
 //! margins in one undo step, so printing goes down, then over or over, then down.
 
+use celdas_engine::model::PageOrder;
+use celdas_ui_egui::SheetApp;
+use celdas_ui_egui::control::{Outcome, handle};
+use celdas_ui_egui::i18n::Language;
 use egui_kittest::kittest::Queryable as _;
-use gridcraft_engine::model::PageOrder;
-use gridcraft_ui_egui::SheetApp;
-use gridcraft_ui_egui::control::{Outcome, handle};
-use gridcraft_ui_egui::i18n::Language;
 use serde_json::{Value as Json, json};
 
 type Harness = egui_kittest::Harness<'static, SheetApp>;

@@ -8,7 +8,7 @@ use std::collections::btree_map::Entry;
 use std::ops::RangeInclusive;
 use std::sync::Arc;
 
-use gridcraft_core::{CellRef, RangeRef};
+use celdas_core::{CellRef, RangeRef};
 use serde::{Deserialize, Serialize};
 
 use crate::cell::Cell;
@@ -245,21 +245,20 @@ impl CellStore {
                     {
                         bytes = bytes.saturating_add(size_of::<crate::cell::Formula>() + formula.text.len());
                         if let Some(expr) = &formula.expr {
-                            expr.walk(&mut |_| bytes = bytes.saturating_add(size_of::<gridcraft_formula::Expr>()));
+                            expr.walk(&mut |_| bytes = bytes.saturating_add(size_of::<celdas_formula::Expr>()));
                         }
                     }
                     match &cell.value {
-                        gridcraft_core::Value::Text(text)
+                        celdas_core::Value::Text(text)
                             if !next_cell.and_then(|c| c.value.as_text()).is_some_and(|t| std::ptr::eq(t, text.as_ref())) =>
                         {
                             bytes = bytes.saturating_add(text.len());
                         }
-                        gridcraft_core::Value::Array(array)
-                            if !next_cell.is_some_and(|c| matches!(&c.value, gridcraft_core::Value::Array(a) if Arc::ptr_eq(a, array))) =>
+                        celdas_core::Value::Array(array)
+                            if !next_cell.is_some_and(|c| matches!(&c.value, celdas_core::Value::Array(a) if Arc::ptr_eq(a, array))) =>
                         {
-                            bytes = bytes.saturating_add(
-                                size_of::<gridcraft_core::Array>() + array.data.len().saturating_mul(size_of::<gridcraft_core::Value>()),
-                            );
+                            bytes = bytes
+                                .saturating_add(size_of::<celdas_core::Array>() + array.data.len().saturating_mul(size_of::<celdas_core::Value>()));
                         }
                         _ => {}
                     }
@@ -270,7 +269,7 @@ impl CellStore {
     }
     /// Removes every cell in `r` and returns them, row-major.
     pub fn take_range(&mut self, r: RangeRef) -> Vec<(CellRef, Cell)> {
-        if r.end.col < gridcraft_core::MAX_COLS - 1 {
+        if r.end.col < celdas_core::MAX_COLS - 1 {
             // A block with columns to its right: cutting it out of each row map measured slower
             // than removing its cells one by one (#3575).
             let keys: Vec<CellRef> = self.iter_range(r).map(|(c, _)| c).collect();
@@ -283,7 +282,7 @@ impl CellStore {
     /// would land before `from`... callers delete the vacated block first.
     pub fn shift_rows(&mut self, from: u32, delta: i64) {
         let moved = self.take_rows(from..=u32::MAX, 0..=u32::MAX);
-        self.put_rows(moved.into_iter().filter_map(|(row, cols)| Some((shifted(row, delta, gridcraft_core::MAX_ROWS)?, cols))));
+        self.put_rows(moved.into_iter().filter_map(|(row, cols)| Some((shifted(row, delta, celdas_core::MAX_ROWS)?, cols))));
     }
     pub fn shift_cols(&mut self, from: u32, delta: i64) {
         let moved = self.take_rows(0..=u32::MAX, from..=u32::MAX);
@@ -292,7 +291,7 @@ impl CellStore {
     /// Shifts cells within rows `r0..=r1` and columns `>= from` horizontally (Insert/Delete Cells
     /// with shift right/left).
     pub fn shift_cols_in_rows(&mut self, r0: u32, r1: u32, from: u32, delta: i64) {
-        let r = RangeRef::new(CellRef::new(r0, from), CellRef::new(r1, gridcraft_core::MAX_COLS - 1));
+        let r = RangeRef::new(CellRef::new(r0, from), CellRef::new(r1, celdas_core::MAX_COLS - 1));
         let moved = self.take_rows(r.start.row..=r.end.row, r.start.col..=r.end.col);
         self.put_rows(moved.into_iter().map(|(row, cols)| (row, shift_keys(cols, delta))));
     }
@@ -300,9 +299,9 @@ impl CellStore {
     pub fn shift_rows_in_cols(&mut self, c0: u32, c1: u32, from: u32, delta: i64) {
         // Cell by cell: the moved cells sit between columns that stay, so moving row maps
         // measured no faster here (#3575).
-        let range = RangeRef::new(CellRef::new(from, c0), CellRef::new(gridcraft_core::MAX_ROWS - 1, c1));
+        let range = RangeRef::new(CellRef::new(from, c0), CellRef::new(celdas_core::MAX_ROWS - 1, c1));
         for (c, cell) in self.take_range(range) {
-            if let Some(nr) = shifted(c.row, delta, gridcraft_core::MAX_ROWS) {
+            if let Some(nr) = shifted(c.row, delta, celdas_core::MAX_ROWS) {
                 self.set(CellRef::new(nr, c.col), cell);
             }
         }
@@ -438,7 +437,7 @@ fn shifted(at: u32, delta: i64, limit: u32) -> Option<u32> {
 fn shift_keys(cols: BTreeMap<u32, Cell>, delta: i64) -> BTreeMap<u32, Cell> {
     let mut out = BTreeMap::new();
     for (col, cell) in cols {
-        if let Some(c) = shifted(col, delta, gridcraft_core::MAX_COLS) {
+        if let Some(c) = shifted(col, delta, celdas_core::MAX_COLS) {
             out.insert(c, cell);
         }
     }
@@ -448,7 +447,7 @@ fn shift_keys(cols: BTreeMap<u32, Cell>, delta: i64) -> BTreeMap<u32, Cell> {
 #[cfg(test)]
 mod tests {
     use super::*;
-    use gridcraft_core::{MAX_COLS, MAX_ROWS, Value};
+    use celdas_core::{MAX_COLS, MAX_ROWS, Value};
 
     fn c(r: u32, col: u32) -> CellRef {
         CellRef::new(r, col)

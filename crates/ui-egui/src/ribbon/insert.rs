@@ -169,7 +169,7 @@ pub(super) fn insert(app: &mut SheetApp, ui: &mut Ui) {
     sep(ui);
     // Form controls: draw a button, slider or spin button on the sheet (a click places it at its
     // default size). Their key tips run the command at the active cell.
-    use gridcraft_engine::model::ControlKind;
+    use celdas_engine::model::ControlKind;
     let placing = app.grid.placing;
     ui.vertical(|ui| {
         for (icon, kind, label, tip, id) in [

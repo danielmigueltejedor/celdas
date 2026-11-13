@@ -19,9 +19,9 @@
 use std::collections::HashMap;
 use std::sync::Arc;
 
-use gridcraft_core::CellRef;
-use gridcraft_formula::{BinOp, Expr, RefKind, SheetSel, StructItem, UnOp};
-use gridcraft_model::{Formula, Workbook};
+use celdas_core::CellRef;
+use celdas_formula::{BinOp, Expr, RefKind, SheetSel, StructItem, UnOp};
+use celdas_model::{Formula, Workbook};
 
 use crate::FunctionInfo;
 
@@ -177,7 +177,7 @@ fn legacy(wb: &Workbook, sheet: usize, at: CellRef, formula: &Formula, functions
         }
         // Text round trip: the stored expression is exactly what the text parses to.
         if let Some(out) = reads_back(out) {
-            return Some(Formula::new(&gridcraft_formula::print(&out)));
+            return Some(Formula::new(&celdas_formula::print(&out)));
         }
         // The reading's `@` take it past the parser's nesting limit: handled as unfinished.
     }
@@ -188,14 +188,14 @@ fn legacy(wb: &Workbook, sheet: usize, at: CellRef, formula: &Formula, functions
     // it was read.
     let whole = matches!(expr.as_ref(), Expr::Unary(UnOp::At, _));
     let multi = legacy.top != Kind::Scalar || (legacy.certain && legacy.complete);
-    (multi && !whole).then(|| self::at(expr.as_ref().clone())).and_then(reads_back).map(|e| Formula::new(&gridcraft_formula::print(&e)))
+    (multi && !whole).then(|| self::at(expr.as_ref().clone())).and_then(reads_back).map(|e| Formula::new(&celdas_formula::print(&e)))
 }
 
 /// `e` when its text (the printer writes only the parentheses the expression has) reads back as
 /// the same expression, so a dropped `@` never takes parentheses the text needs with it. An `@`
 /// of a bare union has no such text, so its formula is saved as a dynamic one.
 fn reads_back(e: Expr) -> Option<Expr> {
-    gridcraft_formula::parse(&gridcraft_formula::print(&e)).is_ok_and(|p| p == e).then_some(e)
+    celdas_formula::parse(&celdas_formula::print(&e)).is_ok_and(|p| p == e).then_some(e)
 }
 
 /// The operand of an `@` without the parentheses [`at`] adds.
@@ -509,7 +509,7 @@ impl<'a> Legacy<'a> {
             return *kind;
         }
         let (scope, bare) = match n.rsplit_once('!') {
-            Some((s, name)) => (self.wb.sheet_index(&gridcraft_core::unquote_sheet(s)).unwrap_or(sheet), name),
+            Some((s, name)) => (self.wb.sheet_index(&celdas_core::unquote_sheet(s)).unwrap_or(sheet), name),
             None => (sheet, n),
         };
         if let Some(def) = self.wb.name(bare, scope) {
@@ -546,7 +546,7 @@ impl<'a> Legacy<'a> {
                 self.read.extend(info.closure.iter().cloned());
                 return info.kind;
             }
-            let Ok(expr) = gridcraft_formula::parse_name(def.formula.trim_start_matches('=')) else { return Kind::Array };
+            let Ok(expr) = celdas_formula::parse_name(def.formula.trim_start_matches('=')) else { return Kind::Array };
             self.shared.analyses += 1;
             self.names.insert(key.clone(), None);
             // A name's own formula does not see the formula's LET variables.
@@ -648,7 +648,7 @@ impl<'a> Legacy<'a> {
                 }
             }
             "INDIRECT" => match out.first() {
-                Some(Expr::Text(text)) if !matches!(out.get(1), Some(Expr::Bool(false))) => match gridcraft_formula::parse(text) {
+                Some(Expr::Text(text)) if !matches!(out.get(1), Some(Expr::Bool(false))) => match celdas_formula::parse(text) {
                     Ok(e) => {
                         let kind = self.kind_of(e, sheet, depth);
                         if kind == Kind::Scalar { Kind::Scalar } else { Kind::Ref }

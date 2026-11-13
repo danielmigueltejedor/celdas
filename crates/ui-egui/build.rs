@@ -33,18 +33,18 @@ fn main() {
     emit_craft_fonts();
 }
 
-/// The optional craft-fonts build input (<https://github.com/storytold/craft-fonts>, recipe from
+/// The optional craft-fonts build input (<https://github.com/getnodalia/foundation/tree/vendor/craft-fonts/main>, recipe from
 /// its `docs/integration.md`). With `CRAFT_FONTS_DIR=<absolute checkout>` the permitted fonts in
 /// its `fonts/manifest.txt` are embedded as `CRAFT_FONTS` for `theme`'s fallback chains; unset,
 /// the table is empty. Release and acceptance builds also set `CRAFT_FONTS_REQUIRED=1` (exactly
 /// `1`; any other value leaves required mode off), which turns a missing checkout, a missing
 /// required face or a malformed row into a build error.
 ///
-/// GridCraft never copies font bytes into this repository and never reads a fixture from Cargo
+/// Celdas never copies font bytes into this repository and never reads a fixture from Cargo
 /// configuration: the only input is the environment variable. Barred Adobe/Source/Noto CJK faces
 /// stay in the shared repository for other consumers but are filtered here. A web build embeds
 /// only the explicit `WEB_ALLOWED` faces (no CJK collection). Native builds additionally opt into
-/// craft-fonts' `fonts/simplified-chinese-manifest.txt` (the OFL LXGW face DeckCraft uses): it is
+/// craft-fonts' `fonts/simplified-chinese-manifest.txt` (the OFL LXGW face Lámina uses): it is
 /// optional for ordinary builds and required for `CRAFT_FONTS_REQUIRED=1` native builds.
 fn emit_craft_fonts() {
     println!("cargo::rerun-if-env-changed=CRAFT_FONTS_DIR");
@@ -74,7 +74,7 @@ fn emit_craft_fonts() {
     }
 }
 
-/// One `CraftFont { .. }` initialiser per manifest row GridCraft may embed.
+/// One `CraftFont { .. }` initialiser per manifest row Celdas may embed.
 fn craft_fonts(dir: &std::path::Path, wasm: bool, required: bool) -> Result<String, String> {
     let manifest = dir.join("fonts/manifest.txt");
     println!("cargo::rerun-if-changed={}", manifest.display());

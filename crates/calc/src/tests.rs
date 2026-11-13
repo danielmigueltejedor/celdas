@@ -1,5 +1,5 @@
-use gridcraft_core::{CellError, CellRef, Value};
-use gridcraft_model::{Cell, Formula, Workbook};
+use celdas_core::{CellError, CellRef, Value};
+use celdas_model::{Cell, Formula, Workbook};
 
 use crate::Calc;
 
@@ -20,7 +20,7 @@ impl T {
         let cell = if input.starts_with('=') {
             Cell::formula(Formula::new(input))
         } else {
-            Cell::value(gridcraft_core::parse::parse_input(input, self.wb.date_system).value)
+            Cell::value(celdas_core::parse::parse_input(input, self.wb.date_system).value)
         };
         self.wb.sheet_mut(0).unwrap().cells.set(c(at), cell);
         self.calc.cells_changed(&mut self.wb, &[(0, c(at))]);
@@ -54,7 +54,7 @@ fn spill_range_operator() {
     t.set("D1", "=SUM(A1#)");
     assert_eq!(t.get("D1"), Value::Error(CellError::Ref));
     // Through a defined name.
-    t.wb.names.push(gridcraft_model::DefinedName {
+    t.wb.names.push(celdas_model::DefinedName {
         name: "Seq".into(),
         scope: None,
         formula: "Sheet1!$B$1#".into(),
@@ -403,7 +403,7 @@ fn circular_references_stay_listed_until_the_loop_is_removed() {
     t.set("B2", "3");
     assert!(t.calc.circular.is_empty(), "{:?}", t.calc.circular);
     // In manual calculation only the edited formulas are evaluated; a constant typed over the listed cell removes it.
-    t.wb.calc.mode = gridcraft_model::CalcMode::Manual;
+    t.wb.calc.mode = celdas_model::CalcMode::Manual;
     t.set("C1", "=C1+1");
     assert_eq!(t.calc.circular, vec![(0, c("C1"))]);
     t.set("C1", "1");
@@ -412,7 +412,7 @@ fn circular_references_stay_listed_until_the_loop_is_removed() {
 
 #[test]
 fn date_text_coerces_in_the_workbook_date_system() {
-    for (sys, serial) in [(gridcraft_core::DateSystem::D1900, 1462.0), (gridcraft_core::DateSystem::D1904, 0.0)] {
+    for (sys, serial) in [(celdas_core::DateSystem::D1900, 1462.0), (celdas_core::DateSystem::D1904, 0.0)] {
         let mut t = T::new();
         t.wb.date_system = sys;
         t.set("A1", "'1/1/1904");
@@ -729,10 +729,10 @@ fn formulas_reading_an_array_that_loses_a_spill_conflict_read_spill_errors() {
 fn arrays_do_not_spill_in_tables() {
     // Excel: spilled array formulas aren't supported in tables.
     let mut t = T::new();
-    t.wb.sheet_mut(0).unwrap().tables.push(gridcraft_model::Table {
+    t.wb.sheet_mut(0).unwrap().tables.push(celdas_model::Table {
         id: 1,
         name: "Table1".into(),
-        range: gridcraft_core::RangeRef::parse("B3:C6").unwrap(),
+        range: celdas_core::RangeRef::parse("B3:C6").unwrap(),
         header_row: true,
         totals_row: false,
         columns: vec![],
@@ -808,7 +808,7 @@ fn references_functions() {
     t.set("C2", "=INDIRECT(\"A3\",FALSE)");
     assert_eq!(t.get("C2"), Value::Error(CellError::Ref));
     // Defined names don't depend on the reference style.
-    t.wb.names.push(gridcraft_model::DefinedName {
+    t.wb.names.push(celdas_model::DefinedName {
         name: "Third".into(),
         scope: None,
         formula: "Sheet1!$A$3".into(),
@@ -864,13 +864,7 @@ fn relative_names() {
     // As files store them: relative to A1. `Left` is the cell to the left, `Above3` the three
     // cells above, `Mixed` column A of the same row.
     for (name, formula) in [("Left", "Sheet1!XFD1"), ("Above3", "Sheet1!A1048574:A1048576"), ("Mixed", "Sheet1!$A1")] {
-        t.wb.names.push(gridcraft_model::DefinedName {
-            name: name.into(),
-            scope: None,
-            formula: formula.into(),
-            comment: String::new(),
-            hidden: false,
-        });
+        t.wb.names.push(celdas_model::DefinedName { name: name.into(), scope: None, formula: formula.into(), comment: String::new(), hidden: false });
     }
     t.calc.rebuild(&t.wb);
     for r in 1..=5 {
@@ -1041,7 +1035,7 @@ fn groupby_and_pivotby_take_a_lambda() {
 #[test]
 fn lambda_argument_count() {
     let mut t = T::new();
-    t.wb.names.push(gridcraft_model::DefinedName {
+    t.wb.names.push(celdas_model::DefinedName {
         name: "AddPair".into(),
         scope: None,
         formula: "LAMBDA(a,b,a+b)".into(),
@@ -1077,7 +1071,7 @@ fn a_lambda_that_calls_itself_without_end_is_num_on_a_small_stack() {
         .stack_size(1 << 20)
         .spawn(|| {
             let mut t = T::new();
-            t.wb.names.push(gridcraft_model::DefinedName {
+            t.wb.names.push(celdas_model::DefinedName {
                 name: "LOOP".into(),
                 scope: None,
                 formula: "LAMBDA(n,LOOP(n))".into(),
@@ -1109,7 +1103,7 @@ fn a_recursive_lambda_stops_at_the_same_call_on_any_stack_size() {
             .stack_size(stack)
             .spawn(|| {
                 let mut wb = Workbook::new();
-                wb.names.push(gridcraft_model::DefinedName {
+                wb.names.push(celdas_model::DefinedName {
                     name: "CNT".into(),
                     scope: None,
                     formula: "LAMBDA(n,IF(n=0,0,1+CNT(n-1)))".into(),
@@ -1167,8 +1161,8 @@ fn a_recursive_lambda_that_reads_another_cells_recursive_lambda_shares_the_stack
 #[test]
 fn names_and_sheets() {
     let mut t = T::new();
-    t.wb.names.push(gridcraft_model::DefinedName { name: "Rate".into(), scope: None, formula: "0.5".into(), comment: String::new(), hidden: false });
-    t.wb.sheets.push(std::sync::Arc::new(gridcraft_model::Sheet::new("Data")));
+    t.wb.names.push(celdas_model::DefinedName { name: "Rate".into(), scope: None, formula: "0.5".into(), comment: String::new(), hidden: false });
+    t.wb.sheets.push(std::sync::Arc::new(celdas_model::Sheet::new("Data")));
     t.wb.sheet_mut(1).unwrap().set_value(c("A1"), Value::Number(8.0));
     t.calc.rebuild(&t.wb);
     t.set("A1", "=Rate*Data!A1");
@@ -1183,7 +1177,7 @@ fn name_referring_to_several_ranges() {
     let mut t = T::new();
     // As Excel writes it in `<definedName>`: a union with no parentheses around it.
     let union = "Sheet1!$A$1:$A$2,Sheet1!$C$1:$C$2";
-    t.wb.names.push(gridcraft_model::DefinedName { name: "u".into(), scope: None, formula: union.into(), comment: String::new(), hidden: false });
+    t.wb.names.push(celdas_model::DefinedName { name: "u".into(), scope: None, formula: union.into(), comment: String::new(), hidden: false });
     for (at, v) in [("A1", "1"), ("A2", "2"), ("C1", "5"), ("C2", "7")] {
         t.set(at, v);
     }
@@ -1203,7 +1197,7 @@ fn legacy_array_formulas_fill_their_range() {
     t.set("A2", "2");
     let cse = |t: &mut T, at: &str, formula: &str, range: &str| {
         let mut f = Formula::new(formula);
-        f.array = gridcraft_core::RangeRef::parse(range);
+        f.array = celdas_core::RangeRef::parse(range);
         t.wb.sheet_mut(0).unwrap().cells.set(c(at), Cell::formula(f));
         t.calc.cells_changed(&mut t.wb, &[(0, c(at))]);
     };
@@ -1329,7 +1323,7 @@ fn subtotal_skips_hidden() {
     t.set("A1", "1");
     t.set("A2", "2");
     t.set("A3", "3");
-    t.wb.sheet_mut(0).unwrap().rows.insert(1, gridcraft_model::LineInfo { hidden: true, ..Default::default() });
+    t.wb.sheet_mut(0).unwrap().rows.insert(1, celdas_model::LineInfo { hidden: true, ..Default::default() });
     t.set("B1", "=SUBTOTAL(109,A1:A3)");
     t.set("B2", "=SUBTOTAL(9,A1:A3)");
     assert_eq!(t.num("B1"), 4.0);
@@ -1352,7 +1346,7 @@ fn subtotal_109_skips_nested_subtotal() {
     t.set("A1", "1");
     t.set("A2", "2");
     t.set("A3", "=SUBTOTAL(9,A1:A2)");
-    t.wb.sheet_mut(0).unwrap().rows.insert(1, gridcraft_model::LineInfo { hidden: true, ..Default::default() });
+    t.wb.sheet_mut(0).unwrap().rows.insert(1, celdas_model::LineInfo { hidden: true, ..Default::default() });
     t.set("B1", "=SUBTOTAL(109,A1:A3)");
     t.set("B2", "=SUBTOTAL(9,A1:A3)");
     assert_eq!(t.num("B1"), 1.0);
@@ -1398,7 +1392,7 @@ fn subtotal_and_aggregate_cap_cells_visited() {
 /// under a filtered table adds only the visible rows).
 #[test]
 fn subtotal_skips_filtered_rows() {
-    use gridcraft_model::{AutoFilter, FilterCriterion, LineInfo};
+    use celdas_model::{AutoFilter, FilterCriterion, LineInfo};
     let mut t = T::new();
     for (i, v) in [1, 2, 4, 8, 16, 32].iter().enumerate() {
         t.set(&format!("A{}", i + 2), &v.to_string());
@@ -1406,13 +1400,13 @@ fn subtotal_skips_filtered_rows() {
     }
     let crit = || vec![(0, FilterCriterion::Custom { a: (">".into(), "1".into()), b: None, and: false })];
     let sh = t.wb.sheet_mut(0).unwrap();
-    sh.tables.push(gridcraft_model::Table {
+    sh.tables.push(celdas_model::Table {
         id: 1,
         name: "Sales".into(),
-        range: gridcraft_core::RangeRef::parse("A1:A7").unwrap(),
+        range: celdas_core::RangeRef::parse("A1:A7").unwrap(),
         header_row: true,
         totals_row: false,
-        columns: vec![gridcraft_model::TableColumn {
+        columns: vec![celdas_model::TableColumn {
             name: "Amount".into(),
             totals: Default::default(),
             totals_label: None,
@@ -1430,7 +1424,7 @@ fn subtotal_skips_filtered_rows() {
         table_type: None,
         connection_id: None,
     });
-    sh.autofilter = Some(AutoFilter { range: gridcraft_core::RangeRef::parse("C1:C7").unwrap(), criteria: crit() });
+    sh.autofilter = Some(AutoFilter { range: celdas_core::RangeRef::parse("C1:C7").unwrap(), criteria: crit() });
     // Rows 3 and 5 are filtered out; row 9 (outside both filters) is hidden by hand.
     for row in [2, 4, 8] {
         sh.rows.insert(row, LineInfo { hidden: true, ..Default::default() });
@@ -1544,8 +1538,8 @@ fn sumif_resized_sum_range_stops_at_the_sheet_edge() {
 #[test]
 fn sumif_resized_sum_range_on_another_sheet_and_through_a_name() {
     let mut t = T::new();
-    t.wb.sheets.push(std::sync::Arc::new(gridcraft_model::Sheet::new("Data")));
-    t.wb.names.push(gridcraft_model::DefinedName {
+    t.wb.sheets.push(std::sync::Arc::new(celdas_model::Sheet::new("Data")));
+    t.wb.names.push(celdas_model::DefinedName {
         name: "Amounts".into(),
         scope: None,
         formula: "Data!$B$1".into(),
@@ -1776,7 +1770,7 @@ fn visit_range_declines_when_a_formula_in_the_block_spills_into_it() {
     let sh = wb.sheet_mut(0).unwrap();
     sh.cells.set(c("D1"), Cell::formula(Formula::new("=SEQUENCE(3)")));
     sh.cells.set(c("D4"), Cell::value(Value::Number(10.0)));
-    let block = gridcraft_core::RangeRef::parse("D1:D5").unwrap();
+    let block = celdas_core::RangeRef::parse("D1:D5").unwrap();
 
     // Reading the block calculates D1, which spills over D2:D3. A walk over the stored cells
     // would never see 2 and 3, so the host must decline and leave the block to `range_values`.
@@ -1833,7 +1827,7 @@ fn cell_width_is_the_column_width_dialog_value_rounded() {
     let mut t = T::new();
     let sh = t.wb.sheet_mut(0).unwrap();
     for (col, px) in [(2, 80.0), (3, 89.0), (4, 79.0), (5, 25.0)] {
-        sh.cols.insert(col, gridcraft_model::LineInfo { size: Some(px), ..Default::default() });
+        sh.cols.insert(col, celdas_model::LineInfo { size: Some(px), ..Default::default() });
     }
     for (at, col) in [("H1", "B"), ("H2", "C"), ("H3", "D"), ("H4", "E"), ("H5", "F")] {
         t.set(at, &format!("=CELL(\"width\",{col}1)"));
@@ -1947,7 +1941,7 @@ fn implicit_intersection_operator() {
     // A 2D range that includes the formula's own cell is a circular reference (Excel shows 0).
     assert_eq!(t.get("B3"), Value::Error(CellError::Circ));
     // From another sheet a 2D range intersects on both row and column; outside it is #VALUE!.
-    t.wb.sheets.push(std::sync::Arc::new(gridcraft_model::Sheet::new("Other")));
+    t.wb.sheets.push(std::sync::Arc::new(celdas_model::Sheet::new("Other")));
     for (at, input) in [("B2", "=@Sheet1!A1:C3"), ("C1", "=@Sheet1!A1:C3"), ("B9", "=@Sheet1!A1:C3"), ("E2", "=@Sheet1!A1:C3")] {
         t.wb.sheet_mut(1).unwrap().cells.set(c(at), Cell::formula(Formula::new(input)));
     }
@@ -1976,7 +1970,7 @@ fn implicit_intersection_operator() {
 #[test]
 fn precision_as_displayed_rounds_results_by_cell_format() {
     let fmt = |t: &mut T, at: &str, code: &str| {
-        let id = t.wb.styles.intern(gridcraft_model::Style { num_fmt: gridcraft_model::NumFmt::new(code), ..Default::default() });
+        let id = t.wb.styles.intern(celdas_model::Style { num_fmt: celdas_model::NumFmt::new(code), ..Default::default() });
         t.wb.sheet_mut(0).unwrap().set_style(c(at), id);
     };
     let mut t = T::new();
@@ -2054,7 +2048,7 @@ fn analysis_toolpak_value_params_reject_multi_cell_references() {
     ] {
         t.set(a, v);
     }
-    t.wb.names.push(gridcraft_model::DefinedName {
+    t.wb.names.push(celdas_model::DefinedName {
         name: "Dates".into(),
         scope: None,
         formula: "Sheet1!$A$1:$A$3".into(),
@@ -2144,7 +2138,7 @@ fn long_dependency_chains_against_row_order_calculate() {
 
     // Hopping between two sheets at every step, through a range read (SUM) as well.
     let mut t = T::new();
-    t.wb.sheets.push(std::sync::Arc::new(gridcraft_model::Sheet::new("Data")));
+    t.wb.sheets.push(std::sync::Arc::new(celdas_model::Sheet::new("Data")));
     for r in 1..N {
         t.wb.sheet_mut(0).unwrap().cells.set(c(&format!("A{r}")), Cell::formula(Formula::new(&format!("=Data!A{r}+1"))));
         let next = format!("=SUM(Sheet1!A{}:A{})", r + 1, r + 1);
@@ -2309,7 +2303,7 @@ fn cell_filename_names_the_workbook_file() {
     t.set("B4", "=ISNUMBER(FIND(\"]\",CELL(\"filename\",A1)))");
     assert_eq!(t.get("B4"), Value::Bool(true));
     // The sheet is the one the reference is on, not the active one.
-    t.wb.sheets.push(std::sync::Arc::new(gridcraft_model::Sheet::new("Second")));
+    t.wb.sheets.push(std::sync::Arc::new(celdas_model::Sheet::new("Second")));
     t.set("B6", "=CELL(\"filename\",Second!A1)");
     assert_eq!(t.get("B6"), Value::from(dir.join("[gc_cell_info_de.xlsx]Second").to_string_lossy().into_owned().as_str()));
 
@@ -2340,7 +2334,7 @@ fn n_lifts_over_a_computed_array_but_reads_the_first_cell_of_a_range() {
 #[test]
 fn a_dynamic_array_of_one_value_still_anchors_a_spill() {
     // In Excel a dynamic-array formula anchors a spill range even while its result is a single
-    // value, so `C1#` is the 1 x 1 range and ROWS/SUM/COUNT of it work. GridCraft gave #REF!
+    // value, so `C1#` is the 1 x 1 range and ROWS/SUM/COUNT of it work. Celdas gave #REF!
     // (and COUNT 0), so every formula counting a filtered list broke the moment the list had
     // exactly one entry (#1491). Values and cells follow the reported fixture.
     let mut t = T::new();
@@ -2484,7 +2478,7 @@ fn an_edit_far_left_of_many_spill_errors_does_not_disturb_them() {
 }
 
 /// Probe: single-cell edits in column A below a block of `#SPILL!` cells to its right.
-/// `cargo test -p gridcraft-calc --release -- --ignored --nocapture spill_error_field_probe`
+/// `cargo test -p celdas-calc --release -- --ignored --nocapture spill_error_field_probe`
 #[test]
 #[ignore]
 #[allow(clippy::disallowed_methods)]
@@ -2532,7 +2526,7 @@ fn a_paste_beside_a_tall_spill_leaves_it_alone_and_one_over_it_blocks_it() {
 }
 
 /// Probe: `cells_changed` for a 17-cell paste in column F beside the tall spill.
-/// `cargo test -p gridcraft-calc --release -- --ignored --nocapture tall_spill_paste_probe`
+/// `cargo test -p celdas-calc --release -- --ignored --nocapture tall_spill_paste_probe`
 #[test]
 #[ignore]
 #[allow(clippy::disallowed_methods)]
@@ -2601,7 +2595,7 @@ fn a_paste_over_small_and_tall_spills_blocks_those_it_touches() {
 #[test]
 fn a_big_paste_on_one_sheet_and_one_cell_over_many_spills_on_another() {
     let mut t = T::new();
-    t.wb.sheets.push(std::sync::Arc::new(gridcraft_model::Sheet::new("Data")));
+    t.wb.sheets.push(std::sync::Arc::new(celdas_model::Sheet::new("Data")));
     for i in 0..1_500u32 {
         t.wb.sheet_mut(1).unwrap().cells.set(CellRef::new(4 * i, 0), Cell::formula(Formula::new(&format!("=SEQUENCE(3,1,{})", 10 * i))));
     }
@@ -2776,17 +2770,17 @@ fn graph_built_from_text_only_formulas_matches_cached() {
 /// Makes `at` a Python cell showing `cached` (its value before this calculation), with `result`
 /// as its kept result, and returns the cell's key for `Calc::cells_changed`.
 fn plant_python(t: &mut T, at: &str, cached: Value, result: Value) -> (usize, CellRef) {
-    use gridcraft_model::python::{PyCode, PyOutput};
+    use celdas_model::python::{PyCode, PyOutput};
     let output = PyOutput { value: result, type_name: "list".into(), preview: String::new(), convertible: true };
     let py = PyCode { output: Some(output), ..PyCode::new("[5, 6]") };
-    let cell = Cell { value: cached, formula: None, style: gridcraft_model::StyleId::default(), py: Some(std::sync::Arc::new(py)) };
+    let cell = Cell { value: cached, formula: None, style: celdas_model::StyleId::default(), py: Some(std::sync::Arc::new(py)) };
     t.wb.sheet_mut(0).unwrap().cells.set(c(at), cell);
     (0, c(at))
 }
 
 fn column(values: &[f64]) -> Value {
     let data = values.iter().map(|v| Value::Number(*v)).collect();
-    Value::Array(std::sync::Arc::new(gridcraft_core::Array::new(values.len(), 1, data).unwrap()))
+    Value::Array(std::sync::Arc::new(celdas_core::Array::new(values.len(), 1, data).unwrap()))
 }
 
 #[test]

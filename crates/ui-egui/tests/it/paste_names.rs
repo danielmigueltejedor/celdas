@@ -1,12 +1,12 @@
 //! F3 opens the Paste Name dialog when the workbook has names: OK puts the selected name into the
 //! formula being edited, and Paste List writes every name and what it refers to, as in Excel.
 
+use celdas_engine::Session;
+use celdas_engine::core::{CellRef, Value};
+use celdas_ui_egui::SheetApp;
+use celdas_ui_egui::control::{Outcome, handle};
 use egui::{Event, Key, vec2};
 use egui_kittest::kittest::Queryable;
-use gridcraft_engine::Session;
-use gridcraft_engine::core::{CellRef, Value};
-use gridcraft_ui_egui::SheetApp;
-use gridcraft_ui_egui::control::{Outcome, handle};
 use serde_json::json;
 
 type Harness = egui_kittest::Harness<'static, SheetApp>;

@@ -1,6 +1,6 @@
 //! Regression tests for the default author of newly created workbooks.
 
-use gridcraft_engine::{DocState, Session, Trust, io, model::Workbook};
+use celdas_engine::{DocState, Session, Trust, io, model::Workbook};
 
 #[test]
 fn new_workbook_stamps_the_configured_user_name_at_creation() {
@@ -34,7 +34,7 @@ fn opening_and_resaving_preserves_the_existing_workbook_author() {
     let (opened, _) = io::open_bytes("source.xlsx", &bytes).unwrap();
 
     let mut session = Session::new();
-    session.prefs.user_name = "Current GridCraft User".into();
+    session.prefs.user_name = "Current Celdas User".into();
 
     session.add_document(DocState::new(opened, None, "source".into(), Trust::FromFile));
 

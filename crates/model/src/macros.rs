@@ -1,4 +1,4 @@
-//! GridCraft macros: typed, declarative command lists that run as one undo step. They are not VBA:
+//! Celdas macros: typed, declarative command lists that run as one undo step. They are not VBA:
 //! a VBA project in a file is carried through unchanged (`Workbook::vba_project`) and never run.
 
 use serde::{Deserialize, Serialize};
@@ -26,7 +26,7 @@ pub const MAX_MACRO_PERMISSIONS: usize = 256;
 pub const MAX_MACRO_COLUMNS: usize = 16_384;
 
 /// A recorded or hand-made macro: a list of typed steps that runs as one undo step. Most steps run
-/// a GridCraft command; Repeat, If and Stop add bounded control flow. References in step
+/// a Celdas command; Repeat, If and Stop add bounded control flow. References in step
 /// parameters can be tokens (`"Input.col(2)"`) that are resolved against the declared inputs when
 /// the macro runs, so a macro recorded on one block of data works on another.
 #[derive(Clone, Debug, PartialEq, Serialize, Deserialize)]
@@ -152,7 +152,7 @@ impl Macro {
                 return Err(format!("'{n}' is a token of its own and can't name an input."));
             }
             // A step written with plain A1 text (a recorded one) must keep meaning the cell.
-            if gridcraft_core::RangeRef::parse(n).is_some() {
+            if celdas_core::RangeRef::parse(n).is_some() {
                 return Err(format!("'{n}' reads as a cell reference and can't name an input."));
             }
             if inputs.iter().take(k).any(|o| o.name.eq_ignore_ascii_case(n)) {
@@ -288,7 +288,7 @@ impl FromIterator<Macro> for Macros {
 /// doesn't know, and a save would then write the rest back as if it were the whole macro.
 pub fn check_version(v: u64) -> Result<(), String> {
     if v > u64::from(MACRO_VERSION) {
-        return Err(format!("This macro was made by a newer version of GridCraft (macro format {v}); this version reads format {MACRO_VERSION}."));
+        return Err(format!("This macro was made by a newer version of Celdas (macro format {v}); this version reads format {MACRO_VERSION}."));
     }
     Ok(())
 }
@@ -414,7 +414,7 @@ impl Step {
 #[derive(Clone, Debug, PartialEq, Serialize, Deserialize)]
 #[serde(tag = "type", rename_all = "camelCase")]
 pub enum StepKind {
-    /// Runs a GridCraft command. String parameters may hold tokens, resolved when the step runs.
+    /// Runs a Celdas command. String parameters may hold tokens, resolved when the step runs.
     Command {
         id: String,
         #[serde(default)]

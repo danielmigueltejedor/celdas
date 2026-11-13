@@ -10,7 +10,7 @@ fn garbage_and_truncation() {
     assert!(read_xlsx(b"").is_err());
     assert!(read_xlsx(b"hello world").is_err());
     assert!(read_xlsx(b"PK\x03\x04garbage").is_err());
-    let good = write_xlsx(&gridcraft_model::Workbook::new()).unwrap();
+    let good = write_xlsx(&celdas_model::Workbook::new()).unwrap();
     for n in [10, 100, good.len() / 2, good.len() - 10] {
         let _ = read_xlsx(&good[..n]);
     }
@@ -71,7 +71,7 @@ fn huge_coordinates_and_dimensions() {
       <sheetViews><sheetView zoomScale="99999"><pane xSplit="1e9" ySplit="-5" state="frozen"/></sheetView></sheetViews>"#;
     let (wb, rep) = read_xlsx(&minimal(body, &[], "", "")).unwrap();
     let s = wb.sheet(0).unwrap();
-    assert_eq!(s.value(gridcraft_core::CellRef::parse("XFD3").unwrap()), gridcraft_core::Value::Number(7.0));
+    assert_eq!(s.value(celdas_core::CellRef::parse("XFD3").unwrap()), celdas_core::Value::Number(7.0));
     assert!(s.cells.len() <= 4);
     assert!(s.hyperlinks.len() <= 10_000);
     assert_eq!(s.zoom, 400);
@@ -92,7 +92,7 @@ fn deeply_nested_and_broken_xml() {
     assert!(rep.warnings.iter().any(|w| w.contains("could not be read") || w.contains("damaged")));
     // Truncated sheet XML keeps earlier rows.
     let (wb, _) = read_xlsx(&minimal(r#"<sheetData><row r="1"><c r="A1"><v>5</v></c></row><row r="2"><c r="A2"><v"#, &[], "", "")).unwrap();
-    assert_eq!(wb.sheet(0).unwrap().value(gridcraft_core::CellRef::new(0, 0)), gridcraft_core::Value::Number(5.0));
+    assert_eq!(wb.sheet(0).unwrap().value(celdas_core::CellRef::new(0, 0)), celdas_core::Value::Number(5.0));
     // Broken optional parts are warnings.
     let rels = r#"<Relationship Id="rId2" Type="http://schemas.openxmlformats.org/officeDocument/2006/relationships/styles" Target="styles.xml"/><Relationship Id="rId3" Type="http://schemas.openxmlformats.org/officeDocument/2006/relationships/theme" Target="theme/theme1.xml"/><Relationship Id="rId4" Type="http://schemas.openxmlformats.org/officeDocument/2006/relationships/sharedStrings" Target="sharedStrings.xml"/>"#;
     let (_, rep) = read_xlsx(&minimal(
@@ -140,8 +140,8 @@ fn zip_bomb_is_rejected() {
 /// broken parts are skipped, nothing panics.
 #[test]
 fn hostile_threaded_comments_persons_and_note_vml() {
-    use gridcraft_core::CellRef;
-    use gridcraft_model::{Comment, Workbook};
+    use celdas_core::CellRef;
+    use celdas_model::{Comment, Workbook};
     let mut wb = Workbook::new();
     let s = std::sync::Arc::make_mut(&mut wb.sheets[0]);
     let c = |threaded| Comment {
@@ -230,8 +230,8 @@ fn an_overlong_number_format_code_does_not_stop_the_open() {
     let body = r#"<sheetData><row r="1"><c r="A1" s="1"><v>0.5</v></c></row></sheetData>"#;
     let (wb, _) = read_xlsx(&minimal(body, &[("xl/styles.xml", &styles)], rels, "")).unwrap();
     let s = wb.sheet(0).unwrap();
-    let cell = s.cell(gridcraft_core::CellRef::parse("A1").unwrap()).unwrap();
-    assert_eq!(s.value(gridcraft_core::CellRef::parse("A1").unwrap()), gridcraft_core::Value::Number(0.5));
+    let cell = s.cell(celdas_core::CellRef::parse("A1").unwrap()).unwrap();
+    assert_eq!(s.value(celdas_core::CellRef::parse("A1").unwrap()), celdas_core::Value::Number(0.5));
     assert_eq!(wb.styles.get(cell.style).num_fmt.as_str(), code);
 }
 
@@ -265,9 +265,9 @@ fn hostile_formula_text_does_not_overflow_the_stack() {
         .spawn(move || {
             let (wb, _) = read_xlsx(&bytes).expect("readable");
             let s = wb.sheet(0).expect("sheet");
-            let a1 = s.cell(gridcraft_core::CellRef::new(0, 0)).and_then(|c| c.formula.clone()).expect("formula kept");
-            let b1 = s.cell(gridcraft_core::CellRef::new(0, 1)).and_then(|c| c.formula.clone()).expect("formula kept");
-            let kept = (a1.expr.is_none(), b1.expr.is_none(), a1.text.len(), s.value(gridcraft_core::CellRef::new(0, 0)));
+            let a1 = s.cell(celdas_core::CellRef::new(0, 0)).and_then(|c| c.formula.clone()).expect("formula kept");
+            let b1 = s.cell(celdas_core::CellRef::new(0, 1)).and_then(|c| c.formula.clone()).expect("formula kept");
+            let kept = (a1.expr.is_none(), b1.expr.is_none(), a1.text.len(), s.value(celdas_core::CellRef::new(0, 0)));
             assert_eq!(wb.names.first().map(|n| n.formula.len()), Some(1_000_001));
             let out = write_xlsx(&wb).expect("writable");
             drop(wb);
@@ -277,7 +277,7 @@ fn hostile_formula_text_does_not_overflow_the_stack() {
     let ((a_unparsed, b_unparsed, a_len, a_value), written) = handle.join().expect("no stack overflow");
     assert!(a_unparsed && b_unparsed && written);
     assert_eq!(a_len, 1_000_001);
-    assert_eq!(a_value, gridcraft_core::Value::Number(3.0));
+    assert_eq!(a_value, celdas_core::Value::Number(3.0));
 }
 
 /// #2173: a hyperlink is copied into every cell it covers, so oversized targets are dropped,
@@ -327,7 +327,7 @@ fn conditional_format_cap_holds_across_blocks() {
     let (wb, rep) = read_xlsx(&minimal(&body, &[], "", "")).unwrap();
     let cfs = &wb.sheets[0].cond_formats;
     assert_eq!(cfs.len(), 1, "4,000,000 cells fill the cap; the one-cell block would exceed it");
-    assert_eq!(cfs[0].ranges, vec![gridcraft_core::RangeRef::parse("A1:D1000000").unwrap()]);
+    assert_eq!(cfs[0].ranges, vec![celdas_core::RangeRef::parse("A1:D1000000").unwrap()]);
     assert!(rep.warnings.iter().any(|w| w.contains("kept range cells")), "{:?}", rep.warnings);
 }
 
@@ -374,7 +374,7 @@ fn style_copies_are_bounded() {
 /// the dependents' cached values instead of copying it into each of them.
 #[test]
 fn shared_formula_copies_are_bounded() {
-    use gridcraft_core::{CellRef, Value};
+    use celdas_core::{CellRef, Value};
     let master = format!("SUM({}1)", "1,".repeat(500_000));
     let mut rows = format!(r#"<row r="1"><c r="A1"><f t="shared" si="0" ref="A1:A20000">{master}</f><v>1</v></c></row>"#);
     for r in 2..=20_000 {
@@ -392,7 +392,7 @@ fn shared_formula_copies_are_bounded() {
 
 #[test]
 fn a_long_shared_master_expands_into_only_part_of_many_cells() {
-    use gridcraft_core::{CellRef, Value};
+    use celdas_core::{CellRef, Value};
     // About 4,000 characters and 2,000 operands: parseable, but far more than an ordinary
     // formula cell, so each copy pays for its excess and ten thousand of them exceed the budget.
     let master = vec![format!("SUM({}1)", "1,".repeat(199)); 10].join("+");
@@ -418,7 +418,7 @@ fn many_ordinary_shared_formulas_all_expand() {
     }
     let (wb, rep) = read_xlsx(&minimal(&format!("<sheetData>{rows}</sheetData>"), &[], "", "")).unwrap();
     let cells = &wb.sheets[0].cells;
-    assert!(cells.get(gridcraft_core::CellRef::new(59_999, 1)).unwrap().formula.is_some());
+    assert!(cells.get(celdas_core::CellRef::new(59_999, 1)).unwrap().formula.is_some());
     assert!(!rep.warnings.iter().any(|w| w.contains("shared formula")), "{:?}", rep.warnings);
 }
 
@@ -426,7 +426,7 @@ fn many_ordinary_shared_formulas_all_expand() {
 fn an_unparseable_multibyte_shared_master_gets_no_length_warning() {
     // 5,001 characters but over 10,000 bytes, and unparseable for another reason (an open string).
     let master = format!("\"{}", "\u{e9}".repeat(5_000));
-    assert!(master.len() > gridcraft_formula::MAX_FORMULA_LEN && master.chars().count() < gridcraft_formula::MAX_FORMULA_LEN);
+    assert!(master.len() > celdas_formula::MAX_FORMULA_LEN && master.chars().count() < celdas_formula::MAX_FORMULA_LEN);
     let rows = format!(
         r#"<row r="1"><c r="A1"><f t="shared" si="0" ref="A1:A2">{master}</f><v>1</v></c></row><row r="2"><c r="A2"><f t="shared" si="0"/><v>7</v></c></row>"#
     );

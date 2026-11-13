@@ -1,9 +1,9 @@
 //! Legacy `.xls` (BIFF8) cell formatting: Font, XF, Palette and Style records. Every workbook is
 //! assembled here from the [MS-XLS] structures; no Excel-produced file is used.
 
-use gridcraft_core::{CellRef, Value};
-use gridcraft_model::style::Protection;
-use gridcraft_model::{BorderLine, BorderStyle, Color, Fill, HAlign, PatternType, Style, StyleId, Underline, VAlign, VertAlign, Workbook};
+use celdas_core::{CellRef, Value};
+use celdas_model::style::Protection;
+use celdas_model::{BorderLine, BorderStyle, Color, Fill, HAlign, PatternType, Style, StyleId, Underline, VAlign, VertAlign, Workbook};
 
 use super::xls_tests::compound;
 use crate::tables::INDEXED;
@@ -180,7 +180,7 @@ fn formatted() -> Vec<u8> {
     // XF 5: font ifnt 6.
     f.push(xf(6, 0, CELL, plain()));
     // Styles: built-in Normal, a user style on XF 1 and a duplicate name (ignored), a built-in
-    // style (Comma) left to GridCraft's own definition.
+    // style (Comma) left to Celdas's own definition.
     f.push(rec(0x0293, &[&u16s(&[0x8000])[..], &[0u8, 0xFF][..]].concat()));
     f.push(rec(0x0293, &[&u16s(&[1, 5])[..], &[0u8][..], &b"Fancy"[..]].concat()));
     f.push(rec(0x0293, &[&u16s(&[2, 5])[..], &[0u8][..], &b"FANCY"[..]].concat()));
@@ -264,7 +264,7 @@ fn reads_cell_style_and_xlsx_roundtrip(wb: &Workbook) {
     assert_eq!((s.font.name.as_str(), s.font.size, s.font.color), ("Times New Roman", 11.0, Color::Rgb(0xABCDEF)));
     assert_eq!((s.font.underline, s.font.vert), (Underline::SingleAccounting, VertAlign::Subscript));
 
-    // User-defined styles are kept (first of a name wins); built-in ones are GridCraft's own.
+    // User-defined styles are kept (first of a name wins); built-in ones are Celdas's own.
     assert_eq!(wb.cell_styles.len(), 1, "{:?}", wb.cell_styles.iter().map(|(n, _)| n).collect::<Vec<_>>());
     assert_eq!(wb.cell_styles[0].0, "Fancy");
     assert_eq!(&wb.cell_styles[0].1, style_at(wb, "A1"));

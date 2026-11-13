@@ -1,10 +1,10 @@
 //! The Format Chart Area pane's Chart Type section changes the chart's type and marks the current one.
 
+use celdas_engine::Session;
+use celdas_engine::model::ChartKind;
+use celdas_ui_egui::SheetApp;
 use egui::accesskit::{Role, Toggled};
 use egui_kittest::kittest::{NodeT, Queryable};
-use gridcraft_engine::Session;
-use gridcraft_engine::model::ChartKind;
-use gridcraft_ui_egui::SheetApp;
 use serde_json::json;
 
 type Harness = egui_kittest::Harness<'static, SheetApp>;

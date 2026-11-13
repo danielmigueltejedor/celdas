@@ -2,8 +2,8 @@
 
 use std::sync::Arc;
 
-use gridcraft_core::{CellRef, RangeRef, Value};
-use gridcraft_model::{Cell, DefinedName, Formula, Sheet, Table, TableColumn, TotalsFn, Workbook};
+use celdas_core::{CellRef, RangeRef, Value};
+use celdas_model::{Cell, DefinedName, Formula, Sheet, Table, TableColumn, TotalsFn, Workbook};
 
 use crate::package::Package;
 use crate::xml::El;
@@ -473,7 +473,7 @@ fn export_text(wb: &Workbook, at: CellRef, text: &str, names: &mut crate::array_
     match export(wb, 0, at, &Formula::new(text), crate::FunctionInfo::default(), names) {
         Export::Unchanged => "unchanged".into(),
         Export::Dynamic => "dynamic".into(),
-        Export::Legacy(e) => format!("legacy {}", gridcraft_formula::print(&e)),
+        Export::Legacy(e) => format!("legacy {}", celdas_formula::print(&e)),
     }
 }
 
@@ -496,7 +496,7 @@ fn defined_names_are_analysed_once_for_many_formulas() {
             assert_eq!(with_shared, fresh, "{text}");
         }
     }
-    assert!(gridcraft_formula::parse(&wb.names[0].formula).is_ok(), "the large name must parse");
+    assert!(celdas_formula::parse(&wb.names[0].formula).is_ok(), "the large name must parse");
     // 3 names, each analysed once for all 3200 formulas (a fresh cache analyses a name per formula).
     assert_eq!(shared.analyses, 3);
 }
@@ -520,7 +520,7 @@ fn shared_name_analysis_keeps_each_formulas_limits_and_position() {
     ] {
         wb.names.push(DefinedName { name: name.into(), scope: None, formula: text, comment: String::new(), hidden: false });
     }
-    assert!(wb.names.iter().all(|n| gridcraft_formula::parse(&n.formula).is_ok()), "every name must parse");
+    assert!(wb.names.iter().all(|n| celdas_formula::parse(&n.formula).is_ok()), "every name must parse");
     let uses = |n: usize| (0..n).map(|i| format!("SQRT(Big_{i})")).collect::<Vec<_>>().join("+");
     let mut texts: Vec<String> = [1, 5, 10, 15, 17, 20].iter().map(|n| uses(*n)).collect();
     texts.extend(["SQRT(Big_3)", "Cyc1", "SUM(Cyc1)", "SUM(Deep)", "SQRT(Tbl)", "((((((((SQRT(Deep))))))))"].map(String::from));
@@ -592,7 +592,7 @@ fn shared_name_analysis_of_names_defined_by_names_matches_fresh_in_both_orders()
                     crate::array_formula::apply_legacy(&mut wb, vec![(0, vec![*c])], crate::FunctionInfo::default());
                 }
             }
-            all.iter().map(|c| gridcraft_formula::print(&wb.sheets[0].cells.get(*c).unwrap().formula.as_ref().unwrap().expr_arc().unwrap())).collect()
+            all.iter().map(|c| celdas_formula::print(&wb.sheets[0].cells.get(*c).unwrap().formula.as_ref().unwrap().expr_arc().unwrap())).collect()
         };
         let cells: Vec<(CellRef, &String)> = texts.iter().enumerate().map(|(i, t)| (CellRef::new(i as u32 + 5, 5), t)).collect();
         assert_eq!(read(&cells, true), read(&cells, false));

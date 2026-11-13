@@ -76,7 +76,7 @@ Cell text now uses shared Unicode bidi layout while retaining logical source ind
   arrow keys, editor, popups and floating objects follow; text follows its cell reading direction inside its box,
   and the sheet tabs, horizontal scrollbar and printing/PDF are not mirrored yet.
   Text boxes and shapes keep their paragraphs' right-to-left direction (`a:pPr rtl`) through XLSX
-  save, though GridCraft still draws that text left to right. IME input goes
+  save, though Celdas still draws that text left to right. IME input goes
   through egui/winit and is unverified for Chinese, Japanese and Korean.
 - **Names in any script.** Defined names (Define Name, Create from Selection) are limited to
   255 characters, counted as characters rather than UTF-8 bytes, so a 255-letter Arabic name is
@@ -145,7 +145,7 @@ language (none so far) and of localized function names.
 | 2026-10-20 | minor | Japanese: furigana (`rPh` phonetic runs and `<phoneticPr>` in `xl/sharedStrings.xml`) is no longer deleted by an open + save; it is kept on the workbook and written back (a `<phoneticPr>` without runs is kept too, while duplicate texts with different readings keep only the first, reported on open). Display of the readings is still missing (`crates/xlsx/src/tests/phonetic_tests.rs`) |
 | 2026-10-20 | minor | Japanese catalog (`i18n/ja.rs`) covers every key the Brazilian Portuguese catalog translates: the 398-label shared core moved verbatim plus 545 dialog, message, Backstage and menu strings — 943 keys, ~12% → ~43%. A test parses `pt.rs`'s source, so the two catalogs can't drift apart again. Portuguese re-measured at 943 (was 923) |
 | 2026-10-20 | minor | Dutch (nl) interface catalog (`i18n/nl.rs`, 518 labels, ~24%): the shared key set every language must cover (ribbon, context menus, File view, dialog titles, Options page), matching the German, French and Czech catalogs; `nl-NL`, `nl-BE` locale tags resolve to Dutch |
-| 2026-10-20 | minor | XLSX: a theme's per-script typefaces (`<a:font script="Arab">`, Hebr, Jpan…) are kept through open + save, so Arabic Excel's theme fonts for shapes, charts and theme-font cells survive a GridCraft save |
+| 2026-10-20 | minor | XLSX: a theme's per-script typefaces (`<a:font script="Arab">`, Hebr, Jpan…) are kept through open + save, so Arabic Excel's theme fonts for shapes, charts and theme-font cells survive a Celdas save |
 | 2026-10-20 | trivial | XLSX: a workbook theme's major/minor East Asian (`<a:ea>`) and complex-script (`<a:cs>`) typefaces are kept through open + save, so a Japanese workbook keeps its theme's East Asian font; rendering does not resolve them yet (follow-up) |
 | 2026-10-19 | minor | Text order (Sort, SORT/SORTBY, `<`/`>`, approximate MATCH/XLOOKUP, `"<x"` criteria) compares letters first: Arabic vowel and Quranic marks, tatweel and invisible format characters (bidi marks, embeddings and isolates, ZWJ/ZWNJ, BOM, soft hyphen) no longer decide where text sorts, and Arabic-Indic digits sort as digits. Text with the same letters then sorts letter by letter, unmarked before marked, marks in Excel's order (sukun before shadda) and digits ASCII, Arabic-Indic, Extended Arabic-Indic; checked against Excel 16.0 build 20527 (en-US). Equality is unchanged |
 | 2026-10-19 | minor | XLSX fonts retain charset and family metadata so systems can select a substitute font with the intended script when the named font is unavailable |

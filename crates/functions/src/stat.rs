@@ -1,7 +1,7 @@
 //! Statistical functions: aggregates, order statistics, regression and probability
 //! distributions (with their inverses).
 
-use gridcraft_core::{CellError, Value};
+use celdas_core::{CellError, Value};
 
 use crate::special::{
     erf, gamma, invert, ln_beta, ln_gamma, norm_cdf, norm_inv, norm_pdf, reg_gamma_p, reg_gamma_q, reg_gamma_q_front, reg_inc_beta,

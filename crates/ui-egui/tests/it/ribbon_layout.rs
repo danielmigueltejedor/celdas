@@ -1,12 +1,12 @@
 //! Ribbon layout: the big split button, the scroll arrows of an overflowing tab, and every tab
 //! fitting the card's height.
 
+use celdas_engine::Session;
+use celdas_ui_egui::icons::Icon;
+use celdas_ui_egui::ribbon::{RibbonOverflow, TABS};
+use celdas_ui_egui::{SheetApp, widgets};
 use egui::vec2;
 use egui_kittest::kittest::Queryable as _;
-use gridcraft_engine::Session;
-use gridcraft_ui_egui::icons::Icon;
-use gridcraft_ui_egui::ribbon::{RibbonOverflow, TABS};
-use gridcraft_ui_egui::{SheetApp, widgets};
 
 type Harness = egui_kittest::Harness<'static, SheetApp>;
 

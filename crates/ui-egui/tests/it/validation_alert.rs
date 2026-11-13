@@ -1,12 +1,12 @@
 //! A data validation alert over the cell editor answers Enter and Esc itself, and closing it
 //! puts the keyboard back in the entry so it can be fixed straight away.
 
+use celdas_engine::Session;
+use celdas_engine::core::{CellRef, Value};
+use celdas_ui_egui::SheetApp;
+use celdas_ui_egui::i18n::Language;
 use egui::{Event, Key, Modifiers};
 use egui_kittest::kittest::Queryable as _;
-use gridcraft_engine::Session;
-use gridcraft_engine::core::{CellRef, Value};
-use gridcraft_ui_egui::SheetApp;
-use gridcraft_ui_egui::i18n::Language;
 use serde_json::json;
 
 type Harness = egui_kittest::Harness<'static, SheetApp>;

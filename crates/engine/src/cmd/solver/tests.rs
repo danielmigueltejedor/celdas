@@ -1,4 +1,4 @@
-use gridcraft_core::{CellRef, Value};
+use celdas_core::{CellRef, Value};
 use serde_json::json;
 
 use crate::Session;
@@ -221,7 +221,7 @@ fn answer_and_limits_reports_describe_the_wyndor_glass_solution() {
     assert_eq!(d.wb.active().unwrap().name, "Sheet1", "the model's sheet stays active");
     assert_eq!(saved(&s), "solver_opt", "the saved model follows its sheet");
     let a = "Answer Report 1";
-    assert_eq!(at(&s, a, "A1"), Value::text("GridCraft Answer Report"));
+    assert_eq!(at(&s, a, "A1"), Value::text("Celdas Answer Report"));
     // Objective: $D$6 "Profit Used", from 0 to 36.
     let r = row_of(&s, a, "$D$6");
     assert_eq!(at(&s, a, &format!("C{}", r + 1)), Value::text("Profit Used"));
@@ -435,7 +435,7 @@ fn sensitivity_report_gives_the_wyndor_glass_shadow_prices_and_ranges() {
         .unwrap();
     assert_eq!(solved["reports"], json!(["Sensitivity Report 1"]), "{solved}");
     let rep = "Sensitivity Report 1";
-    assert_eq!(at(&s, rep, "A1"), Value::text("GridCraft Sensitivity Report"));
+    assert_eq!(at(&s, rep, "A1"), Value::text("Celdas Sensitivity Report"));
     let r = row_of(&s, rep, "Reduced Cost");
     assert_eq!(at(&s, rep, &format!("F{}", r + 1)), Value::text("Objective Coefficient"));
     let cols = ["D", "E", "F", "G", "H"];
@@ -1319,7 +1319,7 @@ fn reset_all_masks_a_workbook_level_model_and_keeps_other_sheets_models() {
             ("solver_eng", "2"),
             ("solver_ssz", "500"),
         ] {
-            wb.names.push(gridcraft_model::DefinedName {
+            wb.names.push(celdas_model::DefinedName {
                 name: name.into(),
                 scope: None,
                 formula: formula.into(),
@@ -1413,7 +1413,7 @@ fn save_model_asks_before_it_replaces_data_and_is_one_undo_step() {
 fn saving_and_resetting_a_model_keep_the_users_own_solver_names() {
     let mut s = s();
     set(&mut s, &[("A1", "0"), ("B1", "=ABS(A1-3)"), ("C1", "100")]);
-    let name = |name: &str, scope: Option<usize>, formula: &str, hidden: bool| gridcraft_model::DefinedName {
+    let name = |name: &str, scope: Option<usize>, formula: &str, hidden: bool| celdas_model::DefinedName {
         name: name.into(),
         scope,
         formula: formula.into(),
@@ -1592,7 +1592,7 @@ fn load_model_reads_a_bounded_column_and_refuses_malformed_cells() {
         let d = s.doc_mut().unwrap();
         let sh = std::sync::Arc::make_mut(&mut std::sync::Arc::make_mut(&mut d.wb).sheets[0]);
         for r in rows {
-            sh.set_cell(CellRef::new(r, col), gridcraft_model::Cell::formula(gridcraft_model::Formula::new(&f(r))));
+            sh.set_cell(CellRef::new(r, col), celdas_model::Cell::formula(celdas_model::Formula::new(&f(r))));
         }
     };
     // A column of formulas far longer than any model: read from its first cell, the read stops
@@ -1630,7 +1630,7 @@ fn load_model_keeps_the_evolutionary_convergence_and_generations() {
     let m = s.execute("data.solver", json!({})).unwrap()["model"].clone();
     assert_eq!((m["convergence"].as_f64(), m["generationsWithoutImprovement"].as_f64()), (Some(0.001), Some(20.0)), "{m}");
     assert!(!s.doc().unwrap().wb.names.iter().any(|n| n.name == "solver_mni"));
-    // Reset All removes the GridCraft name with the rest.
+    // Reset All removes the Celdas name with the rest.
     s.execute("data.solverReset", json!({})).unwrap();
     assert!(s.doc().unwrap().wb.names.iter().all(|n| n.scope != Some(0)));
 }
@@ -1664,7 +1664,7 @@ fn solver_options_are_saved_with_the_model() {
 }
 
 #[test]
-fn excel_iteration_and_time_limits_are_not_read_as_gridcraft_options() {
+fn excel_iteration_and_time_limits_are_not_read_as_celdas_options() {
     let mut s = s();
     set(&mut s, &[("A1", "0"), ("B1", "=ABS(A1-3)")]);
     let model = json!({"objective": "B1", "goal": "min", "variables": "A1", "constraints": ["A1 <= 4"], "method": "evolutionary"});
@@ -1673,17 +1673,17 @@ fn excel_iteration_and_time_limits_are_not_read_as_gridcraft_options() {
         let d = s.doc().unwrap();
         d.wb.names.iter().filter(|n| n.scope == Some(0)).map(|n| n.name.clone()).collect()
     };
-    // GridCraft's evaluation limit and generations go under its own names, not Excel's.
+    // Celdas's evaluation limit and generations go under its own names, not Excel's.
     let saved = names(&s);
     assert!(saved.iter().all(|n| n != "solver_itr" && n != "solver_mni"), "{saved:?}");
-    assert!(saved.iter().any(|n| n == "gridcraft_solver_evals") && saved.iter().any(|n| n == "gridcraft_solver_stall"), "{saved:?}");
+    assert!(saved.iter().any(|n| n == "celdas_solver_evals") && saved.iter().any(|n| n == "celdas_solver_stall"), "{saved:?}");
     // Excel's own limits, as a workbook from Excel holds them: 100 iterations, 30 seconds.
     {
         let d = s.doc_mut().unwrap();
         let wb = std::sync::Arc::make_mut(&mut d.wb);
-        wb.names.retain(|n| !n.name.starts_with("gridcraft_"));
+        wb.names.retain(|n| !n.name.starts_with("celdas_"));
         for (name, formula) in [("solver_itr", "100"), ("solver_mni", "30")] {
-            wb.names.push(gridcraft_model::DefinedName {
+            wb.names.push(celdas_model::DefinedName {
                 name: name.into(),
                 scope: Some(0),
                 formula: formula.into(),
@@ -1698,7 +1698,7 @@ fn excel_iteration_and_time_limits_are_not_read_as_gridcraft_options() {
     let r = s.execute("data.solver", json!({"saved": true})).unwrap();
     assert!(r["evaluations"].as_u64().unwrap() > 100, "{r}");
     assert!((n(&s, "A1") - 3.0).abs() < 1e-3, "{r}");
-    // Saving again replaces GridCraft's names; Reset All removes them with the rest. Simplex
+    // Saving again replaces Celdas's names; Reset All removes them with the rest. Simplex
     // LP refuses the nonlinear ABS model, but the model is saved before the solve.
     let r = s.execute(
         "data.solver",
@@ -1707,11 +1707,7 @@ fn excel_iteration_and_time_limits_are_not_read_as_gridcraft_options() {
     let m = super::saved_model(&s.doc().unwrap().wb, 0).unwrap();
     assert_eq!((m["method"].as_str(), m["maxEvaluations"].as_f64()), (Some("simplex"), Some(700.0)), "{m} {r:?}");
     let saved = names(&s);
-    assert_eq!(
-        saved.iter().filter(|n| n.starts_with("gridcraft_")).collect::<Vec<_>>(),
-        ["gridcraft_solver_evals", "gridcraft_solver_stall"],
-        "{saved:?}"
-    );
+    assert_eq!(saved.iter().filter(|n| n.starts_with("celdas_")).collect::<Vec<_>>(), ["celdas_solver_evals", "celdas_solver_stall"], "{saved:?}");
     s.execute("data.solver", model).unwrap();
     s.execute("data.solverReset", json!({})).unwrap();
     assert!(names(&s).is_empty(), "{:?}", names(&s));
@@ -1862,7 +1858,7 @@ fn a_relation_inside_a_quoted_sheet_name_does_not_split_a_constraint() {
     // relation. One name holds a doubled quote as well, and two the text that marks an integer
     // or a binary constraint in a model written on cells.
     for name in ["A<=B", "A>=B", "A=B", "Q1=<Q2", "x≤y", "O'Brien<=1", "n=INT(1", "n=0)+(1"] {
-        let q = gridcraft_core::quote_sheet(name);
+        let q = celdas_core::quote_sheet(name);
         let mut s = s();
         s.execute("home.insertSheet", json!({"name": name, "before": 1})).unwrap();
         s.execute("sheet.activate", json!({"sheet": 1})).unwrap();
@@ -1919,7 +1915,7 @@ fn save_model_counts_areas_outside_quoted_sheet_names() {
     // Wyndor Glass on a sheet whose name holds a comma (and, for the second, a doubled quote),
     // saved on cells with references that carry the name.
     for name in ["Sales, West", "O'Brien, Jr"] {
-        let q = gridcraft_core::quote_sheet(name);
+        let q = celdas_core::quote_sheet(name);
         let mut s = s();
         s.execute("home.insertSheet", json!({"name": name, "before": 1})).unwrap();
         s.execute("sheet.activate", json!({"sheet": 1})).unwrap();

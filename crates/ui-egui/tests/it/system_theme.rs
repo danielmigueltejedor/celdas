@@ -1,9 +1,9 @@
 //! Saved appearance preferences and live OS changes through the whole UI.
 
+use celdas_engine::Session;
+use celdas_ui_egui::{SheetApp, UiState, control, theme::Tokens};
 use egui::{Theme, ThemePreference};
 use egui_kittest::kittest::Queryable as _;
-use gridcraft_engine::Session;
-use gridcraft_ui_egui::{SheetApp, UiState, control, theme::Tokens};
 use serde_json::{Value, json};
 
 fn harness(ui: UiState) -> egui_kittest::Harness<'static, SheetApp> {
@@ -84,7 +84,7 @@ fn old_preferences_stay_manual_and_system_preference_survives_reload() {
 }
 
 #[test]
-fn system_tracks_live_os_changes_with_both_gridcraft_palettes_and_light_fallback() {
+fn system_tracks_live_os_changes_with_both_celdas_palettes_and_light_fallback() {
     let mut h = harness(UiState::default());
     set_mode(&mut h, "system");
     assert_eq!(h.ctx.options(|o| o.theme_preference), ThemePreference::System);

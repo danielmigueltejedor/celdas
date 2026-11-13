@@ -1,7 +1,7 @@
 //! Cell entry, selection, undo/redo, clipboard, clear, fill, find & replace.
 
-use gridcraft_core::{CellRef, MAX_ROWS, RangeRef, Value};
-use gridcraft_model::{Cell, Formula, StyleId};
+use celdas_core::{CellRef, MAX_ROWS, RangeRef, Value};
+use celdas_model::{Cell, Formula, StyleId};
 use serde_json::{Value as Json, json};
 
 use super::{
@@ -238,7 +238,7 @@ fn redo(s: &mut Session, p: &Json) -> Result<Json> {
 // ---------------------------------------------------------------- clear
 
 /// The rows of `range` an applied filter hides (rows hidden by hand are not among them).
-fn filtered_rows(sh: &gridcraft_model::Sheet, range: RangeRef) -> std::collections::BTreeSet<u32> {
+fn filtered_rows(sh: &celdas_model::Sheet, range: RangeRef) -> std::collections::BTreeSet<u32> {
     let spans = sh.filter_row_spans();
     if spans.is_empty() {
         return Default::default();
@@ -311,7 +311,7 @@ fn clear(s: &mut Session, p: &Json, what: &str) -> Result<Json> {
                     } else {
                         cell.value = Value::Empty;
                         if checkbox {
-                            cell.style = cx.wb.styles.derive(cell.style, |st| st.num_fmt = gridcraft_model::NumFmt::new("General"));
+                            cell.style = cx.wb.styles.derive(cell.style, |st| st.num_fmt = celdas_model::NumFmt::new("General"));
                         }
                     }
                 }
@@ -366,7 +366,7 @@ fn clear(s: &mut Session, p: &Json, what: &str) -> Result<Json> {
                     let blocked: Vec<_> = sh
                         .cells
                         .iter_range(reach)
-                        .filter(|(_, cell)| cell.formula.is_some() && cell.value == Value::Error(gridcraft_core::CellError::Spill))
+                        .filter(|(_, cell)| cell.formula.is_some() && cell.value == Value::Error(celdas_core::CellError::Spill))
                         .map(|(c, _)| (sheet, c))
                         .collect();
                     cx.changed.extend(blocked);

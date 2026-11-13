@@ -2,8 +2,8 @@
 
 use std::sync::Arc;
 
-use gridcraft_core::{RangeRef, Value};
-use gridcraft_formula::Expr;
+use celdas_core::{RangeRef, Value};
+use celdas_formula::Expr;
 use serde::{Deserialize, Serialize};
 
 use crate::python::PyCode;
@@ -22,7 +22,7 @@ pub struct Formula {
     /// Read from a file that marks this formula as a dynamic-array formula (cell metadata `cm`).
     /// The writer keeps the mark, so a formula Excel evaluates as an array is never saved as a
     /// legacy formula (which Excel evaluates with implicit intersection). Formulas entered or
-    /// rewritten in GridCraft start without it, and the writer decides from their shape.
+    /// rewritten in Celdas start without it, and the writer decides from their shape.
     #[serde(default, skip_serializing_if = "std::ops::Not::not")]
     pub dynamic: bool,
 }
@@ -32,21 +32,21 @@ impl Formula {
     /// `#NAME?`.
     pub fn new(text: &str) -> Formula {
         let body = text.strip_prefix('=').unwrap_or(text);
-        match gridcraft_formula::parse(body) {
-            Ok(e) => Formula { text: gridcraft_formula::print(&e), expr: Some(Arc::new(e)), array: None, dynamic: false },
+        match celdas_formula::parse(body) {
+            Ok(e) => Formula { text: celdas_formula::print(&e), expr: Some(Arc::new(e)), array: None, dynamic: false },
             Err(_) => Formula { text: body.to_string(), expr: None, array: None, dynamic: false },
         }
     }
     pub fn from_expr(e: Expr) -> Formula {
-        Formula { text: gridcraft_formula::print(&e), expr: Some(Arc::new(e)), array: None, dynamic: false }
+        Formula { text: celdas_formula::print(&e), expr: Some(Arc::new(e)), array: None, dynamic: false }
     }
     /// The parsed expression, re-parsing when no tree is cached.
     pub fn expr(&self) -> Option<Expr> {
-        self.expr.as_deref().cloned().or_else(|| gridcraft_formula::parse(&self.text).ok())
+        self.expr.as_deref().cloned().or_else(|| celdas_formula::parse(&self.text).ok())
     }
     /// The parsed expression without copying it (re-parses when no tree is cached).
     pub fn expr_arc(&self) -> Option<Arc<Expr>> {
-        self.expr.clone().or_else(|| gridcraft_formula::parse(&self.text).ok().map(Arc::new))
+        self.expr.clone().or_else(|| celdas_formula::parse(&self.text).ok().map(Arc::new))
     }
     /// Runs `f` on the parsed expression, borrowing the cached tree or, when none is cached,
     /// a freshly parsed one that is dropped afterwards. Unlike [`expr`](Self::expr) it never copies
@@ -55,7 +55,7 @@ impl Formula {
     pub fn with_expr<R>(&self, f: impl FnOnce(&Expr) -> R) -> Option<R> {
         match &self.expr {
             Some(e) => Some(f(e)),
-            None => gridcraft_formula::parse(&self.text).ok().map(|e| f(&e)),
+            None => celdas_formula::parse(&self.text).ok().map(|e| f(&e)),
         }
     }
 }
@@ -74,7 +74,7 @@ struct SavedFormula {
 
 impl From<SavedFormula> for Formula {
     fn from(f: SavedFormula) -> Formula {
-        let expr = gridcraft_formula::parse(&f.text).ok().map(Arc::new);
+        let expr = celdas_formula::parse(&f.text).ok().map(Arc::new);
         Formula { text: f.text, expr, array: f.array, dynamic: f.dynamic }
     }
 }
@@ -155,7 +155,7 @@ impl Cell {
 #[cfg(test)]
 mod tests {
     use super::*;
-    use gridcraft_core::CellRef;
+    use celdas_core::CellRef;
 
     #[test]
     fn formulas_read_from_json_keep_their_text_and_cache_the_tree() -> Result<(), serde_json::Error> {
@@ -172,7 +172,7 @@ mod tests {
         let back: Formula = serde_json::from_str(r#"{"text": "sum( a1 , 2 )", "array": null}"#)?;
         assert_eq!(back.text, "sum( a1 , 2 )");
         assert!(!back.dynamic);
-        assert_eq!(back.expr.as_deref(), gridcraft_formula::parse("sum( a1 , 2 )").ok().as_ref());
+        assert_eq!(back.expr.as_deref(), celdas_formula::parse("sum( a1 , 2 )").ok().as_ref());
         assert!(back.expr.is_some());
         // Text that doesn't parse caches nothing, as `Formula::new` does.
         let bad = Formula::new("=SUM(");
@@ -200,7 +200,7 @@ mod tests {
         for (c, cell) in before.cells.iter() {
             let (Some(f), Some(read)) = (&cell.formula, after.cell(c).and_then(|cell| cell.formula.as_ref())) else { continue };
             assert_eq!(read, f, "{c:?}: text, tree and flags as saved");
-            assert_eq!(read.expr.is_some(), gridcraft_formula::parse(&f.text).is_ok(), "{c:?}: every formula that parses has its tree");
+            assert_eq!(read.expr.is_some(), celdas_formula::parse(&f.text).is_ok(), "{c:?}: every formula that parses has its tree");
             formulas += 1;
         }
         assert_eq!(formulas, 4);

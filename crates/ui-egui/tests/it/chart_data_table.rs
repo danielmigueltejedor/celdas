@@ -1,7 +1,7 @@
+use celdas_engine::Session;
+use celdas_engine::model::{ObjKind, ObjRef};
 use egui::accesskit::Role;
 use egui_kittest::kittest::Queryable;
-use gridcraft_engine::Session;
-use gridcraft_engine::model::{ObjKind, ObjRef};
 use serde_json::json;
 
 #[test]
