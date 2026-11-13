@@ -1,6 +1,7 @@
 //! Design tokens and fonts.
 //!
-//! Colours are our own, tuned to read like a modern desktop spreadsheet. Fonts come from egui's
+//! Interface colours come from Nodalia's palette (`nodalia-theme`) with Celdas's accent; the
+//! sheet, the icon categories and code keep colours of their own. Fonts come from egui's
 //! bundled faces and the operating system at runtime: the UI uses the platform UI font, cells use
 //! the best available match for the workbook font (Calibri/Carlito/Aptos/Arial…), and egui's
 //! bundled Ubuntu/Hack/egui-icons and monochrome emoji faces are the last resort. A build with
@@ -54,6 +55,9 @@ pub struct Tokens {
     pub accent: Color32,
     pub accent_dark: Color32,
     pub accent_soft: Color32,
+    /// Text in the accent colour (the File tab, contextual tabs): the accent darkened (light) or
+    /// lightened (dark) until it reads as text on the window.
+    pub accent_text: Color32,
     pub hover: Color32,
     pub pressed: Color32,
     pub separator: Color32,
@@ -212,8 +216,49 @@ impl Tokens {
         Tokens::palette(true)
     }
 
-    /// One palette for both modes: each colour is written once, with its light and dark values.
+    /// Every interface colour from Nodalia's palette with Celdas's accent; what is drawn on the
+    /// sheet (which stays white), the category colours and code colours keep Celdas's own.
     fn palette(dark: bool) -> Tokens {
+        let mode = if dark { nodalia_theme::Mode::Dark } else { nodalia_theme::Mode::Light };
+        let p = palette(mode);
+        let base = Tokens::sheet_palette(dark);
+        let accent = ndl(p.accent_default);
+        Tokens {
+            window: ndl(p.surface_window),
+            ribbon: ndl(p.surface_panel),
+            ribbon_border: ndl(p.border_subtle),
+            text: ndl(p.text_primary),
+            text_dim: ndl(p.text_secondary),
+            text_disabled: ndl(p.text_disabled),
+            accent,
+            accent_dark: ndl(p.accent_pressed),
+            accent_soft: ndl(p.accent_subtle),
+            accent_text: ndl(p.accent_text),
+            hover: ndl(p.control_bg_hover),
+            pressed: ndl(p.control_bg_pressed),
+            separator: ndl(p.border_subtle),
+            desk: ndl(p.surface_sunken),
+            header_bg: ndl(p.surface_panel),
+            header_text: ndl(p.text_secondary),
+            header_line: ndl(p.border_subtle),
+            header_sel_bg: ndl(p.accent_subtle),
+            header_sel_text: ndl(p.accent_text),
+            header_all_bg: ndl(p.control_bg_hover),
+            input_bg: ndl(p.control_field_bg),
+            input_border: ndl(p.border_default),
+            tab_bar: ndl(p.surface_panel),
+            tab_active: ndl(p.accent_subtle),
+            status_bar: ndl(p.surface_window),
+            menu_bg: ndl(p.surface_overlay),
+            danger: ndl(p.status_danger_fg),
+            on_accent: ndl(p.text_on_accent),
+            ..base
+        }
+    }
+
+    /// The colours Nodalia's palette has no token for: the sheet and what is drawn on it, the
+    /// icon categories, code, and the chrome's starting values.
+    fn sheet_palette(dark: bool) -> Tokens {
         Tokens {
             dark,
             window: pick(dark, Color32::from_rgb(0xF3, 0xF3, 0xF3), Color32::from_rgb(0x29, 0x29, 0x29)),
@@ -225,6 +270,7 @@ impl Tokens {
             accent: pick(dark, Color32::from_rgb(0x10, 0x7C, 0x41), Color32::from_rgb(0x5C, 0xC5, 0x87)),
             accent_dark: pick(dark, Color32::from_rgb(0x0B, 0x5E, 0x31), Color32::from_rgb(0x3F, 0xA8, 0x6C)),
             accent_soft: pick(dark, Color32::from_rgb(0xDF, 0xF1, 0xE6), Color32::from_rgb(0x23, 0x45, 0x31)),
+            accent_text: pick(dark, Color32::from_rgb(0x0B, 0x5E, 0x31), Color32::from_rgb(0x5C, 0xC5, 0x87)),
             hover: pick(dark, Color32::from_rgb(0xEB, 0xEB, 0xEB), Color32::from_rgb(0x42, 0x42, 0x42)),
             pressed: pick(dark, Color32::from_rgb(0xDD, 0xDD, 0xDD), Color32::from_rgb(0x4D, 0x4D, 0x4D)),
             separator: pick(dark, Color32::from_rgb(0xE0, 0xE0, 0xE0), Color32::from_rgb(0x48, 0x48, 0x48)),
@@ -259,7 +305,7 @@ impl Tokens {
             on_accent: pick(dark, Color32::WHITE, rgb(0x0F2A1A)),
             cat: pick(
                 dark,
-                [rgb(0x2F6FCF), rgb(0x1E8A4C), rgb(0xC8601A), rgb(0xC8372D), rgb(0x8350C8), rgb(0x13808A), rgb(0x9C6C00), rgb(0x5A6B7D)],
+                [rgb(0x2F6FCF), rgb(0x1E8A4C), rgb(0xB5561A), rgb(0xC8372D), rgb(0x8350C8), rgb(0x13808A), rgb(0x9C6C00), rgb(0x5A6B7D)],
                 [rgb(0x6EA8F7), rgb(0x5CC587), rgb(0xF0965A), rgb(0xF07B6E), rgb(0xB394EE), rgb(0x4CC7CF), rgb(0xF2C14E), rgb(0xA9B6C4)],
             ),
             paper: pick(dark, Color32::WHITE, rgb(0x454545)),
@@ -312,6 +358,52 @@ impl Tokens {
     }
 }
 
+/// Celdas's accent in the Nodalia palette.
+pub const CELDAS: nodalia_theme::Accent = nodalia_theme::Accent::Celdas;
+/// An island's corner radius.
+pub const ISLAND_RADIUS: f32 = nodalia_theme::component::PANEL_RADIUS;
+/// The window-colour gap between two islands, and between an island and the window's edge.
+pub const ISLAND_GAP: f32 = nodalia_theme::component::WINDOW_GAP;
+/// A control's corner radius (buttons, fields, menu rows).
+pub const CONTROL_RADIUS: f32 = nodalia_theme::component::CONTROL_RADIUS;
+
+/// Nodalia's palette with Celdas's accent.
+pub fn palette(mode: nodalia_theme::Mode) -> nodalia_theme::Palette {
+    mode.palette_with(CELDAS)
+}
+
+/// The Nodalia palette for the theme the tokens were made for.
+pub fn palette_of(t: &Tokens) -> nodalia_theme::Palette {
+    palette(if t.dark { nodalia_theme::Mode::Dark } else { nodalia_theme::Mode::Light })
+}
+
+/// A Nodalia colour as an egui one.
+pub fn ndl(c: nodalia_theme::Rgba) -> Color32 {
+    Color32::from_rgba_unmultiplied(c.r, c.g, c.b, c.a)
+}
+
+/// An island: the panel colour, rounded, with `outer` window-colour margins around it.
+pub fn island(t: &Tokens, inner: egui::Margin, outer: egui::Margin) -> egui::Frame {
+    egui::Frame::NONE.fill(t.ribbon).inner_margin(inner).outer_margin(outer).corner_radius(egui::CornerRadius::same(ISLAND_RADIUS as u8))
+}
+
+/// Rounds the corners of an island whose contents paint edge to edge (the sheet): a
+/// window-coloured ring outside a rounded `rect`, clipped to it, covers the square corners. Paint
+/// it after the contents.
+/// `bottom` rounds the bottom corners too (nothing closes the island below it).
+pub fn round_island_corners(painter: &egui::Painter, t: &Tokens, rect: egui::Rect, bottom: bool) {
+    if rect.is_positive() {
+        let r = ISLAND_RADIUS as u8;
+        let b = if bottom { r } else { 0 };
+        painter.with_clip_rect(rect).rect_stroke(
+            rect,
+            egui::CornerRadius { nw: r, ne: r, sw: b, se: b },
+            Stroke::new(ISLAND_RADIUS, t.window),
+            egui::StrokeKind::Outside,
+        );
+    }
+}
+
 /// WCAG 2 relative luminance of an opaque colour.
 pub fn luminance(c: Color32) -> f32 {
     let lin = |v: u8| {
@@ -327,7 +419,7 @@ pub fn contrast(a: Color32, b: Color32) -> f32 {
     (la.max(lb) + 0.05) / (la.min(lb) + 0.05)
 }
 
-/// Installs light and dark token visuals in both theme slots, keeps the 2-3 px widget and 8-10 px window/menu corner radii from 0.36, and sets spacing, text styles and the active theme.
+/// Installs light and dark token visuals in both theme slots with Nodalia's corner radii, and sets spacing, text styles and the active theme.
 pub fn apply(ctx: &egui::Context, dark: bool) {
     // Install both palettes before System can switch between the style slots.
     for theme in [egui::Theme::Light, egui::Theme::Dark] {
@@ -347,13 +439,16 @@ pub fn apply(ctx: &egui::Context, dark: bool) {
         v.widgets.active.weak_bg_fill = t.pressed;
         v.widgets.inactive.bg_stroke = Stroke::new(1.0, t.input_border);
         // 0.37 raises the default widget corner radii; Celdas keeps its 0.36 shape (#8617).
-        v.widgets.noninteractive.corner_radius = egui::CornerRadius::same(2);
-        v.widgets.inactive.corner_radius = egui::CornerRadius::same(2);
-        v.widgets.hovered.corner_radius = egui::CornerRadius::same(3);
-        v.widgets.active.corner_radius = egui::CornerRadius::same(2);
-        v.widgets.open.corner_radius = egui::CornerRadius::same(2);
-        v.window_corner_radius = egui::CornerRadius::same(10);
-        v.menu_corner_radius = egui::CornerRadius::same(8);
+        // Nodalia's shapes: soft control corners, island-round windows and menus.
+        let control = egui::CornerRadius::same(CONTROL_RADIUS as u8 / 2 + 1);
+        v.widgets.noninteractive.corner_radius = control;
+        v.widgets.inactive.corner_radius = control;
+        v.widgets.hovered.corner_radius = control;
+        v.widgets.active.corner_radius = control;
+        v.widgets.open.corner_radius = control;
+        v.window_corner_radius = egui::CornerRadius::same(ISLAND_RADIUS as u8);
+        v.menu_corner_radius = egui::CornerRadius::same(CONTROL_RADIUS as u8);
+        v.window_stroke = Stroke::new(1.0, t.ribbon_border);
         v.popup_shadow = egui::epaint::Shadow { offset: [0, 4], blur: 16, spread: 0, color: t.shadow };
         ctx.set_visuals_of(theme, v);
     }
@@ -406,7 +501,7 @@ mod contrast_tests {
             add(&format!("danger on {name}"), t.danger, bg, TEXT);
         }
         add("text on pressed", t.text, t.pressed, TEXT);
-        add("accent text (File, contextual tabs) on window", t.accent, t.window, TEXT);
+        add("accent text (File, contextual tabs) on window", t.accent_text, t.window, TEXT);
         for (name, bg) in [("ribbon", t.ribbon), ("menu", t.menu_bg), ("hover", t.hover), ("pressed", t.pressed)] {
             for c in Cat::ALL {
                 add(&format!("{c:?} icon colour on {name}"), t.cat(c), bg, GLYPH);

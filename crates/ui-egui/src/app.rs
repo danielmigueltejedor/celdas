@@ -31,6 +31,8 @@ impl SheetApp {
         SheetApp {
             session,
             ui: UiState::default(),
+            linux_desktop: false,
+            ndl_window_controls: false,
             chrome: Chrome::default(),
             views: HashMap::new(),
             editor: None,
@@ -239,13 +241,26 @@ impl SheetApp {
             tabs::sheet_tabs(self, ui);
             pivot_pane::show(self, ui);
             panes::show(self, ui);
-            egui::CentralPanel::default().frame(egui::Frame::NONE.fill(t.grid_bg)).show(ui, |ui| {
-                let g0 = now_ms();
-                grid::show(self, ui);
-                self.perf.grid_ms = now_ms() - g0;
-            });
+            // The sheet is an island (Nodalia Design): its top corners are rounded here, its
+            // bottom ones by the sheet tabs below it.
+            let g = theme::ISLAND_GAP as i8;
+            let tabs_below = self.session.active().is_some_and(|d| d.wb.view.show_sheet_tabs || d.wb.view.show_horizontal_scroll);
+            egui::CentralPanel::default()
+                .frame(egui::Frame::NONE.fill(t.grid_bg).outer_margin(egui::Margin {
+                    left: g,
+                    right: g,
+                    top: 0,
+                    bottom: if tabs_below { 0 } else { g },
+                }))
+                .show(ui, |ui| {
+                    let g0 = now_ms();
+                    grid::show(self, ui);
+                    self.perf.grid_ms = now_ms() - g0;
+                    theme::round_island_corners(ui.painter(), &t, ui.max_rect(), !tabs_below);
+                });
         }
         dialogs::show(self, &ctx);
+        crate::window_controls::resize_zones(self, ui);
         macro_ui::forget_closed_editor(self);
         macro_ui::question_box(self, &ctx);
         widgets::message_box(self, &ctx);

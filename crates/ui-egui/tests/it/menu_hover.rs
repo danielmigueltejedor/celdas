@@ -38,10 +38,11 @@ fn right_click(h: &mut Harness, pos: Pos2) {
     }
 }
 
-/// Is a filled rectangle in the hovered-widget colour painted under `at`?
+/// Is a row-sized rectangle in the hovered-widget colour painted under `at`? (The window behind
+/// the islands shares Nodalia's hover colour in light mode, so only an item-sized fill counts.)
 fn hover_fill_under(h: &Harness, at: Pos2) -> bool {
     let fill = h.ctx.global_style().visuals.widgets.hovered.weak_bg_fill;
-    h.output().shapes.iter().any(|s| matches!(&s.shape, Shape::Rect(r) if r.fill == fill && r.rect.contains(at)))
+    h.output().shapes.iter().any(|s| matches!(&s.shape, Shape::Rect(r) if r.fill == fill && r.rect.contains(at) && r.rect.height() < 60.0))
 }
 
 fn check_item(h: &mut Harness, label: &str) {

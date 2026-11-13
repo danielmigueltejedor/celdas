@@ -15,6 +15,7 @@
 
   <p>
     <a href="#overview">Overview</a> ·
+    <a href="#download">Download</a> ·
     <a href="#build-and-run">Build</a> ·
     <a href="#project-status">Status</a> ·
     <a href="#the-nodalia-suite">Suite</a> ·
@@ -29,9 +30,33 @@
 **Celdas** is the spreadsheet application of [Nodalia](https://getnodalia.com): a native app written in Rust,
 with no account and no cloud. It runs on Linux, macOS and Windows.
 
+It opens and saves Excel workbooks (`.xlsx`), with formulas, tables, charts, pivot tables,
+conditional formatting and printing, and it is drawn in the Nodalia Design Language in light and
+dark.
+
 > [!IMPORTANT]
-> **Celdas is at an early stage.** There are no published builds yet, and the Nodalia interface is
-> not wired in.
+> **Celdas is at an early stage.** Expect rough edges, and keep a copy of workbooks that matter.
+
+<p align="center">
+  <img src="docs/images/celdas-sales.png" alt="Celdas showing a quarterly sales dashboard: a styled table with data bars and sparklines next to a column chart and a pie chart, under the Home tab of the ribbon" width="100%">
+</p>
+
+<table>
+<tr>
+<td width="50%" valign="top"><img src="docs/images/celdas-dark.png" alt="The sales dashboard in dark mode with the Insert tab open" width="100%"><p align="center"><sub><b>Dark mode</b> and the Insert tab: tables, charts, sparklines, pictures, shapes, links and comments.</sub></p></td>
+<td width="50%" valign="top"><img src="docs/images/celdas-formulas.png" alt="A gradebook table with averages and letter grades, with the Formulas tab open" width="100%"><p align="center"><sub><b>Formulas.</b> Hundreds of functions, dynamic arrays, LET and LAMBDA, structured table references.</sub></p></td>
+</tr>
+<tr>
+<td width="50%" valign="top"><img src="docs/images/celdas-preferences.png" alt="File, Options: display theme, window controls and language, editing, saving and calculation settings" width="100%"><p align="center"><sub><b>Preferences</b>, from the main menu: theme, window controls, language and calculation.</sub></p></td>
+<td width="50%" valign="top"><img src="docs/images/celdas-shortcuts-dark.png" alt="The Keyboard Shortcuts dialog over the sales dashboard in dark mode" width="100%"><p align="center"><sub><b>Keyboard shortcuts</b>, listed for every command.</sub></p></td>
+</tr>
+</table>
+
+## Download
+
+Packages for Linux, macOS and Windows are on the
+[releases page](https://github.com/getnodalia/celdas/releases/latest) and at
+[getnodalia.com/celdas](https://getnodalia.com/celdas). The app checks for updates itself.
 
 ## Build and run
 
@@ -47,11 +72,11 @@ cargo run --release -p celdas
 
 | Area | State |
 |---|---|
-| Package and binary names | Pending |
+| Package and binary names | Done: `celdas`, `dev.danielmiguelt.Celdas` |
 | App icon | Done: portrait of Blaise Pascal |
-| Nodalia interface | Not started |
-| Shared interface resources | Planned: the Nodalia apps will share interface components and styles |
-| Installable packages | None published |
+| Nodalia interface | Done: Nodalia theme and icons, rounded islands, main menu, Nodalia window controls on Linux |
+| Global menu | Done: the desktop's top bar on Nodalix (Linux), the menu bar on macOS |
+| Installable packages | Linux, macOS (DMG) and Windows, with the in-app updater |
 
 ## App icon
 

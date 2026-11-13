@@ -194,6 +194,15 @@ impl SheetApp {
                 }
                 Ok(json!({"mode": self.ui.theme_mode()}))
             }
+            "ui.windowControls" => {
+                let Some(choice) = p.get("value").and_then(Json::as_str).and_then(crate::window_controls::WindowControls::from_code) else {
+                    return Some(Err("value must be nodalia or system".into()));
+                };
+                self.ui.window_controls = choice;
+                // The window's decorations are chosen when it opens: the change shows at the next start.
+                let restart = self.linux_desktop && self.ndl_window_controls != (choice == crate::window_controls::WindowControls::Nodalia);
+                Ok(json!({"value": choice.code(), "restart": restart}))
+            }
             "view.animations" => {
                 self.ui.animations = p.get("on").and_then(Json::as_bool).unwrap_or(!self.ui.animations);
                 Ok(json!({"on": self.ui.animations}))

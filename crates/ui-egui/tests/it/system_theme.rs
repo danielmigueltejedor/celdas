@@ -43,8 +43,10 @@ fn set_mode(h: &mut egui_kittest::Harness<'static, SheetApp>, mode: &str) {
     h.run_steps(2);
 }
 
-fn select_ribbon_theme(h: &mut egui_kittest::Harness<'static, SheetApp>, label: &str) {
-    // The View tab's first combo box is the display theme (the interface language follows it).
+fn select_preferences_theme(h: &mut egui_kittest::Harness<'static, SheetApp>, label: &str) {
+    // Preferences (File › Options) holds the only theme choice; its first combo box is Display theme.
+    h.state_mut().run("ui.backstage", json!({"page": "options"})).unwrap();
+    h.run_steps(3);
     h.get_all_by_role(egui::accesskit::Role::ComboBox).next().expect("display theme combo").click();
     h.run_steps(2);
     h.get_by_role_and_label(egui::accesskit::Role::Button, label).click();
@@ -104,18 +106,16 @@ fn system_tracks_live_os_changes_with_both_celdas_palettes_and_light_fallback() 
 }
 
 #[test]
-fn ribbon_selects_system_and_fixed_modes_ignore_subsequent_os_changes() {
+fn preferences_select_system_and_fixed_modes_ignore_subsequent_os_changes() {
     let mut h = harness(UiState::default());
     system_theme(&mut h, Some(Theme::Dark));
     assert_appearance(&h, false);
-    h.state_mut().run("ui.ribbonTab", json!({"tab": "View"})).unwrap();
-    h.run_steps(2);
-    select_ribbon_theme(&mut h, "System");
+    select_preferences_theme(&mut h, "System");
     assert_eq!(preferences(&h)["systemTheme"], true);
     assert_eq!(h.ctx.theme(), Theme::Dark);
     assert_appearance(&h, true);
     for (label, dark, preference) in [("Dark", true, ThemePreference::Dark), ("Light", false, ThemePreference::Light)] {
-        select_ribbon_theme(&mut h, label);
+        select_preferences_theme(&mut h, label);
         assert_eq!(preferences(&h)["systemTheme"], false);
         assert_eq!(h.ctx.options(|o| o.theme_preference), preference);
         for os in [Some(Theme::Dark), Some(Theme::Light), None] {
@@ -164,26 +164,22 @@ fn invalid_mode_preserves_preferences_and_legacy_overrides_leave_system_mode() {
 }
 
 #[test]
-fn title_bar_switch_and_file_menu_choose_the_theme() {
-    // #194: one click in the title bar switches light/dark; File › Display theme offers all three.
+fn the_theme_is_chosen_only_in_preferences_reached_from_the_main_menu() {
+    // Nodalia Design: no light/dark switch in the title bar or the View tab; the main menu's
+    // Preferences opens File › Options, whose Display theme offers all three.
     let mut h = harness(UiState::default());
     system_theme(&mut h, Some(Theme::Light));
     assert_appearance(&h, false);
-    h.get_by_role_and_label(egui::accesskit::Role::CheckBox, "Dark Mode").click();
+    assert!(h.query_by_label("Dark Mode").is_none(), "no theme switch in the title bar");
+    h.state_mut().run("ui.ribbonTab", json!({"tab": "View"})).unwrap();
     h.run_steps(2);
-    assert_eq!(preferences(&h)["dark"], true);
-    assert_eq!(preferences(&h)["systemTheme"], false);
-    assert_appearance(&h, true);
-    h.get_by_role_and_label(egui::accesskit::Role::CheckBox, "Dark Mode").click();
-    h.run_steps(2);
-    assert_appearance(&h, false);
+    assert!(h.query_by_label("Display theme").is_none(), "no theme combo in the View tab");
 
-    // File opens Backstage; its Options page holds the Office Theme choice (#331).
-    h.get_by_label("File").click();
+    h.get_by_role_and_label(egui::accesskit::Role::Button, "Main menu").click();
     h.run_steps(3);
-    h.get_by_role_and_label(egui::accesskit::Role::Button, "Options").click();
+    h.get_by_role_and_label(egui::accesskit::Role::Button, "Preferences").click();
     h.run_steps(3);
-    // The first combo box on the page is Display theme.
+    assert!(h.state().backstage.is_some(), "Preferences opens File › Options");
     h.get_all_by_role(egui::accesskit::Role::ComboBox).next().expect("theme combo").click();
     h.run_steps(3);
     h.get_by_label("System").click();

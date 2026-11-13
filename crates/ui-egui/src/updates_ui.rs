@@ -16,7 +16,7 @@ pub(crate) struct Runtime {
 
 impl Default for Runtime {
     fn default() -> Self {
-        Self { updater: Updater::new(crate::UPDATE_APP).with_accent([0x1f, 0x9d, 0x55]), startup: false, manual: false }
+        Self { updater: Updater::new(crate::UPDATE_APP).with_accent([0x27, 0x86, 0x4b]), startup: false, manual: false }
     }
 }
 

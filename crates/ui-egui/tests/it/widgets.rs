@@ -18,13 +18,26 @@ fn render_big_button(label: &str, dropdown: bool) -> (Rect, Vec<Shape>) {
     (rect, output.shapes.into_iter().map(|shape| shape.shape).collect())
 }
 
+/// The paths painted beside the label, leaving out the icon above it (Nodalia's icons are paths).
+fn label_paths(shapes: &[Shape]) -> Vec<&egui::epaint::PathShape> {
+    let top = shapes
+        .iter()
+        .filter_map(|shape| if let Shape::Text(text) = shape { Some(text.pos.y + text.galley.rect.top()) } else { None })
+        .fold(f32::INFINITY, f32::min);
+    shapes
+        .iter()
+        .filter_map(|shape| if let Shape::Path(path) = shape { Some(path) } else { None })
+        .filter(|path| path.points.iter().all(|p| p.y >= top))
+        .collect()
+}
+
 #[test]
 fn big_dropdown_paints_chevron_beside_final_label_line() {
     for label in ["Paste", "Conditional\nFormatting", "Longer first line\nGo"] {
         let (rect, shapes) = render_big_button(label, true);
         let texts: Vec<_> = shapes.iter().filter_map(|shape| if let Shape::Text(text) = shape { Some(text) } else { None }).collect();
         assert_eq!(texts.iter().map(|text| text.galley.job.text.as_str()).collect::<Vec<_>>(), label.split('\n').collect::<Vec<_>>());
-        let paths: Vec<_> = shapes.iter().filter_map(|shape| if let Shape::Path(path) = shape { Some(path) } else { None }).collect();
+        let paths = label_paths(&shapes);
         assert_eq!(paths.len(), 1, "dropdown indicator must be painted independently of font glyphs");
         let chevron = paths[0];
         assert_eq!(chevron.points.len(), 3);
@@ -48,7 +61,7 @@ fn big_dropdown_paints_chevron_beside_final_label_line() {
 fn big_button_without_dropdown_keeps_centered_labels_and_width() {
     for label in ["Paste", "Conditional\nFormatting"] {
         let (rect, shapes) = render_big_button(label, false);
-        assert!(!shapes.iter().any(|shape| matches!(shape, Shape::Path(_))), "plain button must not paint an arrow");
+        assert!(label_paths(&shapes).is_empty(), "plain button must not paint an arrow");
         let mut widest: f32 = 0.0;
         for shape in shapes {
             if let Shape::Text(text) = shape {

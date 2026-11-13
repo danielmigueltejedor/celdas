@@ -28,8 +28,8 @@ mod view;
 
 use automate::automate;
 use contextual::{chart_design, table_design};
+use controls::keytip;
 pub(crate) use controls::{ComboResult, editable_combo};
-use controls::{act, keytip};
 use data::data;
 use formulas::formulas;
 pub use home::FONTS;
@@ -57,7 +57,12 @@ pub fn show(app: &mut SheetApp, ui: &mut Ui) {
     }
     egui::Panel::top("ribbon")
         .exact_size(h)
-        .frame(egui::Frame::NONE.fill(t.window).inner_margin(egui::Margin { left: 10, right: 10, top: 0, bottom: 6 }))
+        .frame(egui::Frame::NONE.fill(t.window).inner_margin(egui::Margin {
+            left: theme::ISLAND_GAP as i8,
+            right: theme::ISLAND_GAP as i8,
+            top: 0,
+            bottom: 6,
+        }))
         .show(ui, |ui| {
             // Tabs row.
             let tabs_rect = Rect::from_min_size(ui.cursor().min, vec2(ui.available_width(), 32.0));
@@ -82,7 +87,7 @@ pub fn show(app: &mut SheetApp, ui: &mut Ui) {
                             ui.painter().rect_filled(r.shrink2(vec2(2.0, 4.0)), 5.0, t.hover);
                         }
                         let color = if contextual {
-                            t.accent
+                            t.accent_text
                         } else if active {
                             t.text
                         } else {
@@ -122,8 +127,8 @@ pub fn show(app: &mut SheetApp, ui: &mut Ui) {
             let screen = ui.ctx().content_rect();
             let fits = (screen.right() - left - (left - screen.left()).max(0.0)).max(0.0);
             let card = Rect::from_min_size(ui.cursor().min, vec2(ui.available_width().min(fits), 88.0));
-            ui.painter().rect_filled(card, 10.0, t.ribbon);
-            ui.painter().rect_stroke(card, 10.0, Stroke::new(1.0, t.ribbon_border), StrokeKind::Inside);
+            // The ribbon is an island (Nodalia Design): the panel colour, rounded, no outline.
+            ui.painter().rect_filled(card, theme::ISLAND_RADIUS, t.ribbon);
             let inner = card.shrink2(vec2(10.0, 6.0));
             ui.scope_builder(egui::UiBuilder::new().max_rect(inner), |ui| {
                 // One scroll state per tab: a tab opened after scrolling another starts at its
@@ -250,7 +255,7 @@ fn scroll_arrows(ui: &mut Ui, t: &Tokens, tab: &str, scroll: egui::scroll_area::
 /// Excel's; the ribbon's tab and collapsed state are left as they were for when it closes.
 fn file_menu(app: &mut SheetApp, ui: &mut Ui) {
     let t = Tokens::get(ui.ctx());
-    let label = egui::RichText::new(app.ui.language.tr("File")).font(theme::ui_font(13.5)).color(t.accent);
+    let label = egui::RichText::new(app.ui.language.tr("File")).font(theme::ui_font(13.5)).color(t.accent_text);
     let file = ui.add(egui::Button::new(label).frame(false).min_size(vec2(46.0, 30.0)));
     if file.clicked() {
         app.open_backstage(crate::backstage::Page::Home);
@@ -259,18 +264,6 @@ fn file_menu(app: &mut SheetApp, ui: &mut Ui) {
         && let Some(sequence) = keytip_table::tab_sequence("File")
     {
         keytip(app, ui, sequence, pos2(file.rect.center().x, file.rect.bottom() - 1.0));
-    }
-}
-
-/// System / Light / Dark, as in the View tab's Display theme box (`view.theme`).
-fn theme_choices(app: &mut SheetApp, ui: &mut Ui) {
-    let lang = app.ui.language;
-    let mode = app.ui.theme_mode();
-    for (value, label) in [("system", "System"), ("light", "Light"), ("dark", "Dark")] {
-        if ui.radio(mode == value, lang.tr(label)).clicked() {
-            act(app, "view.theme", json!({"mode": value}));
-            ui.close();
-        }
     }
 }
 

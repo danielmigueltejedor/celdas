@@ -1,7 +1,7 @@
 //! Renders the whole Celdas window offscreen (wgpu, no window) to a PNG.
 //!
 //! `cargo run --release -p celdas-ui-egui --example snapshot -- [--sample sales] [--in file.xlsx]
-//!  [--size 1440x900] [--scale 2] [--cmd 'id={json}']... [--tab Insert] [--dark] [--language en|es|zh|ja|ko|ru|pt|de|cs|fr|tr]
+//!  [--size 1440x900] [--scale 2] [--cmd 'id={json}']... [--tab Insert] [--dark] [--window-controls] [--file-page options] [--language en|es|zh|ja|ko|ru|pt|de|cs|fr|tr]
 //!  [--pane name] [--object id] [--dialog 'name={json}'] [--refedit key=A1:B2] [--hf-edit header|footer] out.png`
 //!
 //! `--refedit key=range` collapses the open dialog to its reference box `key`, then selects
@@ -20,6 +20,8 @@ fn main() {
     let mut cmds: Vec<String> = vec![];
     let mut tab = None;
     let mut dark = false;
+    let mut window_controls = false;
+    let mut file_page: Option<String> = None;
     let mut pane: Option<String> = None;
     let mut chart: Option<u32> = None;
     let mut dialog: Option<String> = None;
@@ -59,6 +61,13 @@ fn main() {
                 tab = args.get(i).cloned();
             }
             "--dark" => dark = true,
+            // The Linux desktop app's own title bar with Nodalia's window controls.
+            "--window-controls" => window_controls = true,
+            // The File view on one of its pages (home, new, open, info, options…).
+            "--file-page" => {
+                i += 1;
+                file_page = args.get(i).cloned();
+            }
             "--pane" => {
                 i += 1;
                 pane = args.get(i).cloned();
@@ -115,6 +124,11 @@ fn main() {
             {
                 let mut app = SheetApp::new(session, Default::default());
                 app.ui.dark = dark;
+                app.linux_desktop = window_controls;
+                app.ndl_window_controls = window_controls;
+                if let Some(page) = file_page.as_deref().and_then(celdas_ui_egui::backstage::Page::parse) {
+                    app.open_backstage(page);
+                }
                 if let Some(code) = &language
                     && let Some(l) = celdas_ui_egui::i18n::Language::parse(code)
                 {

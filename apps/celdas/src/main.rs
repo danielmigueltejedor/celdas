@@ -14,7 +14,11 @@ mod apple_events;
 mod control_server;
 #[cfg(any(target_os = "windows", target_os = "macos", test))]
 mod graphics;
+#[cfg(any(target_os = "linux", target_os = "freebsd", target_os = "dragonfly", target_os = "netbsd", target_os = "openbsd"))]
+mod linux_menu;
 mod logging;
+#[cfg(any(target_os = "macos", target_os = "linux", target_os = "freebsd", target_os = "dragonfly", target_os = "netbsd", target_os = "openbsd"))]
+mod menu_tree;
 #[cfg(target_os = "macos")]
 mod native_menu;
 mod print;
@@ -27,8 +31,16 @@ use celdas_ui_egui::doc_windows::DocWindows;
 use celdas_ui_egui::{Services, SheetApp};
 use serde_json::json;
 
-/// The app, its native window per workbook window, and (macOS) the menu bar and Finder events.
-struct App(SheetApp, DocWindows, #[cfg(target_os = "macos")] Option<native_menu::NativeMenu>, #[cfg(target_os = "macos")] fmv_macos_events::Inbox);
+/// The app, its native window per workbook window, and the menu bar: macOS's with the Finder's
+/// events, or (Linux and the BSDs) the global menu in the desktop's top bar.
+struct App(
+    SheetApp,
+    DocWindows,
+    #[cfg(target_os = "macos")] Option<native_menu::NativeMenu>,
+    #[cfg(target_os = "macos")] fmv_macos_events::Inbox,
+    #[cfg(any(target_os = "linux", target_os = "freebsd", target_os = "dragonfly", target_os = "netbsd", target_os = "openbsd"))]
+    Option<linux_menu::GlobalMenu>,
+);
 
 impl eframe::App for App {
     fn logic(&mut self, ctx: &egui::Context, _frame: &mut eframe::Frame) {
@@ -41,6 +53,10 @@ impl eframe::App for App {
                 m.poll(&mut self.0, ctx, self.1.focused_viewport());
             }
             apple_events::poll(&self.3, &mut self.0, ctx);
+        }
+        #[cfg(any(target_os = "linux", target_os = "freebsd", target_os = "dragonfly", target_os = "netbsd", target_os = "openbsd"))]
+        if let Some(m) = &self.2 {
+            m.poll(&mut self.0, ctx, self.1.focused_viewport());
         }
         self.0.logic(ctx);
         self.1.logic(&mut self.0, ctx);
@@ -332,6 +348,13 @@ fn main() -> eframe::Result<()> {
     if cfg!(target_os = "macos") {
         viewport = viewport.with_fullsize_content_view(true).with_titlebar_shown(false).with_title_shown(false);
     }
+    // Linux and the BSDs: Celdas's own title bar with Nodalia's window controls, unless the
+    // preferences ask for the desktop's. macOS and Windows keep their native controls.
+    app.linux_desktop = cfg!(all(unix, not(target_os = "macos")));
+    app.ndl_window_controls = app.linux_desktop && app.ui.window_controls == celdas_ui_egui::window_controls::WindowControls::Nodalia;
+    if app.ndl_window_controls {
+        viewport = viewport.with_decorations(false);
+    }
     if let Some(i) = icon() {
         viewport = viewport.with_icon(i);
     }
@@ -396,6 +419,8 @@ fn main() -> eframe::Result<()> {
                     None,
                     #[cfg(target_os = "macos")]
                     apple_events.connect(&cc.egui_ctx),
+                    #[cfg(any(target_os = "linux", target_os = "freebsd", target_os = "dragonfly", target_os = "netbsd", target_os = "openbsd"))]
+                    linux_menu::install(&cc.egui_ctx, std::env::var_os("WAYLAND_DISPLAY").is_some_and(|d| !d.is_empty())),
                 )))
             }),
         )
