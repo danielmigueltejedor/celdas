@@ -29,7 +29,7 @@ gridcraft-math = { path = "crates/math" }
 # from one craft-libs revision.
 
 # In-app updates from this app's GitHub releases, with the update windows for egui.
-nodalia-update = { git = "https://github.com/danielmigueltejedor/nodalia-design", rev = "b2feb66c7f7b516613c4f2c74091baddb5a50f14", features = ["egui"] }
+nodalia-update = { git = "https://github.com/danielmigueltejedor/nodalia-design", rev = "ed8c8829a3dad688e17ce00ca1e15416bc7ba16e", features = ["egui"] }
 
 # foundation
 thiserror = "2"
