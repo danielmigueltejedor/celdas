@@ -363,6 +363,8 @@ pub(super) fn translate(text: &str) -> Option<&'static str> {
         "Save the workbook as a web page." => "Guarda el libro como página web.",
         "Options|General" => "General",
         "Options|Save" => "Guardar",
+        "Options|Editing" => "Edición",
+        "Cancel Copy" => "Cancelar copia",
         "Show formula bar" => "Mostrar barra de fórmulas",
         "Highlight the active cell's row" => "Resaltar la fila de la celda activa",
         "Display options for this workbook" => "Opciones de presentación para este libro",
