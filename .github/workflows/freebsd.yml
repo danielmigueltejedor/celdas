@@ -26,7 +26,11 @@ permissions:
 
 jobs:
   freebsd:
-    # Intentionally tracked at @main (not SHA-pinned) so org-wide CI improvements, security fixes, and build optimizations propagate without PR churn across all craftapp repos.
-    uses: storytold/craft-common-actions/.github/workflows/freebsd.yml@main
+    uses: getnodalia/foundation/.github/workflows/freebsd.yml@9178a270c5e577a822c5523d21b56efdd89fc1e1 # foundation main
     with:
-      craft-fonts-ref: b076417b5880bd4154bd22f00695b1d28c6bea83
+      # FreeBSD 15.0's package repository needs a newer libc than its VM image; 15.1 matches.
+      release: "15.1"
+      # The inherited workflow's list: gtk3 and mesa-dri bring the software Vulkan driver.
+      packages: "libxkbcommon wayland libX11 libXcursor libXrandr libXi libxcb mesa-libs mesa-dri vulkan-loader gtk3 fontconfig freetype2 alsa-lib dejavu"
+      fonts-repository: getnodalia/foundation
+      fonts-ref: b076417b5880bd4154bd22f00695b1d28c6bea83
