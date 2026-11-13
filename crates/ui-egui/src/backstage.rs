@@ -78,7 +78,7 @@ impl Page {
             Page::SaveAs => "Save As",
             Page::Print => "Print",
             Page::Export => "Export",
-            Page::Options => "Options",
+            Page::Options => "Preferences",
             Page::Account => "Account",
         }
     }
