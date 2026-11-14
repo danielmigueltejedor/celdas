@@ -169,10 +169,10 @@ jobs:
 
           ditto -x -k "celdas-cli-$VERSION-macos-universal.zip" cli
           cli="cli/celdas-cli-$VERSION-macos-universal/celdas-cli"
-          version="$("$cli" --version)"
+          native_version="$("$cli" --version)"
           intel_version="$(arch -x86_64 "$cli" --version)"
-          printf '%s\n' "$version" "$intel_version"
-          grep -Fq -- "$VERSION" <<< "$version"
+          printf '%s\n' "$native_version" "$intel_version"
+          grep -Fq -- "$VERSION" <<< "$native_version"
           grep -Fq -- "$VERSION" <<< "$intel_version"
 
   attach:
