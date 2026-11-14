@@ -1,4 +1,4 @@
-use super::{Key, Language, Modifiers, SheetApp, Ui, dim, i18n, json, section, vec2};
+use super::{Key, Language, Modifiers, SheetApp, Ui, dim, i18n, json, office, section, theme, vec2};
 
 /// Excel's File › Options page: General (display theme, interface language and Show formula bar),
 /// Editing (AutoComplete) and Save (the autosave checkbox toggling `app.ui.autosave`), plus Formulas
@@ -14,6 +14,10 @@ pub(super) fn options(app: &mut SheetApp, ui: &mut Ui) {
     let mut formula_bar = app.session.prefs.formula_bar;
     if ui.checkbox(&mut formula_bar, lang.tr("Show formula bar")).changed() {
         app.run_or_alert("view.formulaBar", json!({"on": formula_bar}));
+    }
+    let mut start_screen = app.ui.start_screen;
+    if ui.checkbox(&mut start_screen, lang.tr("Show the Start screen when Celdas starts")).changed() {
+        app.run_or_alert("options.startScreen", json!({"on": start_screen}));
     }
     let mut highlight_row = app.ui.highlight_active_row;
     if ui.checkbox(&mut highlight_row, lang.tr("Highlight the active cell's row")).changed() {
@@ -53,18 +57,20 @@ pub(super) fn options(app: &mut SheetApp, ui: &mut Ui) {
     dim(ui, lang.tr("Calculation settings are saved with the workbook."));
 }
 
-/// The display theme and interface language controls of the General section.
+/// The display theme, window controls and interface language of the General section, in the
+/// office apps' shared settings grid.
 fn general_options(app: &mut SheetApp, ui: &mut Ui, lang: Language) {
-    egui::Grid::new("backstage_options_general").num_columns(2).spacing(vec2(18.0, 10.0)).show(ui, |ui| {
-        let label = ui.label(lang.tr("Display theme"));
+    let look = super::look(&crate::theme::Tokens::get(ui.ctx()));
+    office::settings(ui, "backstage_options_general", |ui| {
         let mode = app.ui.theme_mode();
         let current = match mode {
             "system" => "System",
             "dark" => "Dark",
             _ => "Light",
         };
+        let label = setting_label(ui, &look, lang.tr("Display theme"));
         craft_ui::ComboBox::from_id_salt("backstage_theme")
-            .width(160.0)
+            .width(office::CONTROL_WIDTH)
             .selected_text(lang.tr(current))
             .show_ui(ui, |ui| {
                 for (value, label) in [("system", "System"), ("light", "Light"), ("dark", "Dark")] {
@@ -74,14 +80,14 @@ fn general_options(app: &mut SheetApp, ui: &mut Ui, lang: Language) {
                 }
             })
             .response
-            .labelled_by(label.id);
+            .labelled_by(label);
         ui.end_row();
         // Linux and the BSDs: Nodalia's window controls or the desktop's (from the next start).
         if app.linux_desktop {
-            let label = ui.label(lang.tr("Window controls"));
             let current = app.ui.window_controls;
+            let label = setting_label(ui, &look, lang.tr("Window controls"));
             craft_ui::ComboBox::from_id_salt("backstage_window_controls")
-                .width(160.0)
+                .width(office::CONTROL_WIDTH)
                 .selected_text(lang.tr(current.label()))
                 .show_ui(ui, |ui| {
                     for c in crate::window_controls::WindowControls::ALL {
@@ -91,12 +97,12 @@ fn general_options(app: &mut SheetApp, ui: &mut Ui, lang: Language) {
                     }
                 })
                 .response
-                .labelled_by(label.id);
+                .labelled_by(label);
             ui.end_row();
         }
-        let label = ui.label(lang.tr("Interface language"));
+        let label = setting_label(ui, &look, lang.tr("Interface language"));
         craft_ui::ComboBox::from_id_salt("backstage_language")
-            .width(160.0)
+            .width(office::CONTROL_WIDTH)
             .selected_text(lang.name())
             .show_ui(ui, |ui| {
                 for l in i18n::Language::for_picker() {
@@ -106,9 +112,14 @@ fn general_options(app: &mut SheetApp, ui: &mut Ui, lang: Language) {
                 }
             })
             .response
-            .labelled_by(label.id);
+            .labelled_by(label);
         ui.end_row();
     });
+}
+
+/// A settings row's label in the shared office style; its id labels the control beside it.
+fn setting_label(ui: &mut Ui, look: &office::Look, text: &str) -> egui::Id {
+    ui.label(egui::RichText::new(text).font(egui::FontId::new(13.5, look.regular.clone())).color(theme::ndl(look.palette.text_primary))).id
 }
 
 /// The calculation mode, and iterative calculation, of the active workbook.

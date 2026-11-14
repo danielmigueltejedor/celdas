@@ -179,7 +179,6 @@ pub fn tree() -> Vec<(&'static str, Vec<Entry>)> {
                 ("Keyboard Shortcuts", "dialog:keyboardShortcuts", None),
                 ("Check for Updates…", "app.checkForUpdates", None),
                 ("Agent Control (MCP)…", "dialog:agents", None),
-                ("Contributors…", "dialog:about:Contributors", None),
                 ("Celdas on getnodalia.com", "url:https://getnodalia.com/celdas", None),
             ],
         ),

@@ -300,6 +300,13 @@ pub(super) fn translate(text: &str) -> Option<&'static str> {
         "Product Information" => "Información del producto",
         "About Celdas" => "Acerca de Celdas",
         "Version" => "Versión",
+        "The spreadsheet of Nodalia's office apps." => "La hoja de cálculo de las apps de ofimática de Nodalia.",
+        "Part of Nodalia" => "Parte de Nodalia",
+        "Website" => "Sitio web",
+        "Licence: MIT or Apache-2.0" => "Licencia: MIT o Apache-2.0",
+        "Includes work by the ArtCraft Team and other open-source authors (see NOTICE)." => {
+            "Incluye trabajo del ArtCraft Team y de otros autores de código abierto (ver NOTICE)."
+        }
         "Platform" => "Plataforma",
         "Licence" => "Licencia",
         "Version, contributors and the AI models that helped" => "Versión, colaboradores y los modelos de IA que ayudaron",
@@ -367,6 +374,7 @@ pub(super) fn translate(text: &str) -> Option<&'static str> {
         "Cancel Copy" => "Cancelar copia",
         "Show formula bar" => "Mostrar barra de fórmulas",
         "Highlight the active cell's row" => "Resaltar la fila de la celda activa",
+        "Show the Start screen when Celdas starts" => "Mostrar la pantalla de inicio al abrir Celdas",
         "Display options for this workbook" => "Opciones de presentación para este libro",
         "Show horizontal scroll bar" => "Mostrar barra de desplazamiento horizontal",
         "Show vertical scroll bar" => "Mostrar barra de desplazamiento vertical",

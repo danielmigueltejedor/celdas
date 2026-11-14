@@ -1009,14 +1009,7 @@ impl Dialog {
             "commandSearch" => Dialog::custom("commandSearch", "Search Commands", json!({})),
             "agents" => Dialog::custom("agents", "Agent Control", json!({})),
             "keyboardShortcuts" => Dialog::custom("keyboardShortcuts", "Keyboard Shortcuts", json!({})),
-            "about" => {
-                let mut d = Dialog::custom("about", "About Celdas", json!({}));
-                d.tab = match p("tab").as_str() {
-                    Some(t @ ("Contributors" | "Models")) => t.to_string(),
-                    _ => "About".into(),
-                };
-                d
-            }
+            "about" => Dialog::custom("about", "About Celdas", json!({})),
             "recommendedCharts" => {
                 // Insert › Recommended Charts: chart types for the selected data, with previews.
                 let recs = match app.session.run("insert.chartRecommendations", json!({})) {
