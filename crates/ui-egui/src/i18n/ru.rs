@@ -443,6 +443,7 @@ pub(super) fn translate(text: &str) -> Option<&'static str> {
         "Options|Save" => "Сохранение",
         "Show formula bar" => "Показывать строку формул",
         "Highlight the active cell's row" => "Выделять строку активной ячейки",
+        "Show the Start screen when Celdas starts" => "Показывать начальный экран при запуске Celdas",
         "Display options for this workbook" => "Параметры отображения для этой книги",
         "Show horizontal scroll bar" => "Показывать горизонтальную полосу прокрутки",
         "Show vertical scroll bar" => "Показывать вертикальную полосу прокрутки",

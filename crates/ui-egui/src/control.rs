@@ -274,6 +274,7 @@ pub fn handle(app: &mut SheetApp, ctx: &egui::Context, method: &str, p: &Json) -
                 ("view.animations", "Animations", "{on?: bool} (toggles without it) → {on}"),
                 ("ui.windowControls", "Window Controls", "{value: nodalia|system} (Linux and the BSDs; at the next start) → {value, restart}"),
                 ("options.autoComplete", "Enable AutoComplete for cell values", "{on?: bool} (toggles without it) → {on}"),
+                ("options.startScreen", "Show the Start screen when Celdas starts", "{on?: bool} (toggles without it) → {on}"),
                 ("options.highlightActiveRow", "Highlight the active cell's row", "{on?: bool} (toggles without it) → {on}"),
                 ("view.interfaceScale", "Interface Size", "{percent: 75–200 | \"auto\"} (100 = auto; clamped)"),
                 ("ui.dialog", "Open Dialog", ""),

@@ -20,6 +20,7 @@ fn main() {
     let mut cmds: Vec<String> = vec![];
     let mut tab = None;
     let mut dark = false;
+    let mut app_menu = false;
     let mut window_controls = false;
     let mut file_page: Option<String> = None;
     let mut pane: Option<String> = None;
@@ -61,6 +62,7 @@ fn main() {
                 tab = args.get(i).cloned();
             }
             "--dark" => dark = true,
+            "--app-menu" => app_menu = true,
             // The Linux desktop app's own title bar with Nodalia's window controls.
             "--window-controls" => window_controls = true,
             // The File view on one of its pages (home, new, open, info, options…).
@@ -156,6 +158,11 @@ fn main() {
     // The workbook's installed fonts bind once the font scan is done; frames past the first few
     // apply them, so the snapshot shows them as the app does.
     harness.run_steps(14);
+    if app_menu {
+        // The main (hamburger) menu, open.
+        egui_kittest::kittest::Queryable::get_by_label(&harness, "Main menu").click();
+        harness.run_steps(4);
+    }
     if let Some((key, range)) = refedit.as_deref().and_then(|r| r.split_once('=')) {
         let app = harness.state_mut();
         if let Some(mut d) = app.dialog.take() {

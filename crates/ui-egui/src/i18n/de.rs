@@ -367,6 +367,7 @@ pub(super) fn translate(text: &str) -> Option<&'static str> {
         "Options|Save" => "Speichern",
         "Show formula bar" => "Bearbeitungsleiste anzeigen",
         "Highlight the active cell's row" => "Zeile der aktiven Zelle hervorheben",
+        "Show the Start screen when Celdas starts" => "Startbildschirm beim Start von Celdas anzeigen",
         "Display options for this workbook" => "Optionen für die Anzeige dieser Arbeitsmappe",
         "Show horizontal scroll bar" => "Horizontale Bildlaufleiste anzeigen",
         "Show vertical scroll bar" => "Vertikale Bildlaufleiste anzeigen",

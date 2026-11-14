@@ -435,6 +435,7 @@ pub(super) fn translate(text: &str) -> Option<&'static str> {
         "Options|Save" => "Salvar",
         "Show formula bar" => "Mostrar barra de fórmulas",
         "Highlight the active cell's row" => "Realçar a linha da célula ativa",
+        "Show the Start screen when Celdas starts" => "Mostrar o ecrã inicial ao abrir o Celdas",
         "Display options for this workbook" => "Opções de exibição para esta pasta de trabalho",
         "Show horizontal scroll bar" => "Mostrar barra de rolagem horizontal",
         "Show vertical scroll bar" => "Mostrar barra de rolagem vertical",

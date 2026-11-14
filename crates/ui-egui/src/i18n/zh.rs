@@ -433,6 +433,7 @@ pub(super) fn translate(text: &str) -> Option<&'static str> {
         "Options|Save" => "保存",
         "Show formula bar" => "显示编辑栏",
         "Highlight the active cell's row" => "突出显示活动单元格所在行",
+        "Show the Start screen when Celdas starts" => "启动 Celdas 时显示开始屏幕",
         "Display options for this workbook" => "此工作簿的显示选项",
         "Show horizontal scroll bar" => "显示水平滚动条",
         "Show vertical scroll bar" => "显示垂直滚动条",

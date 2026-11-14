@@ -188,14 +188,19 @@ fn app_menu(app: &mut SheetApp, ui: &mut Ui, h: f32) {
     egui::Popup::menu(&resp).show(|ui| {
         ui.set_min_width(220.0);
         let t = Tokens::get(ui.ctx());
-        // One row: Nodalia's icon, then the label.
+        // One row: Nodalia's icon, an 8 pt gap, then the label.
         let item = |ui: &mut Ui, icon: &str, label: &str| {
-            let resp = ui.add(egui::Button::new(format!("       {label}")).frame_when_inactive(false).min_size(vec2(208.0, 28.0)));
-            if let Some(i) = nodalia_theme::icons::get(icon) {
-                let at = Rect::from_center_size(pos2(resp.rect.min.x + 16.0, resp.rect.center().y), vec2(16.0, 16.0));
-                nodalia_theme::icons::paint(ui.painter(), at, i, nodalia_theme::icons::Style::bold(t.text));
-            }
+            let (rect, resp) = ui.allocate_exact_size(vec2(208.0, 30.0), Sense::click());
             resp.widget_info(|| egui::WidgetInfo::labeled(egui::Role::Button, true, label));
+            let p = ui.painter();
+            if resp.hovered() {
+                p.rect_filled(rect, theme::CONTROL_RADIUS, t.hover);
+            }
+            let glyph = Rect::from_min_size(pos2(rect.min.x + 10.0, rect.center().y - 8.0), vec2(16.0, 16.0));
+            if let Some(i) = nodalia_theme::icons::get(icon) {
+                nodalia_theme::icons::paint(p, glyph, i, nodalia_theme::icons::Style::bold(t.text));
+            }
+            p.text(pos2(glyph.right() + 8.0, rect.center().y), egui::Align2::LEFT_CENTER, label, theme::ui_font(13.5), t.text);
             resp.clicked()
         };
         let mut run: Option<(&str, serde_json::Value)> = None;

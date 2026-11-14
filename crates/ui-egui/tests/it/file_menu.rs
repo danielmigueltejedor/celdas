@@ -715,3 +715,17 @@ fn control_requests_route_to_a_window_and_list_windows() {
     let r = call(&mut h, "engine.execute", serde_json::json!({"command": "cell.get", "params": {"cell": "A1"}, "window": 999}));
     assert_eq!(r["ok"], false, "{r}");
 }
+
+#[test]
+/// The Start screen (File › Home on launch) is on by default and Preferences turns it off and on.
+fn the_start_screen_preference_is_on_by_default_and_toggles() {
+    let mut h = harness(Services::default());
+    assert!(h.state().ui.start_screen);
+    let r = h.state_mut().run("options.startScreen", serde_json::json!({"on": false})).unwrap();
+    assert_eq!(r["on"], false);
+    assert!(!h.state().ui.start_screen);
+    h.state_mut().run("options.startScreen", serde_json::json!({})).unwrap();
+    assert!(h.state().ui.start_screen);
+    let saved: celdas_ui_egui::UiState = serde_json::from_str("{}").unwrap();
+    assert!(saved.start_screen, "preferences saved before the setting existed keep it on");
+}

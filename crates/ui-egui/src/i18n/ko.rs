@@ -441,6 +441,7 @@ pub(super) fn translate(text: &str) -> Option<&'static str> {
         "Options|Save" => "저장",
         "Show formula bar" => "수식 입력줄 표시",
         "Highlight the active cell's row" => "활성 셀의 행 강조 표시",
+        "Show the Start screen when Celdas starts" => "Celdas 시작 시 시작 화면 표시",
         "Display options for this workbook" => "이 통합 문서의 표시 옵션",
         "Show horizontal scroll bar" => "가로 스크롤 막대 표시",
         "Show vertical scroll bar" => "세로 스크롤 막대 표시",

@@ -211,6 +211,10 @@ impl SheetApp {
                 self.ui.autocomplete = p.get("on").and_then(Json::as_bool).unwrap_or(!self.ui.autocomplete);
                 Ok(json!({"on": self.ui.autocomplete}))
             }
+            "options.startScreen" => {
+                self.ui.start_screen = p.get("on").and_then(Json::as_bool).unwrap_or(!self.ui.start_screen);
+                Ok(json!({"on": self.ui.start_screen}))
+            }
             "options.highlightActiveRow" => {
                 self.ui.highlight_active_row = p.get("on").and_then(Json::as_bool).unwrap_or(!self.ui.highlight_active_row);
                 Ok(json!({"on": self.ui.highlight_active_row}))

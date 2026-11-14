@@ -339,6 +339,11 @@ fn main() -> eframe::Result<()> {
     for f in &files {
         app.open_path(f);
     }
+    // Started with nothing to open: File › Home, as every Nodalia office app starts; Esc or Back
+    // leaves it for the blank workbook behind it.
+    if files.is_empty() && sample.is_none() && app.ui.start_screen {
+        app.run_or_alert("ui.backstage", json!({"page": "home"}));
+    }
     let mut viewport = egui::ViewportBuilder::default()
         .with_title("Celdas")
         .with_inner_size([1440.0, 900.0])

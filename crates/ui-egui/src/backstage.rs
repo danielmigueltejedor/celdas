@@ -12,24 +12,20 @@ use std::collections::HashMap;
 use std::sync::atomic::{AtomicBool, Ordering};
 use std::sync::{Arc, Mutex, PoisonError};
 
-use egui::{Align2, Color32, Key, Modifiers, Rect, RichText, Sense, Stroke, StrokeKind, Ui, pos2, vec2};
+use egui::{Align2, Key, Modifiers, Rect, RichText, Sense, Stroke, StrokeKind, Ui, pos2, vec2};
 use serde_json::{Value as Json, json};
 
 use crate::SheetApp;
 use crate::i18n::{self, Language};
 use crate::icons::{self, Icon};
 use crate::theme::{self, Tokens};
+use nodalia_theme::office;
 
 mod options;
 mod print;
 
 use options::{options, platform};
 use print::print;
-
-/// Width of the navigation column.
-const NAV_W: f32 = 196.0;
-/// Width of the content column (pages are left-aligned like a document, not stretched).
-const CONTENT_W: f32 = 760.0;
 
 /// A Backstage page.
 #[derive(Clone, Copy, Debug, PartialEq, Eq)]
@@ -158,85 +154,71 @@ struct Outcome {
     page: Option<Page>,
 }
 
-/// Draws the Backstage view in place of the ribbon, formula bar, grid and sheet tabs.
+/// The colours and fonts of the shared office File view, from the current theme.
+fn look(t: &Tokens) -> office::Look {
+    office::Look::new(theme::palette_of(t)).with_bold(egui::FontFamily::Name(theme::UI_BOLD.into()))
+}
+
+/// Ids of the navigation rows that act at once instead of opening a page.
+const SAVE: &str = "save";
+const CLOSE: &str = "close";
+
+/// Draws the Backstage view in place of the ribbon, formula bar, grid and sheet tabs: the office
+/// apps' shared File view (`nodalia_theme::office`), with Celdas's pages inside it.
 pub fn show(app: &mut SheetApp, ui: &mut Ui) {
     let Some(mut bs) = app.backstage.take() else { return };
     let ctx = ui.ctx().clone();
     // Esc inside a text field leaves the field; it closes the view only from outside one.
     let typing = bs.text_edit_focused;
     let t = Tokens::get(&ctx);
+    let look = look(&t);
     let lang = app.ui.language;
     let mut out = Outcome::default();
-    // Nodalia Design: the navigation and the page are two islands on the window colour.
-    let (nav_text, nav_sel) = (t.text, t.accent_soft);
-    let g = theme::ISLAND_GAP as i8;
-    egui::Panel::left("backstage_nav")
-        .exact_size(NAV_W + 16.0 + f32::from(g))
-        .resizable(false)
-        .show_separator_line(false)
-        .frame(theme::island(&t, egui::Margin { left: 8, right: 8, top: 10, bottom: 10 }, egui::Margin { left: g, right: 0, top: 0, bottom: g }))
-        .show(ui, |ui| {
-            ui.spacing_mut().item_spacing.y = 0.0;
-            if nav_item(ui, Icon::Back, lang.tr("Back"), false, nav_text, nav_sel).clicked() {
+    let item = |page: Page| office::Entry::item(page.id(), lang.tr(page.label()), icons::ndl_name(page.icon()));
+    let nav = office::Nav {
+        back: lang.tr("Back"),
+        top: vec![
+            item(Page::Home),
+            item(Page::New),
+            item(Page::Open),
+            office::Entry::Separator,
+            item(Page::Info),
+            office::Entry::item(SAVE, lang.tr("Save"), icons::ndl_name(Icon::Save)),
+            item(Page::SaveAs),
+            item(Page::Print),
+            item(Page::Export),
+            office::Entry::item(CLOSE, lang.tr("Close"), icons::ndl_name(Icon::Close)),
+        ],
+        // Account sits just above Preferences.
+        bottom: vec![item(Page::Account), item(Page::Options)],
+        selected: Some(bs.page.id()),
+    };
+    let picked = office::file_view(ui, &look, &nav, |ui| {
+        office::page(ui, &look, lang.tr(bs.page.label()), |ui| match bs.page {
+            Page::Home => home(app, ui, &mut bs, &mut out),
+            Page::New => new_page(app, ui, &mut out),
+            Page::Open => open_page(app, ui, &mut bs, &mut out),
+            Page::Info => info(app, ui, &mut bs),
+            Page::SaveAs => save_as(app, ui, &mut bs, &mut out),
+            Page::Print => print(app, ui, &mut bs, &mut out),
+            Page::Export => export(app, ui, &mut out),
+            Page::Options => options(app, ui),
+            Page::Account => account(app, ui),
+        });
+    });
+    match picked.as_deref() {
+        Some(office::BACK) => out.close = true,
+        Some(SAVE) => save(app, &mut out),
+        Some(CLOSE) => {
+            // A cell still being edited is part of the workbook; Close keeps the unsaved prompt.
+            if app.commit_edit(0, 0, false, false) {
+                app.run_or_alert("file.close", json!({}));
                 out.close = true;
             }
-            ui.add_space(10.0);
-            for page in [Page::Home, Page::New, Page::Open] {
-                if nav_item(ui, page.icon(), lang.tr(page.label()), bs.page == page, nav_text, nav_sel).clicked() {
-                    out.page = Some(page);
-                }
-            }
-            nav_separator(ui, nav_text);
-            if nav_item(ui, Page::Info.icon(), lang.tr("Info"), bs.page == Page::Info, nav_text, nav_sel).clicked() {
-                out.page = Some(Page::Info);
-            }
-            if nav_item(ui, Icon::Save, lang.tr("Save"), false, nav_text, nav_sel).clicked() {
-                save(app, &mut out);
-            }
-            for page in [Page::SaveAs, Page::Print, Page::Export] {
-                if nav_item(ui, page.icon(), lang.tr(page.label()), bs.page == page, nav_text, nav_sel).clicked() {
-                    out.page = Some(page);
-                }
-            }
-            if nav_item(ui, Icon::Close, lang.tr("Close"), false, nav_text, nav_sel).clicked() {
-                // A cell still being edited is part of the workbook; Close keeps the unsaved prompt.
-                if app.commit_edit(0, 0, false, false) {
-                    app.run_or_alert("file.close", json!({}));
-                    out.close = true;
-                }
-            }
-            // Bottom up: Account sits just above Options, as in Excel.
-            ui.with_layout(egui::Layout::bottom_up(egui::Align::Min), |ui| {
-                for page in [Page::Options, Page::Account] {
-                    if nav_item(ui, page.icon(), lang.tr(page.label()), bs.page == page, nav_text, nav_sel).clicked() {
-                        out.page = Some(page);
-                    }
-                }
-            });
-        });
-    egui::CentralPanel::default().frame(theme::island(&t, egui::Margin::ZERO, egui::Margin { left: g, right: g, top: 0, bottom: g })).show(
-        ui,
-        |ui| {
-            egui::ScrollArea::vertical().auto_shrink([false, false]).show(ui, |ui| {
-                egui::Frame::NONE.inner_margin(egui::Margin { left: 44, right: 32, top: 26, bottom: 32 }).show(ui, |ui| {
-                    ui.set_max_width(CONTENT_W);
-                    ui.label(RichText::new(lang.tr(bs.page.label())).font(theme::ui_font(28.0)).color(t.text));
-                    ui.add_space(18.0);
-                    match bs.page {
-                        Page::Home => home(app, ui, &mut bs, &mut out),
-                        Page::New => new_page(app, ui, &mut out),
-                        Page::Open => open_page(app, ui, &mut bs, &mut out),
-                        Page::Info => info(app, ui, &mut bs),
-                        Page::SaveAs => save_as(app, ui, &mut bs, &mut out),
-                        Page::Print => print(app, ui, &mut bs, &mut out),
-                        Page::Export => export(app, ui, &mut out),
-                        Page::Options => options(app, ui),
-                        Page::Account => account(app, ui),
-                    }
-                });
-            });
-        },
-    );
+        }
+        Some(id) => out.page = Page::parse(id).or(out.page),
+        None => {}
+    }
     bs.text_edit_focused = ctx.text_edit_focused();
     if !typing
         && app.dialog.is_none()
@@ -271,41 +253,6 @@ fn save(app: &mut SheetApp, out: &mut Outcome) {
     }
 }
 
-// ---------------------------------------------------------------- navigation
-
-/// Allocates and paints one Backstage navigation row: selected or hover fill, icon, label and button semantics. Returns the row's click response.
-fn nav_item(ui: &mut Ui, icon: Icon, label: &str, selected: bool, text: Color32, sel: Color32) -> egui::Response {
-    let (rect, resp) = ui.allocate_exact_size(vec2(NAV_W, 38.0), Sense::click());
-    resp.widget_info(|| egui::WidgetInfo::selected(egui::Role::Button, true, selected, label));
-    let t = Tokens::get(ui.ctx());
-    let p = ui.painter();
-    // Rounded rows, the selected one in the accent's soft tint with accent-coloured ink.
-    let text = if selected {
-        p.rect_filled(rect, theme::CONTROL_RADIUS, sel);
-        theme::ndl(theme::palette_of(&t).accent_text)
-    } else {
-        if resp.hovered() {
-            p.rect_filled(rect, theme::CONTROL_RADIUS, t.hover);
-        }
-        text
-    };
-    icons::paint(p, Rect::from_center_size(pos2(rect.left() + 22.0, rect.center().y), vec2(18.0, 18.0)), icon, text);
-    p.text(
-        pos2(rect.left() + 42.0, rect.center().y),
-        Align2::LEFT_CENTER,
-        label,
-        if selected { theme::ui_bold(14.0) } else { theme::ui_font(14.0) },
-        text,
-    );
-    resp
-}
-
-fn nav_separator(ui: &mut Ui, text: Color32) {
-    let (rect, _) = ui.allocate_exact_size(vec2(NAV_W, 17.0), Sense::hover());
-    let y = rect.center().y;
-    ui.painter().line_segment([pos2(rect.left() + 12.0, y), pos2(rect.right() - 12.0, y)], Stroke::new(1.0, text.gamma_multiply(0.2)));
-}
-
 // ---------------------------------------------------------------- shared pieces
 
 fn section(ui: &mut Ui, lang: Language, title: &str) {
@@ -320,20 +267,12 @@ fn dim(ui: &mut Ui, text: &str) {
     ui.label(RichText::new(text).font(theme::ui_font(12.5)).color(t.text_dim));
 }
 
-/// A new-workbook tile: a small sheet drawn in code over its name.
-fn tile(ui: &mut Ui, label: &str, sample: Option<usize>) -> egui::Response {
-    let t = Tokens::get(ui.ctx());
-    let (rect, resp) = ui.allocate_exact_size(vec2(150.0, 140.0), Sense::click());
-    resp.widget_info(|| egui::WidgetInfo::labeled(egui::Role::Button, true, label));
-    let p = ui.painter();
-    let thumb = Rect::from_min_size(rect.min, vec2(rect.width(), 104.0));
-    p.rect_filled(thumb, 4.0, t.grid_bg);
-    let edge = if resp.hovered() { Stroke::new(2.0, t.accent) } else { Stroke::new(1.0, t.ribbon_border) };
-    let inner = thumb.shrink(10.0);
+/// A new-workbook thumbnail: a small sheet drawn in code; a sample adds a header band and a few
+/// "values" so each reads differently from a blank book.
+fn draw_sheet(p: &egui::Painter, inner: Rect, t: &Tokens, sample: Option<usize>) {
     let (rows, cols) = (7, 4);
     let (rh, cw) = (inner.height() / rows as f32, inner.width() / cols as f32);
     if let Some(i) = sample {
-        // A header band and a few "values" so each sample reads differently from a blank book.
         p.rect_filled(Rect::from_min_size(inner.min, vec2(inner.width(), rh)), 0.0, t.accent_soft);
         for r in 1..rows {
             let len = ((r * (i + 2) * 7 + i * 3) % 10) as f32 / 10.0;
@@ -352,28 +291,30 @@ fn tile(ui: &mut Ui, label: &str, sample: Option<usize>) -> egui::Response {
         let x = inner.left() + c as f32 * cw;
         p.line_segment([pos2(x, inner.top()), pos2(x, inner.bottom())], Stroke::new(1.0, t.gridline));
     }
-    p.rect_stroke(thumb, 4.0, edge, StrokeKind::Inside);
-    let galley = p.layout(label.to_string(), theme::ui_font(12.5), t.text, rect.width());
-    p.galley(pos2(rect.left(), thumb.bottom() + 6.0), galley, t.text);
-    resp
 }
 
 /// Blank workbook and the built-in samples.
 fn new_tiles(app: &mut SheetApp, ui: &mut Ui, out: &mut Outcome) {
     let lang = app.ui.language;
-    ui.horizontal_wrapped(|ui| {
-        ui.spacing_mut().item_spacing = vec2(18.0, 14.0);
-        if tile(ui, lang.tr("Blank workbook"), None).clicked() {
+    let t = Tokens::get(ui.ctx());
+    let samples = celdas_engine::sample::SAMPLES;
+    // Thumbnail 0 is the blank workbook; thumbnail k is sample k - 1.
+    let draws: Vec<_> = (0..=samples.len()).map(|k| move |p: &egui::Painter, r: Rect| draw_sheet(p, r, &t, k.checked_sub(1))).collect();
+    let names: Vec<&str> = std::iter::once(lang.tr("Blank workbook")).chain(samples.iter().map(|(_, title)| *title)).collect();
+    let list: Vec<office::Template> = names.iter().zip(&draws).map(|(name, draw)| office::Template { name, draw }).collect();
+    match office::templates(ui, &look(&t), &list) {
+        Some(0) => {
             app.run_or_alert("file.new", json!({}));
             out.close = true;
         }
-        for (i, (name, title)) in celdas_engine::sample::SAMPLES.iter().enumerate() {
-            if tile(ui, title, Some(i)).clicked() {
+        Some(i) => {
+            if let Some((name, _)) = samples.get(i - 1) {
                 app.run_or_alert("file.new", json!({"sample": name}));
                 out.close = true;
             }
         }
-    });
+        None => {}
+    }
 }
 
 /// File name and folder of a recent path, split as text.
@@ -384,62 +325,35 @@ fn split_path(path: &str) -> (String, String) {
     (name, folder)
 }
 
-/// Width of the column that tells when a recent workbook was last changed.
-const MODIFIED_W: f32 = 150.0;
-
 /// Recent workbooks, newest first, each with when it was last changed. Opening one is the user's
 /// explicit choice.
 fn recent_list(app: &mut SheetApp, ui: &mut Ui, bs: &mut Backstage, out: &mut Outcome, limit: usize) {
     let t = Tokens::get(ui.ctx());
     let lang = app.ui.language;
-    if app.ui.recent.is_empty() {
-        dim(ui, lang.tr("No recent workbooks yet."));
-        return;
-    }
-    let width = ui.available_width().min(CONTENT_W);
+    let paths: Vec<String> = app.ui.recent.iter().take(limit).cloned().collect();
     // What the file system has said so far; the rest arrives in later frames (see `RecentFiles`).
-    let known = bs.recent.known(ui.ctx(), &app.ui.recent);
-    // The web build has no files to ask about, and a narrow window leaves the names their room.
-    let modified_w = if cfg!(target_arch = "wasm32") || width < 420.0 { 0.0 } else { MODIFIED_W };
-    if modified_w > 0.0 {
-        let (head, _) = ui.allocate_exact_size(vec2(width, 20.0), Sense::hover());
-        ui.painter().text(
-            pos2(head.right() - modified_w, head.center().y),
-            Align2::LEFT_CENTER,
-            lang.tr("Modified"),
-            theme::ui_font(11.5),
-            t.text_dim,
-        );
-    }
+    let known = if paths.is_empty() { HashMap::new() } else { bs.recent.known(ui.ctx(), &app.ui.recent) };
     let now = crate::now_ms() / 1000.0;
-    for path in app.ui.recent.iter().take(limit).cloned().collect::<Vec<_>>() {
-        let (name, folder) = split_path(&path);
-        let (rect, resp) = ui.allocate_exact_size(vec2(width, 44.0), Sense::click());
-        resp.widget_info(|| egui::WidgetInfo::labeled(egui::Role::Button, true, &name));
-        let p = ui.painter();
-        if resp.hovered() {
-            p.rect_filled(rect, 4.0, t.hover);
-        }
-        icons::paint(p, Rect::from_center_size(pos2(rect.left() + 20.0, rect.center().y), vec2(20.0, 20.0)), Icon::Book, t.text);
-        // A long name or folder stops short of the column instead of running under it.
-        let room = if modified_w > 0.0 { rect.right() - modified_w - 14.0 } else { rect.right() };
-        let text = p.with_clip_rect(Rect::from_min_max(rect.min, pos2(room, rect.bottom())).intersect(p.clip_rect()));
-        text.text(pos2(rect.left() + 42.0, rect.center().y - 8.0), Align2::LEFT_CENTER, &name, theme::ui_font(13.5), t.text);
-        text.text(pos2(rect.left() + 42.0, rect.center().y + 9.0), Align2::LEFT_CENTER, &folder, theme::ui_font(11.5), t.text_dim);
-        if modified_w > 0.0 {
-            let (words, color) = match known.get(&path) {
-                Some(Modified::At(seconds)) => (age(lang, now - seconds), t.text_dim),
-                Some(Modified::Unknown) => (lang.tr("Not available").to_string(), t.text_disabled),
-                None => (String::new(), t.text_dim),
+    let rows: Vec<(String, String, String)> = paths
+        .iter()
+        .map(|path| {
+            let (name, folder) = split_path(path);
+            let when = match known.get(path) {
+                Some(Modified::At(seconds)) => age(lang, now - seconds),
+                Some(Modified::Unknown) => lang.tr("Not available").to_string(),
+                None => String::new(),
             };
-            p.text(pos2(rect.right() - modified_w, rect.center().y), Align2::LEFT_CENTER, words, theme::ui_font(12.0), color);
-        }
-        let resp = resp.on_hover_text(&path);
-        if resp.clicked() {
-            app.open_path(&path);
-            if app.session.active().and_then(|d| d.path.as_deref()) == Some(path.as_str()) {
-                out.close = true;
-            }
+            (name, folder, when)
+        })
+        .collect();
+    let list: Vec<office::Recent> = rows.iter().zip(&paths).map(|((name, folder, when), path)| office::Recent { name, folder, when, path }).collect();
+    // The web build has no files to ask about, so it shows no Modified column.
+    let modified = (!cfg!(target_arch = "wasm32")).then(|| lang.tr("Modified"));
+    let picked = office::recents(ui, &look(&t), &list, lang.tr("No recent workbooks yet."), modified);
+    if let Some(path) = picked.and_then(|i| paths.get(i)) {
+        app.open_path(path);
+        if app.session.active().and_then(|d| d.path.as_deref()) == Some(path.as_str()) {
+            out.close = true;
         }
     }
 }
@@ -539,7 +453,7 @@ fn age(lang: Language, seconds: f64) -> String {
 /// A large clickable row (icon, title, one-line description).
 fn action_row(ui: &mut Ui, icon: Icon, title: &str, detail: &str) -> egui::Response {
     let t = Tokens::get(ui.ctx());
-    let width = ui.available_width().min(CONTENT_W);
+    let width = ui.available_width().min(office::CONTENT_WIDTH);
     let (rect, resp) = ui.allocate_exact_size(vec2(width, 56.0), Sense::click());
     resp.widget_info(|| egui::WidgetInfo::labeled(egui::Role::Button, true, title));
     let p = ui.painter();
