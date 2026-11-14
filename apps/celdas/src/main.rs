@@ -43,6 +43,11 @@ struct App(
 );
 
 impl eframe::App for App {
+    /// The theme's window colour, so nothing shows through the islands' gaps or behind the
+    /// first frame (eframe's default is a translucent near-black).
+    fn clear_color(&self, visuals: &egui::Visuals) -> [f32; 4] {
+        visuals.panel_fill.to_normalized_gamma_f32()
+    }
     fn logic(&mut self, ctx: &egui::Context, _frame: &mut eframe::Frame) {
         #[cfg(target_os = "macos")]
         {

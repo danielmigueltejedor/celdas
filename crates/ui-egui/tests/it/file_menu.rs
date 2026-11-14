@@ -729,3 +729,22 @@ fn the_start_screen_preference_is_on_by_default_and_toggles() {
     let saved: celdas_ui_egui::UiState = serde_json::from_str("{}").unwrap();
     assert!(saved.start_screen, "preferences saved before the setting existed keep it on");
 }
+
+/// The window colour fills the whole window before the File view's islands are drawn, so the
+/// gaps around them never show eframe's translucent clear colour (black on macOS, light theme).
+#[test]
+fn the_file_view_paints_the_window_colour_behind_its_islands() {
+    for dark in [false, true] {
+        let mut h = harness(Services::default());
+        h.state_mut().run("view.theme", serde_json::json!({"mode": if dark { "dark" } else { "light" }})).unwrap();
+        h.state_mut().run("ui.backstage", serde_json::json!({"page": "options"})).unwrap();
+        h.run_steps(3);
+        let ctx = h.ctx.clone();
+        let window = celdas_ui_egui::theme::Tokens::get(&ctx).window;
+        let screen = ctx.content_rect();
+        // The harness paints its own panel first; the window fill comes before the File view.
+        let shapes = &h.output().shapes;
+        let fill = shapes.iter().position(|c| matches!(&c.shape, egui::Shape::Rect(r) if r.fill == window && r.rect.contains_rect(screen)));
+        assert!(fill.is_some_and(|i| i < 3), "dark={dark}: the window colour fills the whole window first ({fill:?})");
+    }
+}

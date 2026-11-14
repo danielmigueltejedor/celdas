@@ -667,7 +667,7 @@ dependencies = [
 
 [[package]]
 name = "celdas"
-version = "0.1.1"
+version = "0.1.2"
 dependencies = [
  "arboard",
  "celdas-engine",
@@ -695,7 +695,7 @@ dependencies = [
 
 [[package]]
 name = "celdas-calc"
-version = "0.1.1"
+version = "0.1.2"
 dependencies = [
  "celdas-core",
  "celdas-formula",
@@ -707,7 +707,7 @@ dependencies = [
 
 [[package]]
 name = "celdas-chart"
-version = "0.1.1"
+version = "0.1.2"
 dependencies = [
  "celdas-calc",
  "celdas-core",
@@ -718,7 +718,7 @@ dependencies = [
 
 [[package]]
 name = "celdas-cli"
-version = "0.1.1"
+version = "0.1.2"
 dependencies = [
  "celdas-engine",
  "celdas-mcp",
@@ -730,7 +730,7 @@ dependencies = [
 
 [[package]]
 name = "celdas-core"
-version = "0.1.1"
+version = "0.1.2"
 dependencies = [
  "chrono",
  "js-sys",
@@ -741,7 +741,7 @@ dependencies = [
 
 [[package]]
 name = "celdas-engine"
-version = "0.1.1"
+version = "0.1.2"
 dependencies = [
  "celdas-calc",
  "celdas-chart",
@@ -764,7 +764,7 @@ dependencies = [
 
 [[package]]
 name = "celdas-formula"
-version = "0.1.1"
+version = "0.1.2"
 dependencies = [
  "celdas-core",
  "serde",
@@ -773,7 +773,7 @@ dependencies = [
 
 [[package]]
 name = "celdas-functions"
-version = "0.1.1"
+version = "0.1.2"
 dependencies = [
  "celdas-core",
  "regex",
@@ -781,7 +781,7 @@ dependencies = [
 
 [[package]]
 name = "celdas-math"
-version = "0.1.1"
+version = "0.1.2"
 dependencies = [
  "ratex-font",
  "ratex-layout",
@@ -791,7 +791,7 @@ dependencies = [
 
 [[package]]
 name = "celdas-mcp"
-version = "0.1.1"
+version = "0.1.2"
 dependencies = [
  "celdas-engine",
  "log",
@@ -800,7 +800,7 @@ dependencies = [
 
 [[package]]
 name = "celdas-model"
-version = "0.1.1"
+version = "0.1.2"
 dependencies = [
  "celdas-core",
  "celdas-formula",
@@ -813,18 +813,18 @@ dependencies = [
 
 [[package]]
 name = "celdas-numfmt"
-version = "0.1.1"
+version = "0.1.2"
 dependencies = [
  "celdas-core",
 ]
 
 [[package]]
 name = "celdas-pdf"
-version = "0.1.1"
+version = "0.1.2"
 
 [[package]]
 name = "celdas-ui-egui"
-version = "0.1.1"
+version = "0.1.2"
 dependencies = [
  "celdas-chart",
  "celdas-engine",
@@ -852,7 +852,7 @@ dependencies = [
 
 [[package]]
 name = "celdas-web"
-version = "0.1.1"
+version = "0.1.2"
 dependencies = [
  "celdas-engine",
  "celdas-ui-egui",
@@ -871,7 +871,7 @@ dependencies = [
 
 [[package]]
 name = "celdas-xlsx"
-version = "0.1.1"
+version = "0.1.2"
 dependencies = [
  "aes",
  "celdas-core",
@@ -6568,7 +6568,7 @@ checksum = "e450f9b2ed1dff33c94c12589a87338689467b9c4f5d8a5710bd09a847d2c8a7"
 
 [[package]]
 name = "xtask"
-version = "0.1.1"
+version = "0.1.2"
 dependencies = [
  "celdas-engine",
  "serde_json",
