@@ -213,6 +213,11 @@ impl SheetApp {
         #[cfg(not(target_arch = "wasm32"))]
         updates_ui::show(self, &ctx);
         let t = theme::Tokens::get(&ctx);
+        // The window colour shows between the islands (Nodalia Design). Panels with outer margins
+        // (the File view's islands, the sheet) leave their gaps unpainted, and eframe's clear
+        // colour is a translucent near-black, so paint the whole window first.
+        let whole = ctx.content_rect();
+        ui.painter().with_clip_rect(whole).rect_filled(whole, 0.0, t.window);
         // A host can turn the File tab off while Backstage is already open: close it.
         if !self.chrome.file_tab {
             self.backstage = None;
