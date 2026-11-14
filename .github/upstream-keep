@@ -18,3 +18,4 @@ docs/release-notes/**
 packaging/macos/dmg/**
 .github/CODEOWNERS
 CONTRIBUTING.md
+.github/ISSUE_TEMPLATE/**
