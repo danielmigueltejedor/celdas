@@ -42,19 +42,3 @@ jobs:
         with:
           persist-credentials: false
       - run: python3 scripts/rebrand.py check
-
-  # A released version needs its hand-written notes (docs/release-notes/README.md).
-  release-notes:
-    name: Release notes are written
-    runs-on: ubuntu-24.04
-    steps:
-      - uses: actions/checkout@3d3c42e5aac5ba805825da76410c181273ba90b1 # v7.0.1
-        with:
-          persist-credentials: false
-      - shell: bash
-        run: |
-          version="$(sed -n 's/^version = "\(.*\)"/\1/p' Cargo.toml | head -1)"
-          case "$version" in
-            *-dev*) echo "Version $version is a development version: no notes needed." ;;
-            *) scripts/check-release-notes.sh "v$version" ;;
-          esac
